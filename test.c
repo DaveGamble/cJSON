@@ -59,11 +59,11 @@ void create_objects()
 	root=cJSON_CreateObject();	
 	cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
 	cJSON_AddItemToObject(root, "format", fmt=cJSON_CreateObject());
-	cJSON_AddItemToObject(fmt,"type",		cJSON_CreateString("rect"));
-	cJSON_AddItemToObject(fmt,"width",		cJSON_CreateNumber(1920));
-	cJSON_AddItemToObject(fmt,"height",		cJSON_CreateNumber(1080));
-	cJSON_AddItemToObject(fmt,"interlace",	cJSON_CreateFalse());
-	cJSON_AddItemToObject(fmt,"frame rate",	cJSON_CreateNumber(24));
+	cJSON_AddStringToObject(fmt,"type",		"rect");
+	cJSON_AddNumberToObject(fmt,"width",		1920);
+	cJSON_AddNumberToObject(fmt,"height",		1080);
+	cJSON_AddFalseToObject (fmt,"interlace");
+	cJSON_AddNumberToObject(fmt,"frame rate",	24);
 	
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);	// Print to text, Delete the cJSON, print it, release the string.
 
@@ -85,13 +85,13 @@ void create_objects()
 	int ids[4]={116,943,234,38793};
 	root=cJSON_CreateObject();
 	cJSON_AddItemToObject(root, "Image", img=cJSON_CreateObject());
-	cJSON_AddItemToObject(img,"Width",cJSON_CreateNumber(800));
-	cJSON_AddItemToObject(img,"Height",cJSON_CreateNumber(600));
-	cJSON_AddItemToObject(img,"Title",cJSON_CreateString("View from 15th Floor"));
+	cJSON_AddNumberToObject(img,"Width",800);
+	cJSON_AddNumberToObject(img,"Height",600);
+	cJSON_AddStringToObject(img,"Title","View from 15th Floor");
 	cJSON_AddItemToObject(img, "Thumbnail", thm=cJSON_CreateObject());
-	cJSON_AddItemToObject(thm, "Url", cJSON_CreateString("http://www.example.com/image/481989943"));
-	cJSON_AddItemToObject(thm,"Height",cJSON_CreateNumber(125));
-	cJSON_AddItemToObject(thm,"Width",cJSON_CreateString("100"));
+	cJSON_AddStringToObject(thm, "Url", "http://www.example.com/image/481989943");
+	cJSON_AddNumberToObject(thm,"Height",125);
+	cJSON_AddStringToObject(thm,"Width","100");
 	cJSON_AddItemToObject(img,"IDs", cJSON_CreateIntArray(ids,4));
 
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
@@ -105,14 +105,14 @@ void create_objects()
 	for (i=0;i<2;i++)
 	{
 		cJSON_AddItemToArray(root,fld=cJSON_CreateObject());
-		cJSON_AddItemToObject(fld, "precision", cJSON_CreateString(fields[i].precision));
-		cJSON_AddItemToObject(fld, "Latitude", cJSON_CreateNumber(fields[i].lat));
-		cJSON_AddItemToObject(fld, "Longitude", cJSON_CreateNumber(fields[i].lon));
-		cJSON_AddItemToObject(fld, "Address", cJSON_CreateString(fields[i].address));
-		cJSON_AddItemToObject(fld, "City", cJSON_CreateString(fields[i].city));
-		cJSON_AddItemToObject(fld, "State", cJSON_CreateString(fields[i].state));
-		cJSON_AddItemToObject(fld, "Zip", cJSON_CreateString(fields[i].zip));
-		cJSON_AddItemToObject(fld, "Country", cJSON_CreateString(fields[i].country));
+		cJSON_AddStringToObject(fld, "precision", fields[i].precision);
+		cJSON_AddNumberToObject(fld, "Latitude", fields[i].lat);
+		cJSON_AddNumberToObject(fld, "Longitude", fields[i].lon);
+		cJSON_AddStringToObject(fld, "Address", fields[i].address);
+		cJSON_AddStringToObject(fld, "City", fields[i].city);
+		cJSON_AddStringToObject(fld, "State", fields[i].state);
+		cJSON_AddStringToObject(fld, "Zip", fields[i].zip);
+		cJSON_AddStringToObject(fld, "Country", fields[i].country);
 	}
 	
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);

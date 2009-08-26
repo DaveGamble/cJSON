@@ -83,7 +83,13 @@ extern cJSON *cJSON_CreateStringArray(const char **strings,int count);
 // Append item to the specified array/object.
 extern void   cJSON_AddItemToArray(cJSON *array, cJSON *item);
 extern void	  cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item);
-	
+
+#define cJSON_AddNullToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateNull())
+#define cJSON_AddTrueToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateTrue())
+#define cJSON_AddFalseToObject(object,name)		cJSON_AddItemToObject(object, name, cJSON_CreateFalse())
+#define cJSON_AddNumberToObject(object,name,n)	cJSON_AddItemToObject(object, name, cJSON_CreateNumber(n))
+#define cJSON_AddStringToObject(object,name,s)	cJSON_AddItemToObject(object, name, cJSON_CreateString(s))
+
 #ifdef __cplusplus
 }
 #endif
