@@ -102,7 +102,7 @@ void create_objects()
 		{"zip",37.371991,-1.22026e+2,"","SUNNYVALE","CA","94085","US"}};
 
 	root=cJSON_CreateArray();
-	for (int i=0;i<2;i++)
+	for (i=0;i<2;i++)
 	{
 		cJSON_AddItemToArray(root,fld=cJSON_CreateObject());
 		cJSON_AddItemToObject(fld, "precision", cJSON_CreateString(fields[i].precision));
