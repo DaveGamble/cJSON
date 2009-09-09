@@ -30,6 +30,10 @@
 #include <float.h>
 #include "cJSON.h"
 
+#ifdef WINDOWS
+#define strcasecmp stricmp
+#endif
+
 // Internal constructor.
 static cJSON *cJSON_New_Item() { return (cJSON*)calloc(sizeof(cJSON),1); }
 
@@ -78,12 +82,12 @@ static char *print_number(cJSON *item)
 	double d=item->valuedouble;
 	if (fabs(((double)item->valueint)-d)<=DBL_EPSILON)
 	{
-		str=malloc(21);	// 2^64+1 can be represented in 21 chars.
+		str=(char*)malloc(21);	// 2^64+1 can be represented in 21 chars.
 		sprintf(str,"%d",item->valueint);
 	}
 	else
 	{
-		str=malloc(64);	// This is a nice tradeoff.
+		str=(char*)malloc(64);	// This is a nice tradeoff.
 		if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)	sprintf(str,"%e",d);
 		else									sprintf(str,"%f",d);
 	}
@@ -181,8 +185,11 @@ static char *print_array(cJSON *item,int depth);
 static const char *parse_object(cJSON *item,const char *value);
 static char *print_object(cJSON *item,int depth);
 
+// Utility to jump whitespace and cr/lf
+static const char *skip(const char *in) {while (in && *in<=32) in++; return in;}
+
 // Parse an object - create a new root, and populate.
-cJSON *cJSON_Parse(const char *value)	{cJSON *c=cJSON_New_Item();parse_value(c,value);return c;}
+cJSON *cJSON_Parse(const char *value)	{cJSON *c=cJSON_New_Item();parse_value(c,skip(value));return c;}
 // Render a cJSON item/entity/structure to text.
 char *cJSON_Print(cJSON *item)			{return print_value(item,0);}
 
@@ -218,9 +225,6 @@ static char *print_value(cJSON *item,int depth)
 	return out;
 }
 
-// Utility to jump whitespace and cr/lf
-static const char *skip(const char *in) {while (in && *in<=32) in++; return in;}
-
 // Build an array from input text.
 static const char *parse_array(cJSON *item,const char *value)
 {
@@ -252,7 +256,7 @@ static char *print_array(cJSON *item,int depth)
 	char *out,*ptr,*ret;int len=5;
 	cJSON *child=item->child;
 	
-	out=malloc(len);*out='[';
+	out=(char*)malloc(len);*out='[';
 	ptr=out+1;*ptr=0;
 	while (child)
 	{
@@ -307,7 +311,7 @@ static char *print_object(cJSON *item,int depth)
 	char *out,*ptr,*ret,*str;int len=7,i;
 	cJSON *child=item->child;
 	
-	depth++;out=malloc(len+depth);*out='{';
+	depth++;out=(char*)malloc(len+depth);*out='{';
 	ptr=out+1;*ptr++='\n';*ptr=0;
 	while (child)
 	{
