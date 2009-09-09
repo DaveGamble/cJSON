@@ -30,7 +30,7 @@
 #include <float.h>
 #include "cJSON.h"
 
-#ifdef WINDOWS
+#if defined(WINDOWS) || defined(__WIN32__) || defined(WIN32)
 #define strcasecmp stricmp
 #endif
 
@@ -263,7 +263,7 @@ static char *print_array(cJSON *item,int depth)
 		ret=print_value(child,depth+1);
 		if (!ret) {free(out);return 0;}	// Check for failure!
 		len+=strlen(ret)+3;
-		out=realloc(out,len);
+		out=(char*)realloc(out,len);
 		ptr=out+strlen(out);
 		ptr+=sprintf(ptr,ret);
 		if (child->next) {*ptr++=',';*ptr++=' ';*ptr=0;}
@@ -320,7 +320,7 @@ static char *print_object(cJSON *item,int depth)
 		ret=print_value(child,depth);
 		if (!ret) {free(out);return 0;}	// Check for failure!
 		len+=strlen(ret)+strlen(str)+4+depth;
-		out=realloc(out,len);
+		out=(char*)realloc(out,len);
 		ptr=out+strlen(out);
 		for (i=0;i<depth;i++) *ptr++='\t';
 		ptr+=sprintf(ptr,str);
