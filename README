@@ -34,7 +34,7 @@ First up, how do I build?
 Add cJSON.c to your project, and put cJSON.h somewhere in the header search path.
 For example, to build the test app:
 
-gcc cJSON.c test.c -o test
+gcc cJSON.c test.c -o test -lm
 ./test
 
 
