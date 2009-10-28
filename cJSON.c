@@ -311,7 +311,7 @@ static char *print_object(cJSON *item,int depth)
 	char *out,*ptr,*ret,*str;int len=7,i;
 	cJSON *child=item->child;
 	
-	depth++;out=(char*)malloc(len+depth);*out='{';
+	depth++;len+=depth;out=(char*)malloc(len);*out='{';
 	ptr=out+1;*ptr++='\n';*ptr=0;
 	while (child)
 	{
