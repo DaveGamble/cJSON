@@ -318,7 +318,7 @@ static char *print_object(cJSON *item,int depth)
 		str=print_string_ptr(child->string);
 		if (!str) {free(out);return 0;}
 		ret=print_value(child,depth);
-		if (!ret) {free(out);return 0;}	// Check for failure!
+		if (!ret) {free(str);free(out);return 0;}	// Check for failure!
 		len+=strlen(ret)+strlen(str)+4+depth;
 		out=(char*)realloc(out,len);
 		ptr=out+strlen(out);
