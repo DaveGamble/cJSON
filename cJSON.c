@@ -312,7 +312,7 @@ static char *print_array(cJSON *item,int depth)
 		len+=strlen(ret)+3;
 		out=(char*)cJSON_realloc(out,len);
 		ptr=out+strlen(out);
-		ptr+=sprintf(ptr,ret);
+		ptr+=sprintf(ptr,"%s",ret);
 		if (child->next) {*ptr++=',';*ptr++=' ';*ptr=0;}
 		child=child->next;
 		cJSON_free(ret);
@@ -374,9 +374,9 @@ static char *print_object(cJSON *item,int depth)
 		out=(char*)cJSON_realloc(out,len);
 		ptr=out+strlen(out);
 		for (i=0;i<depth;i++) *ptr++='\t';
-		ptr+=sprintf(ptr,str);
+		ptr+=sprintf(ptr,"%s",str);
 		*ptr++=':';*ptr++='\t';
-		ptr+=sprintf(ptr,ret);
+		ptr+=sprintf(ptr,"%s",ret);
 		if (child->next) *ptr++=',';
 		*ptr++='\n';*ptr=0;
 		child=child->next;
