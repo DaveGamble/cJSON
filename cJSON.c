@@ -180,6 +180,7 @@ static char *print_string_ptr(const char *str)
 {
 	const char *ptr;char *ptr2,*out;int len=0;
 	
+	if (!str) return cJSON_strdup("");
 	ptr=str;while (*ptr && ++len) {if (*ptr<32 || *ptr=='\"' || *ptr=='\\') len++;ptr++;}
 	
 	out=(char*)cJSON_malloc(len+3);
@@ -440,7 +441,7 @@ static char *print_object(cJSON *item,int depth)
 
 // Get Array size/item / object item.
 int    cJSON_GetArraySize(cJSON *array)							{cJSON *c=array->child;int i=0;while(c)i++,c=c->next;return i;}
-cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array->child;  while (c && item) item--,c=c->next; return c;}
+cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array->child;  while (c && item>0) item--,c=c->next; return c;}
 cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object->child; while (c && strcasecmp(c->string,string)) c=c->next; return c;}
 
 // Utility for array list handling.
@@ -453,8 +454,8 @@ void   cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item)	{if (
 // Replace array/object items with new ones.
 void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return;
 	newitem->next=c->next;newitem->prev=c->prev;if (newitem->next) newitem->next->prev=newitem;
-	if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;cJSON_Delete(c);}
-void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && strcasecmp(c->string,string))i++,c=c->next;if(c)cJSON_ReplaceItemInArray(object,i,newitem);}
+	if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;c->next=c->prev=0;cJSON_Delete(c);}
+void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
 
 // Create basic types:
 cJSON *cJSON_CreateNull()						{cJSON *item=cJSON_New_Item();item->type=cJSON_NULL;return item;}
