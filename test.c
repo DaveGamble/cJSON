@@ -78,6 +78,8 @@ void create_objects()
 	root=cJSON_CreateArray();
 	for (i=0;i<3;i++) cJSON_AddItemToArray(root,cJSON_CreateIntArray(numbers[i],3));
 
+	cJSON_ReplaceItemInArray(root,1,cJSON_CreateString("Replacement"));
+	
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
 
@@ -114,6 +116,8 @@ void create_objects()
 		cJSON_AddStringToObject(fld, "Zip", fields[i].zip);
 		cJSON_AddStringToObject(fld, "Country", fields[i].country);
 	}
+	
+	cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root,1),"City",cJSON_CreateIntArray(ids,4));
 	
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
