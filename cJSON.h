@@ -53,7 +53,6 @@ typedef struct cJSON {
 
 typedef struct cJSON_Hooks {
       void *(*malloc_fn)(size_t sz);
-      void *(*realloc_fn)(void *ptr, size_t sz);
       void (*free_fn)(void *ptr);
 } cJSON_Hooks;
 

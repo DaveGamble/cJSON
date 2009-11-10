@@ -36,7 +36,6 @@
 #endif
 
 static void *(*cJSON_malloc)(size_t sz) = malloc;
-static void *(*cJSON_realloc)(void *ptr, size_t sz) = realloc;
 static void (*cJSON_free)(void *ptr) = free;
 
 static char* cJSON_strdup(const char* str)
@@ -54,13 +53,11 @@ void cJSON_InitHooks(cJSON_Hooks* hooks)
 {
     if (!hooks) { /* Reset hooks */
         cJSON_malloc = malloc;
-        cJSON_realloc = realloc;
         cJSON_free = free;
         return;
     }
 
 	cJSON_malloc = (hooks->malloc_fn)?hooks->malloc_fn:malloc;
-	cJSON_realloc= (hooks->realloc_fn)?hooks->realloc_fn:realloc;
 	cJSON_free	 = (hooks->free_fn)?hooks->free_fn:free;
 }
 
@@ -300,23 +297,50 @@ static const char *parse_array(cJSON *item,const char *value)
 // Render an array to text
 static char *print_array(cJSON *item,int depth)
 {
-	char *out,*ptr,*ret;int len=5;
+	char **entries;
+	char *out=0,*ptr,*ret;int len=5;
 	cJSON *child=item->child;
+	int numentries=0,i=0,fail=0;
 	
-	out=(char*)cJSON_malloc(len);*out='[';
-	ptr=out+1;*ptr=0;
-	while (child)
+	// How many entries in the array?
+	while (child) numentries++,child=child->next;
+	// Allocate an array to hold the values for each
+	entries=(char**)cJSON_malloc(numentries*sizeof(char*));
+	if (!entries) return 0;
+	memset(entries,0,numentries*sizeof(char*));
+	// Retrieve all the results:
+	child=item->child;
+	while (child && !fail)
 	{
 		ret=print_value(child,depth+1);
-		if (!ret) {cJSON_free(out);return 0;}	// Check for failure!
-		len+=strlen(ret)+3;
-		out=(char*)cJSON_realloc(out,len);
-		ptr=out+strlen(out);
-		ptr+=sprintf(ptr,"%s",ret);
-		if (child->next) {*ptr++=',';*ptr++=' ';*ptr=0;}
+		entries[i++]=ret;
+		if (ret) len+=strlen(ret)+3; else fail=1;
 		child=child->next;
-		cJSON_free(ret);
 	}
+	
+	// If we didn't fail, try to malloc the output string
+	if (!fail) out=cJSON_malloc(len);
+	// If that fails, we fail.
+	if (!out) fail=1;
+
+	// Handle failure.
+	if (fail)
+	{
+		for (i=0;i<numentries;i++) if (entries[i]) cJSON_free(entries[i]);
+		cJSON_free(entries);
+		return 0;
+	}
+	
+	// Compose the output array.
+	*out='[';
+	ptr=out+1;*ptr=0;
+	for (i=0;i<numentries;i++)
+	{
+		strcpy(ptr,entries[i]);ptr+=strlen(entries[i]);
+		if (i!=numentries-1) {*ptr++=',';*ptr++=' ';*ptr=0;}
+		cJSON_free(entries[i]);
+	}
+	cJSON_free(entries);
 	*ptr++=']';*ptr++=0;
 	return out;	
 }
@@ -359,29 +383,56 @@ static const char *parse_object(cJSON *item,const char *value)
 // Render an object to text.
 static char *print_object(cJSON *item,int depth)
 {
-	char *out,*ptr,*ret,*str;int len=7,i;
+	char **entries=0,**names=0;
+	char *out=0,*ptr,*ret,*str;int len=7,i=0,j;
 	cJSON *child=item->child;
-	
-	depth++;len+=depth;out=(char*)cJSON_malloc(len);*out='{';
-	ptr=out+1;*ptr++='\n';*ptr=0;
+	int numentries=0,fail=0;
+	// Count the number of entries.
+	while (child) numentries++,child=child->next;
+	// Allocate space for the names and the objects
+	entries=(char**)cJSON_malloc(numentries*sizeof(char*));
+	if (!entries) return 0;
+	names=(char**)cJSON_malloc(numentries*sizeof(char*));
+	if (!names) {cJSON_free(entries);return 0;}
+	memset(entries,0,sizeof(char*)*numentries);
+	memset(names,0,sizeof(char*)*numentries);
+
+	// Collect all the results into our arrays:
+	child=item->child;depth++;len+=depth;
 	while (child)
 	{
-		str=print_string_ptr(child->string);
-		if (!str) {cJSON_free(out);return 0;}
-		ret=print_value(child,depth);
-		if (!ret) {cJSON_free(str);cJSON_free(out);return 0;}	// Check for failure!
-		len+=strlen(ret)+strlen(str)+4+depth;
-		out=(char*)cJSON_realloc(out,len);
-		ptr=out+strlen(out);
-		for (i=0;i<depth;i++) *ptr++='\t';
-		ptr+=sprintf(ptr,"%s",str);
-		*ptr++=':';*ptr++='\t';
-		ptr+=sprintf(ptr,"%s",ret);
-		if (child->next) *ptr++=',';
-		*ptr++='\n';*ptr=0;
+		names[i]=str=print_string_ptr(child->string);
+		entries[i++]=ret=print_value(child,depth);
+		if (str && ret) len+=strlen(ret)+strlen(str)+4+depth; else fail=1;
 		child=child->next;
-		cJSON_free(str);cJSON_free(ret);
 	}
+	
+	// Try to allocate the output string
+	if (!fail) out=(char*)cJSON_malloc(len);
+	if (!out) fail=1;
+
+	// Handle failure
+	if (fail)
+	{
+		for (i=0;i<numentries;i++) {if (names[i]) free(names[i]);if (entries[i]) free(entries[i]);}
+		free(names);free(entries);
+		return 0;
+	}
+	
+	// Compose the output:
+	*out='{';ptr=out+1;*ptr++='\n';*ptr=0;
+	for (i=0;i<numentries;i++)
+	{
+		for (j=0;j<depth;j++) *ptr++='\t';
+		strcpy(ptr,names[i]);ptr+=strlen(names[i]);
+		*ptr++=':';*ptr++='\t';
+		strcpy(ptr,entries[i]);ptr+=strlen(entries[i]);
+		if (i!=numentries-1) *ptr++=',';
+		*ptr++='\n';*ptr=0;
+		cJSON_free(names[i]);cJSON_free(entries[i]);
+	}
+	
+	cJSON_free(names);cJSON_free(entries);
 	for (i=0;i<depth-1;i++) *ptr++='\t';
 	*ptr++='}';*ptr++=0;
 	return out;	
