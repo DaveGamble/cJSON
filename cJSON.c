@@ -450,6 +450,12 @@ static void suffix_object(cJSON *prev,cJSON *item) {prev->next=item;item->prev=p
 void   cJSON_AddItemToArray(cJSON *array, cJSON *item)						{cJSON *c=array->child;if (!c) {array->child=item;} else {while (c && c->next) c=c->next; suffix_object(c,item);}}
 void   cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item)	{if (item->string) cJSON_free(item->string);item->string=cJSON_strdup(string);cJSON_AddItemToArray(object,item);}
 
+// Replace array/object items with new ones.
+void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return;
+	newitem->next=c->next;newitem->prev=c->prev;if (newitem->next) newitem->next->prev=newitem;
+	if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;cJSON_Delete(c);}
+void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && strcasecmp(c->string,string))i++,c=c->next;if(c)cJSON_ReplaceItemInArray(object,i,newitem);}
+
 // Create basic types:
 cJSON *cJSON_CreateNull()						{cJSON *item=cJSON_New_Item();item->type=cJSON_NULL;return item;}
 cJSON *cJSON_CreateTrue()						{cJSON *item=cJSON_New_Item();item->type=cJSON_True;return item;}

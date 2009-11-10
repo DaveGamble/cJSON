@@ -73,7 +73,7 @@ extern int	  cJSON_GetArraySize(cJSON *array);
 extern cJSON *cJSON_GetArrayItem(cJSON *array,int item);
 // Get item "string" from object. Case insensitive.
 extern cJSON *cJSON_GetObjectItem(cJSON *object,const char *string);
-
+	
 // These calls create a cJSON item of the appropriate type.
 extern cJSON *cJSON_CreateNull();
 extern cJSON *cJSON_CreateTrue();
@@ -90,8 +90,12 @@ extern cJSON *cJSON_CreateDoubleArray(double *numbers,int count);
 extern cJSON *cJSON_CreateStringArray(const char **strings,int count);
 
 // Append item to the specified array/object.
-extern void   cJSON_AddItemToArray(cJSON *array, cJSON *item);
-extern void	  cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item);
+extern void cJSON_AddItemToArray(cJSON *array, cJSON *item);
+extern void	cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item);
+
+// Update array items.
+extern void cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem);
+extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 
 #define cJSON_AddNullToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateNull())
 #define cJSON_AddTrueToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateTrue())
