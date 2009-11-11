@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <float.h>
+#include <limits.h>
 #include "cJSON.h"
 
 #if defined(WINDOWS) || defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
@@ -112,7 +113,7 @@ static char *print_number(cJSON *item)
 {
 	char *str;
 	double d=item->valuedouble;
-	if (fabs(((double)item->valueint)-d)<=DBL_EPSILON)
+	if (fabs(((double)item->valueint)-d)<=DBL_EPSILON && d<=INT_MAX && d>=INT_MIN)
 	{
 		str=(char*)cJSON_malloc(21);	// 2^64+1 can be represented in 21 chars.
 		sprintf(str,"%d",item->valueint);
