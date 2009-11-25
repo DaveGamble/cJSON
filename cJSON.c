@@ -77,8 +77,8 @@ void cJSON_Delete(cJSON *c)
 	while (c)
 	{
 		next=c->next;
-		if (c->child) cJSON_Delete(c->child);
-		if (c->valuestring) cJSON_free(c->valuestring);
+		if (!(c->type&cJSON_IsReference) && c->child) cJSON_Delete(c->child);
+		if (!(c->type&cJSON_IsReference) && c->valuestring) cJSON_free(c->valuestring);
 		if (c->string) cJSON_free(c->string);
 		cJSON_free(c);
 		c=next;
@@ -257,7 +257,7 @@ static const char *parse_value(cJSON *item,const char *value)
 static char *print_value(cJSON *item,int depth,int fmt)
 {
 	char *out=0;
-	switch (item->type)
+	switch ((item->type)&255)
 	{
 		case cJSON_NULL:	out=cJSON_strdup("null");	break;
 		case cJSON_False:	out=cJSON_strdup("false");break;
@@ -449,10 +449,15 @@ cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object->c
 
 // Utility for array list handling.
 static void suffix_object(cJSON *prev,cJSON *item) {prev->next=item;item->prev=prev;}
+// Utility for handling references.
+static cJSON *create_reference(cJSON *item) {cJSON *ref=cJSON_New_Item();memcpy(ref,item,sizeof(cJSON));ref->string=0;ref->type|=cJSON_IsReference;ref->next=ref->prev=0;return ref;}
 
 // Add item to array/object.
 void   cJSON_AddItemToArray(cJSON *array, cJSON *item)						{cJSON *c=array->child;if (!c) {array->child=item;} else {while (c && c->next) c=c->next; suffix_object(c,item);}}
 void   cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item)	{if (item->string) cJSON_free(item->string);item->string=cJSON_strdup(string);cJSON_AddItemToArray(object,item);}
+void	cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)						{cJSON_AddItemToArray(array,create_reference(item));}
+void	cJSON_AddItemReferenceToObject(cJSON *object,const char *string,cJSON *item)	{cJSON_AddItemToObject(object,string,create_reference(item));}
+
 
 // Replace array/object items with new ones.
 void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return;
