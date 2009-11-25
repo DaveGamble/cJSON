@@ -215,11 +215,11 @@ static char *print_string(cJSON *item)	{return print_string_ptr(item->valuestrin
 
 // Predeclare these prototypes.
 static const char *parse_value(cJSON *item,const char *value);
-static char *print_value(cJSON *item,int depth);
+static char *print_value(cJSON *item,int depth,int fmt);
 static const char *parse_array(cJSON *item,const char *value);
-static char *print_array(cJSON *item,int depth);
+static char *print_array(cJSON *item,int depth,int fmt);
 static const char *parse_object(cJSON *item,const char *value);
-static char *print_object(cJSON *item,int depth);
+static char *print_object(cJSON *item,int depth,int fmt);
 
 // Utility to jump whitespace and cr/lf
 static const char *skip(const char *in) {while (in && *in<=32) in++; return in;}
@@ -235,7 +235,8 @@ cJSON *cJSON_Parse(const char *value)
 }
 
 // Render a cJSON item/entity/structure to text.
-char *cJSON_Print(cJSON *item)			{return print_value(item,0);}
+char *cJSON_Print(cJSON *item)				{return print_value(item,0,1);}
+char *cJSON_PrintUnformatted(cJSON *item)	{return print_value(item,0,0);}
 
 // Parser core - when encountering text, process appropriately.
 static const char *parse_value(cJSON *item,const char *value)
@@ -253,7 +254,7 @@ static const char *parse_value(cJSON *item,const char *value)
 }
 
 // Render a value to text.
-static char *print_value(cJSON *item,int depth)
+static char *print_value(cJSON *item,int depth,int fmt)
 {
 	char *out=0;
 	switch (item->type)
@@ -263,8 +264,8 @@ static char *print_value(cJSON *item,int depth)
 		case cJSON_True:	out=cJSON_strdup("true"); break;
 		case cJSON_Number:	out=print_number(item);break;
 		case cJSON_String:	out=print_string(item);break;
-		case cJSON_Array:	out=print_array(item,depth);break;
-		case cJSON_Object:	out=print_object(item,depth);break;
+		case cJSON_Array:	out=print_array(item,depth,fmt);break;
+		case cJSON_Object:	out=print_object(item,depth,fmt);break;
 	}
 	return out;
 }
@@ -298,7 +299,7 @@ static const char *parse_array(cJSON *item,const char *value)
 }
 
 // Render an array to text
-static char *print_array(cJSON *item,int depth)
+static char *print_array(cJSON *item,int depth,int fmt)
 {
 	char **entries;
 	char *out=0,*ptr,*ret;int len=5;
@@ -315,9 +316,9 @@ static char *print_array(cJSON *item,int depth)
 	child=item->child;
 	while (child && !fail)
 	{
-		ret=print_value(child,depth+1);
+		ret=print_value(child,depth+1,fmt);
 		entries[i++]=ret;
-		if (ret) len+=strlen(ret)+3; else fail=1;
+		if (ret) len+=strlen(ret)+2+(fmt?1:0); else fail=1;
 		child=child->next;
 	}
 	
@@ -340,7 +341,7 @@ static char *print_array(cJSON *item,int depth)
 	for (i=0;i<numentries;i++)
 	{
 		strcpy(ptr,entries[i]);ptr+=strlen(entries[i]);
-		if (i!=numentries-1) {*ptr++=',';*ptr++=' ';*ptr=0;}
+		if (i!=numentries-1) {*ptr++=',';if(fmt)*ptr++=' ';*ptr=0;}
 		cJSON_free(entries[i]);
 	}
 	cJSON_free(entries);
@@ -384,7 +385,7 @@ static const char *parse_object(cJSON *item,const char *value)
 }
 
 // Render an object to text.
-static char *print_object(cJSON *item,int depth)
+static char *print_object(cJSON *item,int depth,int fmt)
 {
 	char **entries=0,**names=0;
 	char *out=0,*ptr,*ret,*str;int len=7,i=0,j;
@@ -401,12 +402,12 @@ static char *print_object(cJSON *item,int depth)
 	memset(names,0,sizeof(char*)*numentries);
 
 	// Collect all the results into our arrays:
-	child=item->child;depth++;len+=depth;
+	child=item->child;depth++;if (fmt) len+=depth;
 	while (child)
 	{
 		names[i]=str=print_string_ptr(child->string);
-		entries[i++]=ret=print_value(child,depth);
-		if (str && ret) len+=strlen(ret)+strlen(str)+4+depth; else fail=1;
+		entries[i++]=ret=print_value(child,depth,fmt);
+		if (str && ret) len+=strlen(ret)+strlen(str)+2+(fmt?2+depth:0); else fail=1;
 		child=child->next;
 	}
 	
@@ -423,20 +424,20 @@ static char *print_object(cJSON *item,int depth)
 	}
 	
 	// Compose the output:
-	*out='{';ptr=out+1;*ptr++='\n';*ptr=0;
+	*out='{';ptr=out+1;if (fmt)*ptr++='\n';*ptr=0;
 	for (i=0;i<numentries;i++)
 	{
-		for (j=0;j<depth;j++) *ptr++='\t';
+		if (fmt) for (j=0;j<depth;j++) *ptr++='\t';
 		strcpy(ptr,names[i]);ptr+=strlen(names[i]);
-		*ptr++=':';*ptr++='\t';
+		*ptr++=':';if (fmt) *ptr++='\t';
 		strcpy(ptr,entries[i]);ptr+=strlen(entries[i]);
 		if (i!=numentries-1) *ptr++=',';
-		*ptr++='\n';*ptr=0;
+		if (fmt) *ptr++='\n';*ptr=0;
 		cJSON_free(names[i]);cJSON_free(entries[i]);
 	}
 	
 	cJSON_free(names);cJSON_free(entries);
-	for (i=0;i<depth-1;i++) *ptr++='\t';
+	if (fmt) for (i=0;i<depth-1;i++) *ptr++='\t';
 	*ptr++='}';*ptr++=0;
 	return out;	
 }
