@@ -121,8 +121,9 @@ static char *print_number(cJSON *item)
 	else
 	{
 		str=(char*)cJSON_malloc(64);	// This is a nice tradeoff.
-		if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)	sprintf(str,"%e",d);
-		else									sprintf(str,"%f",d);
+		if (fabs(floor(d)-d)<=DBL_EPSILON)			sprintf(str,"%.0f",d);
+		else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)	sprintf(str,"%e",d);
+		else										sprintf(str,"%f",d);
 	}
 	return str;
 }
