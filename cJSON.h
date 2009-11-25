@@ -99,7 +99,12 @@ extern void	cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item);
 // Append reference to item to the specified array/object. Use this when you want to add an existing cJSON to a new cJSON, but don't want to corrupt your existing cJSON.
 extern void cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item);
 extern void	cJSON_AddItemReferenceToObject(cJSON *object,const char *string,cJSON *item);
-	
+
+// Remove/Detatch items from Arrays/Objects.
+extern cJSON *cJSON_DetachItemFromArray(cJSON *array,int which);
+extern void   cJSON_DeleteItemFromArray(cJSON *array,int which);
+extern cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string);
+extern void   cJSON_DeleteItemFromObject(cJSON *object,const char *string);
 	
 // Update array items.
 extern void cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem);
