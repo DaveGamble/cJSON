@@ -31,10 +31,11 @@
 #include <limits.h>
 #include "cJSON.h"
 
-#if defined(WINDOWS) || defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
-#define strcasecmp stricmp
-#define strdup _strdup
-#endif
+static int cJSON_strcasecmp(const char *s1,const char *s2)
+{
+	for(; tolower(*s1) == tolower(*s2); ++s1, ++s2)	if(*s1 == 0)	return 0;
+	return tolower(*(const unsigned char *)s1) - tolower(*(const unsigned char *)s2);
+}
 
 static void *(*cJSON_malloc)(size_t sz) = malloc;
 static void (*cJSON_free)(void *ptr) = free;
@@ -446,7 +447,7 @@ static char *print_object(cJSON *item,int depth,int fmt)
 // Get Array size/item / object item.
 int    cJSON_GetArraySize(cJSON *array)							{cJSON *c=array->child;int i=0;while(c)i++,c=c->next;return i;}
 cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array->child;  while (c && item>0) item--,c=c->next; return c;}
-cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object->child; while (c && strcasecmp(c->string,string)) c=c->next; return c;}
+cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object->child; while (c && cJSON_strcasecmp(c->string,string)) c=c->next; return c;}
 
 // Utility for array list handling.
 static void suffix_object(cJSON *prev,cJSON *item) {prev->next=item;item->prev=prev;}
@@ -462,14 +463,14 @@ void	cJSON_AddItemReferenceToObject(cJSON *object,const char *string,cJSON *item
 cJSON *cJSON_DetachItemFromArray(cJSON *array,int which)			{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return 0;
 	if (c->prev) c->prev->next=c->next;if (c->next) c->next->prev=c->prev;if (c==array->child) array->child=c->next;c->prev=c->next=0;return c;}
 void   cJSON_DeleteItemFromArray(cJSON *array,int which)			{cJSON_Delete(cJSON_DetachItemFromArray(array,which));}
-cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string) {int i=0;cJSON *c=object->child;while (c && strcasecmp(c->string,string)) i++,c=c->next;if (c) return cJSON_DetachItemFromArray(object,i);return 0;}
+cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string) {int i=0;cJSON *c=object->child;while (c && cJSON_strcasecmp(c->string,string)) i++,c=c->next;if (c) return cJSON_DetachItemFromArray(object,i);return 0;}
 void   cJSON_DeleteItemFromObject(cJSON *object,const char *string) {cJSON_Delete(cJSON_DetachItemFromObject(object,string));}
 
 // Replace array/object items with new ones.
 void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return;
 	newitem->next=c->next;newitem->prev=c->prev;if (newitem->next) newitem->next->prev=newitem;
 	if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;c->next=c->prev=0;cJSON_Delete(c);}
-void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
+void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && cJSON_strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
 
 // Create basic types:
 cJSON *cJSON_CreateNull()						{cJSON *item=cJSON_New_Item();item->type=cJSON_NULL;return item;}
