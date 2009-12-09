@@ -256,8 +256,8 @@ static const char *parse_value(cJSON *item,const char *value)
 // Render a value to text.
 static char *print_value(cJSON *item,int depth,int fmt)
 {
-	if (!item) return 0;
 	char *out=0;
+	if (!item) return 0;
 	switch ((item->type)&255)
 	{
 		case cJSON_NULL:	out=cJSON_strdup("null");	break;
