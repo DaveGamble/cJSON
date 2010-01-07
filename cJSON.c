@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include <limits.h>
+#include <ctype.h>
 #include "cJSON.h"
 
 static int cJSON_strcasecmp(const char *s1,const char *s2)
