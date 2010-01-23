@@ -138,13 +138,13 @@ static const char *parse_string(cJSON *item,const char *str)
 	const char *ptr=str+1;char *ptr2;char *out;int len=0;unsigned uc;
 	if (*str!='\"') return 0;	// not a string!
 	
-	while (*ptr!='\"' && *ptr>31 && ++len) if (*ptr++ == '\\') ptr++;	// Skip escaped quotes.
+	while (*ptr!='\"' && (unsigned char)*ptr>31 && ++len) if (*ptr++ == '\\') ptr++;	// Skip escaped quotes.
 	
 	out=(char*)cJSON_malloc(len+1);	// This is how long we need for the string, roughly.
 	if (!out) return 0;
 	
 	ptr=str+1;ptr2=out;
-	while (*ptr!='\"' && *ptr>31)
+	while (*ptr!='\"' && (unsigned char)*ptr>31)
 	{
 		if (*ptr!='\\') *ptr2++=*ptr++;
 		else
@@ -186,14 +186,14 @@ static char *print_string_ptr(const char *str)
 	const char *ptr;char *ptr2,*out;int len=0;
 	
 	if (!str) return cJSON_strdup("");
-	ptr=str;while (*ptr && ++len) {if (*ptr<32 || *ptr=='\"' || *ptr=='\\') len++;ptr++;}
+	ptr=str;while (*ptr && ++len) {if ((unsigned char)*ptr<32 || *ptr=='\"' || *ptr=='\\') len++;ptr++;}
 	
 	out=(char*)cJSON_malloc(len+3);
 	ptr2=out;ptr=str;
 	*ptr2++='\"';
 	while (*ptr)
 	{
-		if (*ptr>31 && *ptr!='\"' && *ptr!='\\') *ptr2++=*ptr++;
+		if ((unsigned char)*ptr>31 && *ptr!='\"' && *ptr!='\\') *ptr2++=*ptr++;
 		else
 		{
 			*ptr2++='\\';
@@ -225,7 +225,7 @@ static const char *parse_object(cJSON *item,const char *value);
 static char *print_object(cJSON *item,int depth,int fmt);
 
 // Utility to jump whitespace and cr/lf
-static const char *skip(const char *in) {while (in && *in<=32) in++; return in;}
+static const char *skip(const char *in) {while (in && (unsigned char)*in<=32) in++; return in;}
 
 // Parse an object - create a new root, and populate.
 cJSON *cJSON_Parse(const char *value)
