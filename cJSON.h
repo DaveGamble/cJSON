@@ -82,6 +82,7 @@ extern cJSON *cJSON_GetObjectItem(cJSON *object,const char *string);
 extern cJSON *cJSON_CreateNull();
 extern cJSON *cJSON_CreateTrue();
 extern cJSON *cJSON_CreateFalse();
+extern cJSON *cJSON_CreateBool(int b);
 extern cJSON *cJSON_CreateNumber(double num);
 extern cJSON *cJSON_CreateString(const char *string);
 extern cJSON *cJSON_CreateArray();
