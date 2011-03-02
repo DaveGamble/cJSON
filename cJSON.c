@@ -141,13 +141,13 @@ static const char *parse_string(cJSON *item,const char *str)
 	const char *ptr=str+1;char *ptr2;char *out;int len=0;unsigned uc;
 	if (*str!='\"') return 0;	/* not a string! */
 	
-	while (*ptr!='\"' && (unsigned char)*ptr>31 && ++len) if (*ptr++ == '\\') ptr++;	/* Skip escaped quotes. */
+	while (*ptr!='\"' && *ptr && ++len) if (*ptr++ == '\\') ptr++;	/* Skip escaped quotes. */
 	
 	out=(char*)cJSON_malloc(len+1);	/* This is how long we need for the string, roughly. */
 	if (!out) return 0;
 	
 	ptr=str+1;ptr2=out;
-	while (*ptr!='\"' && (unsigned char)*ptr>31)
+	while (*ptr!='\"' && *ptr)
 	{
 		if (*ptr!='\\') *ptr2++=*ptr++;
 		else
@@ -186,10 +186,10 @@ static const char *parse_string(cJSON *item,const char *str)
 /* Render the cstring provided to an escaped version that can be printed. */
 static char *print_string_ptr(const char *str)
 {
-	const char *ptr;char *ptr2,*out;int len=0;
+	const char *ptr;char *ptr2,*out;int len=0;unsigned char token;
 	
 	if (!str) return cJSON_strdup("");
-	ptr=str;while (*ptr && ++len) {if ((unsigned char)*ptr<32 || *ptr=='\"' || *ptr=='\\') len++;ptr++;}
+	ptr=str;while ((token=*ptr) && ++len) {if (strchr("\"\\\b\f\n\r\t",token)) len++; else if (token<32) len+=5;ptr++;}
 	
 	out=(char*)cJSON_malloc(len+3);
 	if (!out) return 0;
@@ -202,7 +202,7 @@ static char *print_string_ptr(const char *str)
 		else
 		{
 			*ptr2++='\\';
-			switch (*ptr++)
+			switch (token=*ptr++)
 			{
 				case '\\':	*ptr2++='\\';	break;
 				case '\"':	*ptr2++='\"';	break;
@@ -211,7 +211,7 @@ static char *print_string_ptr(const char *str)
 				case '\n':	*ptr2++='n';	break;
 				case '\r':	*ptr2++='r';	break;
 				case '\t':	*ptr2++='t';	break;
-				default: ptr2--;	break;	/* eviscerate with prejudice. */
+				default: sprintf(ptr2,"u%04x",token);ptr2+=5;	break;	/* escape and print */
 			}
 		}
 	}
