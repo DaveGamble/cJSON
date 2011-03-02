@@ -30,10 +30,14 @@ void doit(char *text)
 	char *out;cJSON *json;
 	
 	json=cJSON_Parse(text);
-	out=cJSON_Print(json);
-	cJSON_Delete(json);
-	printf("%s\n",out);
-	free(out);	
+	if (!json) {printf("Error before: [%s]\n",cJSON_GetErrorPtr());}
+	else
+	{
+		out=cJSON_Print(json);
+		cJSON_Delete(json);
+		printf("%s\n",out);
+		free(out);
+	}
 }
 
 /* Read a file, parse, render back, etc. */

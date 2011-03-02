@@ -32,6 +32,10 @@
 #include <ctype.h>
 #include "cJSON.h"
 
+static const char *ep;
+
+const char *cJSON_GetErrorPtr() {return ep;}
+
 static int cJSON_strcasecmp(const char *s1,const char *s2)
 {
 	if (!s1) return (s1==s2)?0:1;if (!s2) return 1;
@@ -139,7 +143,7 @@ static const unsigned char firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0x
 static const char *parse_string(cJSON *item,const char *str)
 {
 	const char *ptr=str+1;char *ptr2;char *out;int len=0;unsigned uc;
-	if (*str!='\"') return 0;	/* not a string! */
+	if (*str!='\"') {ep=str;return 0;}	/* not a string! */
 	
 	while (*ptr!='\"' && *ptr && ++len) if (*ptr++ == '\\') ptr++;	/* Skip escaped quotes. */
 	
@@ -235,6 +239,7 @@ static const char *skip(const char *in) {while (in && *in && (unsigned char)*in<
 /* Parse an object - create a new root, and populate. */
 cJSON *cJSON_Parse(const char *value)
 {
+	ep=0;
 	cJSON *c=cJSON_New_Item();
 	if (!c) return 0;       /* memory fail */
 
@@ -258,7 +263,7 @@ static const char *parse_value(cJSON *item,const char *value)
 	if (*value=='[')				{ return parse_array(item,value); }
 	if (*value=='{')				{ return parse_object(item,value); }
 
-	return 0;	/* failure. */
+	ep=value;return 0;	/* failure. */
 }
 
 /* Render a value to text. */
@@ -283,7 +288,7 @@ static char *print_value(cJSON *item,int depth,int fmt)
 static const char *parse_array(cJSON *item,const char *value)
 {
 	cJSON *child;
-	if (*value!='[')	return 0;	/* not an array! */
+	if (*value!='[')	{ep=value;return 0;}	/* not an array! */
 
 	item->type=cJSON_Array;
 	value=skip(value+1);
@@ -304,7 +309,7 @@ static const char *parse_array(cJSON *item,const char *value)
 	}
 
 	if (*value==']') return value+1;	/* end of array */
-	return 0;	/* malformed. */
+	ep=value;return 0;	/* malformed. */
 }
 
 /* Render an array to text */
@@ -362,7 +367,7 @@ static char *print_array(cJSON *item,int depth,int fmt)
 static const char *parse_object(cJSON *item,const char *value)
 {
 	cJSON *child;
-	if (*value!='{')	return 0;	/* not an object! */
+	if (*value!='{')	{ep=value;return 0;}	/* not an object! */
 	
 	item->type=cJSON_Object;
 	value=skip(value+1);
@@ -373,7 +378,7 @@ static const char *parse_object(cJSON *item,const char *value)
 	value=skip(parse_string(child,skip(value)));
 	if (!value) return 0;
 	child->string=child->valuestring;child->valuestring=0;
-	if (*value!=':') return 0;	/* fail! */
+	if (*value!=':') {ep=value;return 0;}	/* fail! */
 	value=skip(parse_value(child,skip(value+1)));	/* skip any spacing, get the value. */
 	if (!value) return 0;
 	
@@ -385,13 +390,13 @@ static const char *parse_object(cJSON *item,const char *value)
 		value=skip(parse_string(child,skip(value+1)));
 		if (!value) return 0;
 		child->string=child->valuestring;child->valuestring=0;
-		if (*value!=':') return 0;	/* fail! */
+		if (*value!=':') {ep=value;return 0;}	/* fail! */
 		value=skip(parse_value(child,skip(value+1)));	/* skip any spacing, get the value. */
 		if (!value) return 0;
 	}
 	
 	if (*value=='}') return value+1;	/* end of array */
-	return 0;	/* malformed. */
+	ep=value;return 0;	/* malformed. */
 }
 
 /* Render an object to text. */
