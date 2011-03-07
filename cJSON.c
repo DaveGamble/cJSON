@@ -337,7 +337,7 @@ static char *print_array(cJSON *item,int depth,int fmt)
 	}
 	
 	/* If we didn't fail, try to malloc the output string */
-	if (!fail) out=cJSON_malloc(len);
+	if (!fail) out=(char*)cJSON_malloc(len);
 	/* If that fails, we fail. */
 	if (!out) fail=1;
 
