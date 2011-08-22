@@ -77,7 +77,7 @@ Want to change the framerate?
 
 Back to disk?
 
-    char * rendered=cJSON_Print(root);
+    char * rendered = cJSON_Print(root);
 
 Finished? Delete the root (this takes care of everything else).
 
@@ -89,12 +89,12 @@ before you dereference them. If you want to see how you'd build this struct in c
     cJSON *root,*fmt;
     root = cJSON_CreateObject();  
     cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
-    cJSON_AddItemToObject(root, "format", fmt=cJSON_CreateObject());
-    cJSON_AddStringToObject(fmt,"type", "rect");
-    cJSON_AddNumberToObject(fmt,"width", 1920);
-    cJSON_AddNumberToObject(fmt,"height", 1080);
-    cJSON_AddFalseToObject (fmt,"interlace");
-    cJSON_AddNumberToObject(fmt,"frame rate", 24);
+    cJSON_AddItemToObject(root, "format", fmt = cJSON_CreateObject());
+    cJSON_AddStringToObject(fmt, "type", "rect");
+    cJSON_AddNumberToObject(fmt, "width", 1920);
+    cJSON_AddNumberToObject(fmt, "height", 1080);
+    cJSON_AddFalseToObject (fmt, "interlace");
+    cJSON_AddNumberToObject(fmt, "frame rate", 24);
 
 Hopefully we can agree that's not a lot of code? There's no overhead, no unnecessary setup.
 Look at test.c for a bunch of nice examples, mostly all ripped off the json.org site, and
@@ -156,11 +156,11 @@ you'd do it (just an example, since these things are very specific):
     {
       while (item)
       {
-        char *newprefix=malloc(strlen(prefix)+strlen(item->name)+2);
+        char *newprefix = malloc(strlen(prefix) + strlen(item->name) + 2);
         sprintf(newprefix,"%s/%s",prefix,item->name);
-        int dorecurse=callback(newprefix, item->type, item);
-        if (item->child && dorecurse) parse_and_callback(item->child,newprefix);
-        item=item->next;
+        int dorecurse = callback(newprefix, item->type, item);
+        if (item->child && dorecurse) parse_and_callback(item->child, newprefix);
+        item = item->next;
         free(newprefix);
       }
     }
@@ -185,24 +185,25 @@ You'd use:
 
     void parse_object(cJSON *item)
     {
-      int i; for (i=0;i<cJSON_GetArraySize(item);i++)
+      int i;
+      for (i = 0 ; i < cJSON_GetArraySize(item) ; i++)
       {
-        cJSON *subitem=cJSON_GetArrayItem(item,i);
+        cJSON * subitem = cJSON_GetArrayItem(item, i);
         // handle subitem.  
       }
     }
 
 Or, for PROPER manual mode:
 
-    void parse_object(cJSON *item)
+    void parse_object(cJSON * item)
     {
-      cJSON *subitem=item->child;
+      cJSON *subitem = item->child;
       while (subitem)
       {
         // handle subitem
         if (subitem->child) parse_object(subitem->child);
     
-        subitem=subitem->next;
+        subitem = subitem->next;
       }
     }
 
@@ -217,21 +218,22 @@ You can, of course, hand your sub-objects to other functions to populate.
 Also, if you find a use for it, you can manually build the objects.
 For instance, suppose you wanted to build an array of objects?
 
-    cJSON *objects[24];
+    cJSON * objects[24];
 
-    cJSON *Create_array_of_anything(cJSON **items,int num)
+    cJSON * Create_array_of_anything(cJSON ** items, int num)
     {
-      int i;cJSON *prev, *root=cJSON_CreateArray();
-      for (i=0;i<24;i++)
+      int i;
+      cJSON * prev, * root = cJSON_CreateArray();
+      for (i = 0 ; i < 24 ; i++)
       {
-        if (!i)  root->child=objects[i];
-        else  prev->next=objects[i], objects[i]->prev=prev;
-        prev=objects[i];
+        if (!i) root->child = objects[i];
+        else prev->next = objects[i], objects[i]->prev = prev;
+        prev = objects[i];
       }
       return root;
     }
   
-and simply: Create_array_of_anything(objects,24);
+and simply: Create_array_of_anything(objects, 24);
 
 cJSON doesn't make any assumptions about what order you create things in.
 You can attach the objects, as above, and later add children to each
