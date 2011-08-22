@@ -69,7 +69,7 @@ void create_objects()
 	cJSON_AddFalseToObject (fmt,"interlace");
 	cJSON_AddNumberToObject(fmt,"frame rate",	24);
 	
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);	/* Print to text, Delete the cJSON, print it, release the string.
+	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);	/* Print to text, Delete the cJSON, print it, release the string. */
 
 	/* Our "days of the week" array: */
 	const char *strings[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
@@ -142,7 +142,7 @@ int main (int argc, const char * argv[]) {
 	doit(text4);
 	doit(text5);
 
-	/* Parse standard testfiles:
+	/* Parse standard testfiles: */
 /*	dofile("../../tests/test1"); */
 /*	dofile("../../tests/test2"); */
 /*	dofile("../../tests/test3"); */
