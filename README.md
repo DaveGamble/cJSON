@@ -1,4 +1,4 @@
-/*
+
   Copyright (c) 2009 Dave Gamble
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,7 +18,7 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
-*/
+
 
 Welcome to cJSON.
 -----------------
@@ -63,35 +63,38 @@ Assume that you got this from a file, a webserver, or magic JSON elves, whatever
 you have a char * to it. Everything is a cJSON struct.
 Get it parsed:
 
-  cJSON *root = cJSON_Parse(my_json_string);
+  cJSON * root = cJSON_Parse(my_json_string);
 
 This is an object. We're in C. We don't have objects. But we do have structs.
 What's the framerate?
 
-  cJSON *format = cJSON_GetObjectItem(root,"format");
-  int framerate = cJSON_GetObjectItem(format,"frame rate")->valueint;
-
+    cJSON * format = cJSON_GetObjectItem(root,"format");
+    int framerate = cJSON_GetObjectItem(format,"frame rate")->valueint;
 
 Want to change the framerate?
-  cJSON_GetObjectItem(format,"frame rate")->valueint=25;
-  
+
+    cJSON_GetObjectItem(format,"frame rate")->valueint = 25;
+
 Back to disk?
-  char *rendered=cJSON_Print(root);
+
+    char * rendered=cJSON_Print(root);
 
 Finished? Delete the root (this takes care of everything else).
-  cJSON_Delete(root);
+
+    cJSON_Delete(root);
 
 That's AUTO mode. If you're going to use Auto mode, you really ought to check pointers
 before you dereference them. If you want to see how you'd build this struct in code?
-  cJSON *root,*fmt;
-  root=cJSON_CreateObject();  
-  cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
-  cJSON_AddItemToObject(root, "format", fmt=cJSON_CreateObject());
-  cJSON_AddStringToObject(fmt,"type",    "rect");
-  cJSON_AddNumberToObject(fmt,"width",    1920);
-  cJSON_AddNumberToObject(fmt,"height",    1080);
-  cJSON_AddFalseToObject (fmt,"interlace");
-  cJSON_AddNumberToObject(fmt,"frame rate",  24);
+
+    cJSON *root,*fmt;
+    root = cJSON_CreateObject();  
+    cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
+    cJSON_AddItemToObject(root, "format", fmt=cJSON_CreateObject());
+    cJSON_AddStringToObject(fmt,"type", "rect");
+    cJSON_AddNumberToObject(fmt,"width", 1920);
+    cJSON_AddNumberToObject(fmt,"height", 1080);
+    cJSON_AddFalseToObject (fmt,"interlace");
+    cJSON_AddNumberToObject(fmt,"frame rate", 24);
 
 Hopefully we can agree that's not a lot of code? There's no overhead, no unnecessary setup.
 Look at test.c for a bunch of nice examples, mostly all ripped off the json.org site, and
@@ -209,7 +212,6 @@ of the callback-parser.
 This should cover most uses you'll find for parsing. The rest should be possible
 to infer.. and if in doubt, read the source! There's not a lot of it! ;)
 
-
 In terms of constructing JSON data, the example code above is the right way to do it.
 You can, of course, hand your sub-objects to other functions to populate.
 Also, if you find a use for it, you can manually build the objects.
@@ -237,12 +239,11 @@ of those objects.
 
 As soon as you call cJSON_Print, it renders the structure to text.
 
-
 The test.c code shows how to handle a bunch of typical cases. If you uncomment
 the code, it'll load, parse and print a bunch of test files, also from json.org,
 which are more complex than I'd care to try and stash into a const char array[].
 
-
 Enjoy cJSON!
+-----------------------
 
 - Dave Gamble, Aug 2009
