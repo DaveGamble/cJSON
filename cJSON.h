@@ -114,6 +114,12 @@ extern void   cJSON_DeleteItemFromObject(cJSON *object,const char *string);
 extern void cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem);
 extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 
+/* Duplicate a cJSON item */
+extern cJSON *cJSON_Duplicate(cJSON *item,int recurse);
+/* Duplicate will create a new, identical cJSON item to the one you pass, in new memory that will
+need to be released. With recurse!=0, it will duplicate any children connected to the item.
+The item->next and ->prev pointers are always zero on return from Duplicate. */
+
 #define cJSON_AddNullToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateNull())
 #define cJSON_AddTrueToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateTrue())
 #define cJSON_AddFalseToObject(object,name)		cJSON_AddItemToObject(object, name, cJSON_CreateFalse())
