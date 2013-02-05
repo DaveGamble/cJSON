@@ -130,9 +130,9 @@ static char *print_number(cJSON *item)
 		str=(char*)cJSON_malloc(64);	/* This is a nice tradeoff. */
 		if (str)
 		{
-			if (fabs(floor(d)-d)<=DBL_EPSILON)			sprintf(str,"%.0f",d);
-			else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)	sprintf(str,"%e",d);
-			else										sprintf(str,"%f",d);
+			if (fabs(floor(d)-d)<=DBL_EPSILON && fabs(d)<1.0e60)sprintf(str,"%.0f",d);
+			else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)			sprintf(str,"%e",d);
+			else												sprintf(str,"%f",d);
 		}
 	}
 	return str;
@@ -174,7 +174,7 @@ static const char *parse_string(cJSON *item,const char *str)
 						if (ptr[1]!='\\' || ptr[2]!='u')	break;	/* missing second-half of surrogate.	*/
 						sscanf(ptr+3,"%4x",&uc2);ptr+=6;
 						if (uc2<0xDC00 || uc2>0xDFFF)		break;	/* invalid second-half of surrogate.	*/
-						uc=0x10000 + ((uc&0x3FF)<<10) | (uc2&0x3FF);
+						uc=0x10000 + (((uc&0x3FF)<<10) | (uc2&0x3FF));
 					}
 
 					len=4;if (uc<0x80) len=1;else if (uc<0x800) len=2;else if (uc<0x10000) len=3; ptr2+=len;
