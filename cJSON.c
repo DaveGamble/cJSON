@@ -249,15 +249,23 @@ static char *print_object(cJSON *item,int depth,int fmt);
 static const char *skip(const char *in) {while (in && *in && (unsigned char)*in<=32) in++; return in;}
 
 /* Parse an object - create a new root, and populate. */
-cJSON *cJSON_Parse(const char *value)
+cJSON *cJSON_ParseWithOpts(const char *value,const char **return_parse_end,int require_null_terminated)
 {
+	const char *end=0;
 	cJSON *c=cJSON_New_Item();
 	ep=0;
 	if (!c) return 0;       /* memory fail */
 
-	if (!parse_value(c,skip(value))) {cJSON_Delete(c);return 0;}
+	end=parse_value(c,skip(value));
+	if (!end)	{cJSON_Delete(c);return 0;}	/* parse failure. ep is set. */
+
+	/* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
+	if (require_null_terminated) {end=skip(end);if (*end) {cJSON_Delete(c);ep=end;return 0;}}
+	if (return_parse_end) *return_parse_end=end;
 	return c;
 }
+/* Default options for cJSON_Parse */
+cJSON *cJSON_Parse(const char *value) {return cJSON_ParseWithOpts(value,0,0);}
 
 /* Render a cJSON item/entity/structure to text. */
 char *cJSON_Print(cJSON *item)				{return print_value(item,0,1);}
