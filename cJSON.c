@@ -438,7 +438,7 @@ static char *print_object(cJSON *item,int depth,int fmt)
 	/* Explicitly handle empty object case */
 	if (!numentries)
 	{
-		out=cJSON_malloc(fmt?depth+3:3);
+		out=(char*)cJSON_malloc(fmt?depth+3:3);
 		if (!out)	return 0;
 		ptr=out;*ptr++='{';
 		if (fmt) {*ptr++='\n';for (i=0;i<depth-1;i++) *ptr++='\t';}
