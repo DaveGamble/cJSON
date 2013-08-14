@@ -92,9 +92,9 @@ extern cJSON *cJSON_CreateArray(void);
 extern cJSON *cJSON_CreateObject(void);
 
 /* These utilities create an Array of count items. */
-extern cJSON *cJSON_CreateIntArray(int *numbers,int count);
-extern cJSON *cJSON_CreateFloatArray(float *numbers,int count);
-extern cJSON *cJSON_CreateDoubleArray(double *numbers,int count);
+extern cJSON *cJSON_CreateIntArray(const int *numbers,int count);
+extern cJSON *cJSON_CreateFloatArray(const float *numbers,int count);
+extern cJSON *cJSON_CreateDoubleArray(const double *numbers,int count);
 extern cJSON *cJSON_CreateStringArray(const char **strings,int count);
 
 /* Append item to the specified array/object. */
@@ -122,6 +122,8 @@ The item->next and ->prev pointers are always zero on return from Duplicate. */
 
 /* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
 extern cJSON *cJSON_ParseWithOpts(const char *value,const char **return_parse_end,int require_null_terminated);
+
+extern void cJSON_Minify(char *json);
 
 /* Macros for creating things quickly. */
 #define cJSON_AddNullToObject(object,name)		cJSON_AddItemToObject(object, name, cJSON_CreateNull())

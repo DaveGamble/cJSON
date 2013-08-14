@@ -438,7 +438,7 @@ static char *print_object(cJSON *item,int depth,int fmt)
 	/* Explicitly handle empty object case */
 	if (!numentries)
 	{
-		out=(char*)cJSON_malloc(fmt?depth+3:3);
+		out=(char*)cJSON_malloc(fmt?depth+4:3);
 		if (!out)	return 0;
 		ptr=out;*ptr++='{';
 		if (fmt) {*ptr++='\n';for (i=0;i<depth-1;i++) *ptr++='\t';}
@@ -533,9 +533,9 @@ cJSON *cJSON_CreateArray(void)					{cJSON *item=cJSON_New_Item();if(item)item->t
 cJSON *cJSON_CreateObject(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_Object;return item;}
 
 /* Create Arrays: */
-cJSON *cJSON_CreateIntArray(int *numbers,int count)				{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
-cJSON *cJSON_CreateFloatArray(float *numbers,int count)			{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
-cJSON *cJSON_CreateDoubleArray(double *numbers,int count)		{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
+cJSON *cJSON_CreateIntArray(const int *numbers,int count)		{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
+cJSON *cJSON_CreateFloatArray(const float *numbers,int count)	{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
+cJSON *cJSON_CreateDoubleArray(const double *numbers,int count)	{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
 cJSON *cJSON_CreateStringArray(const char **strings,int count)	{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateString(strings[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
 
 /* Duplication */
@@ -564,4 +564,21 @@ cJSON *cJSON_Duplicate(cJSON *item,int recurse)
 		cptr=cptr->next;
 	}
 	return newitem;
+}
+
+void cJSON_Minify(char *json)
+{
+	char *into=json;
+	while (*json)
+	{
+		if (*json==' ') json++;
+		else if (*json=='\t') json++;	// Whitespace characters.
+		else if (*json=='\r') json++;
+		else if (*json=='\n') json++;
+		else if (*json=='/' && json[1]=='/')  while (*json && *json!='\n') json++;	// double-slash comments, to end of line.
+		else if (*json=='/' && json[1]=='*') {while (*json && !(*json=='*' && json[1]=='/')) json++;json+=2;}	// multiline comments.
+		else if (*json=='\"'){*into++=*json++;while (*json && *json!='\"'){if (*json=='\\') *into++=*json++;*into++=*json++;}*into++=*json++;} // string literals, which are \" sensitive.
+		else *into++=*json++;			// All other characters.
+	}
+	*into=0;	// and null-terminate.
 }
