@@ -79,22 +79,22 @@ extern cJSON *cJSON_GetArrayItem(cJSON *array,int item);
 extern cJSON *cJSON_GetObjectItem(cJSON *object,const char *string);
 
 /* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when cJSON_Parse() returns 0. 0 when cJSON_Parse() succeeds. */
-extern const char *cJSON_GetErrorPtr();
+extern const char *cJSON_GetErrorPtr(void);
 	
 /* These calls create a cJSON item of the appropriate type. */
-extern cJSON *cJSON_CreateNull();
-extern cJSON *cJSON_CreateTrue();
-extern cJSON *cJSON_CreateFalse();
+extern cJSON *cJSON_CreateNull(void);
+extern cJSON *cJSON_CreateTrue(void);
+extern cJSON *cJSON_CreateFalse(void);
 extern cJSON *cJSON_CreateBool(int b);
 extern cJSON *cJSON_CreateNumber(double num);
 extern cJSON *cJSON_CreateString(const char *string);
-extern cJSON *cJSON_CreateArray();
-extern cJSON *cJSON_CreateObject();
+extern cJSON *cJSON_CreateArray(void);
+extern cJSON *cJSON_CreateObject(void);
 
 /* These utilities create an Array of count items. */
-extern cJSON *cJSON_CreateIntArray(int *numbers,int count);
-extern cJSON *cJSON_CreateFloatArray(float *numbers,int count);
-extern cJSON *cJSON_CreateDoubleArray(double *numbers,int count);
+extern cJSON *cJSON_CreateIntArray(const int *numbers,int count);
+extern cJSON *cJSON_CreateFloatArray(const float *numbers,int count);
+extern cJSON *cJSON_CreateDoubleArray(const double *numbers,int count);
 extern cJSON *cJSON_CreateStringArray(const char **strings,int count);
 
 /* Append item to the specified array/object. */
@@ -114,11 +114,27 @@ extern void   cJSON_DeleteItemFromObject(cJSON *object,const char *string);
 extern void cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem);
 extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 
-#define cJSON_AddNullToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateNull())
-#define cJSON_AddTrueToObject(object,name)	cJSON_AddItemToObject(object, name, cJSON_CreateTrue())
+/* Duplicate a cJSON item */
+extern cJSON *cJSON_Duplicate(cJSON *item,int recurse);
+/* Duplicate will create a new, identical cJSON item to the one you pass, in new memory that will
+need to be released. With recurse!=0, it will duplicate any children connected to the item.
+The item->next and ->prev pointers are always zero on return from Duplicate. */
+
+/* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
+extern cJSON *cJSON_ParseWithOpts(const char *value,const char **return_parse_end,int require_null_terminated);
+
+extern void cJSON_Minify(char *json);
+
+/* Macros for creating things quickly. */
+#define cJSON_AddNullToObject(object,name)		cJSON_AddItemToObject(object, name, cJSON_CreateNull())
+#define cJSON_AddTrueToObject(object,name)		cJSON_AddItemToObject(object, name, cJSON_CreateTrue())
 #define cJSON_AddFalseToObject(object,name)		cJSON_AddItemToObject(object, name, cJSON_CreateFalse())
+#define cJSON_AddBoolToObject(object,name,b)	cJSON_AddItemToObject(object, name, cJSON_CreateBool(b))
 #define cJSON_AddNumberToObject(object,name,n)	cJSON_AddItemToObject(object, name, cJSON_CreateNumber(n))
 #define cJSON_AddStringToObject(object,name,s)	cJSON_AddItemToObject(object, name, cJSON_CreateString(s))
+
+/* When assigning an integer value, it needs to be propagated to valuedouble too. */
+#define cJSON_SetIntValue(object,val)			((object)?(object)->valueint=(object)->valuedouble=(val):(val))
 
 #ifdef __cplusplus
 }
