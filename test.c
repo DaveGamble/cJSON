@@ -44,7 +44,7 @@ void doit(char *text)
 void dofile(char *filename)
 {
 	FILE *f=fopen(filename,"rb");fseek(f,0,SEEK_END);long len=ftell(f);fseek(f,0,SEEK_SET);
-	char *data=malloc(len+1);fread(data,1,len,f);fclose(f);
+	char *data=(char*)malloc(len+1);fread(data,1,len,f);fclose(f);
 	doit(data);
 	free(data);
 }
