@@ -122,7 +122,16 @@ static char *print_number(cJSON *item)
 	if (fabs(((double)item->valueint)-d)<=DBL_EPSILON && d<=INT_MAX && d>=INT_MIN)
 	{
 		str=(char*)cJSON_malloc(21);	/* 2^64+1 can be represented in 21 chars. */
-		if (str) sprintf(str,"%d",item->valueint);
+		if (str)
+		{
+			int i,j,t;
+ 
+			if (d<0) t=-d; else t=d;
+			for (i=0;t>0;t/=10) str[i++]='0'+(t%10);
+			if (d<0) str[i++]='-';
+			str[i--]=0;
+			for (j=0;j<i;i--,j++) {t=str[j];str[j]=str[i];str[i]=t;}	// reverse the string.
+		}
 	}
 	else
 	{
@@ -211,10 +220,33 @@ static const char *parse_string(cJSON *item,const char *str)
 	return ptr;
 }
 
+
+static int escapable[256]={	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,
+							0,0,1,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
+							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	1,0,0,0,
+							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
+							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
+							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
+							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
+							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0};
+
 /* Render the cstring provided to an escaped version that can be printed. */
 static char *print_string_ptr(const char *str)
 {
-	const char *ptr;char *ptr2,*out;int len=0;unsigned char token;
+	const char *ptr;char *ptr2,*out;int len=0,flag=0;unsigned char token;
+
+	ptr=str;while (*ptr) flag|=escapable[*ptr++];
+	if (!flag)
+	{
+		len=ptr-str;
+		out=(char*)cJSON_malloc(len+3);
+		if (!out) return 0;
+		ptr2=out;*ptr2++='\"';
+		strcpy(ptr2,str);
+		ptr2[len]='\"';
+		ptr2[len+1]=0;
+		return out;
+	}
 	
 	if (!str) return cJSON_strdup("");
 	ptr=str;while ((token=*ptr) && ++len) {if (strchr("\"\\\b\f\n\r\t",token)) len++; else if (token<32) len+=5;ptr++;}
