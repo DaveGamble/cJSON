@@ -383,6 +383,7 @@ static char *print_array(cJSON *item,int depth,int fmt)
 	char *out=0,*ptr,*ret;int len=5;
 	cJSON *child=item->child;
 	int numentries=0,i=0,fail=0;
+	size_t tmplen=0;
 	
 	/* How many entries in the array? */
 	while (child) numentries++,child=child->next;
@@ -425,7 +426,7 @@ static char *print_array(cJSON *item,int depth,int fmt)
 	ptr=out+1;*ptr=0;
 	for (i=0;i<numentries;i++)
 	{
-		strcpy(ptr,entries[i]);ptr+=strlen(entries[i]);
+		tmplen=strlen(entries[i]);memcpy(ptr,entries[i],tmplen);ptr+=tmplen;
 		if (i!=numentries-1) {*ptr++=',';if(fmt)*ptr++=' ';*ptr=0;}
 		cJSON_free(entries[i]);
 	}
@@ -477,6 +478,7 @@ static char *print_object(cJSON *item,int depth,int fmt)
 	char *out=0,*ptr,*ret,*str;int len=7,i=0,j;
 	cJSON *child=item->child;
 	int numentries=0,fail=0;
+	size_t tmplen=0;
 	/* Count the number of entries. */
 	while (child) numentries++,child=child->next;
 	/* Explicitly handle empty object case */
@@ -524,7 +526,7 @@ static char *print_object(cJSON *item,int depth,int fmt)
 	for (i=0;i<numentries;i++)
 	{
 		if (fmt) for (j=0;j<depth;j++) *ptr++='\t';
-		strcpy(ptr,names[i]);ptr+=strlen(names[i]);
+		tmplen=strlen(names[i]);memcpy(ptr,names[i],tmplen);ptr+=tmplen;
 		*ptr++=':';if (fmt) *ptr++='\t';
 		strcpy(ptr,entries[i]);ptr+=strlen(entries[i]);
 		if (i!=numentries-1) *ptr++=',';
