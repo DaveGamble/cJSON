@@ -115,6 +115,7 @@ extern cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string);
 extern void   cJSON_DeleteItemFromObject(cJSON *object,const char *string);
 	
 /* Update array items. */
+extern void cJSON_InsertItemInArray(cJSON *array,int which,cJSON *newitem);	// Shifts pre-existing items to the right.
 extern void cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem);
 extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 
