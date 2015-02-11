@@ -4,7 +4,8 @@
 cJSON *cJSONUtils_GetPointer(cJSON *object,const char *pointer);
 
 // Implement RFC6902 (https://tools.ietf.org/html/rfc6902) JSON Patch spec.
-//cJSON* cJSONUtils_GeneratePatches(cJSON *from,cJSON *to);	// Not yet implemented.
+cJSON* cJSONUtils_GeneratePatches(cJSON *from,cJSON *to);
+void cJSONUtils_AddPatchToArray(cJSON *array,const char *op,const char *path,cJSON *val);	// Utility for generating patch array entries.
 int cJSONUtils_ApplyPatches(cJSON *object,cJSON *patches);	// Returns 0 for success.
 
 // Note that ApplyPatches is NOT atomic on failure. To implement an atomic ApplyPatches, use:
@@ -17,3 +18,5 @@ int cJSONUtils_ApplyPatches(cJSON *object,cJSON *patches);	// Returns 0 for succ
 //	return error;
 //}
 // Code not added to library since this strategy is a LOT slower.
+
+char *cJSONUtils_FindPointerFromObjectTo(cJSON *object,cJSON *target);	// Given a root object and a target object, construct a pointer from one to the other.
