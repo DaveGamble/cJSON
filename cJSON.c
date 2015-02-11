@@ -253,7 +253,7 @@ static char *print_string_ptr(const char *str,printbuffer *p)
 {
 	const char *ptr;char *ptr2,*out;int len=0,flag=0;unsigned char token;
 	
-	for (ptr=str;*ptr;ptr++) flag|=((*ptr>=0 && *ptr<32)||(*ptr=='\"')||(*ptr=='\\'))?1:0;
+	for (ptr=str;*ptr;ptr++) flag|=((*ptr>0 && *ptr<32)||(*ptr=='\"')||(*ptr=='\\'))?1:0;
 	if (!flag)
 	{
 		len=ptr-str;
