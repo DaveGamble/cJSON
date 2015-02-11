@@ -248,22 +248,12 @@ static const char *parse_string(cJSON *item,const char *str)
 	return ptr;
 }
 
-
-static int escapable[256]={	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,	1,1,1,1,
-							0,0,1,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
-							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	1,0,0,0,
-							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
-							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
-							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
-							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,
-							0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0,	0,0,0,0};
-
 /* Render the cstring provided to an escaped version that can be printed. */
 static char *print_string_ptr(const char *str,printbuffer *p)
 {
 	const char *ptr;char *ptr2,*out;int len=0,flag=0;unsigned char token;
 	
-	ptr=str;while (*ptr) flag|=escapable[*ptr++];
+	for (ptr=str;*ptr;ptr++) flag|=((*ptr>=0 && *ptr<32)||(*ptr=='\"')||(*ptr=='\\'))?1:0;
 	if (!flag)
 	{
 		len=ptr-str;
