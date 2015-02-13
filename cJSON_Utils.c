@@ -307,6 +307,7 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
 	
 	while (ptr && ptr->next && cJSONUtils_strcasecmp(ptr->string,ptr->next->string)<0) ptr=ptr->next;	/* Test for list sorted. */
 	if (!ptr || !ptr->next) return list;	/* Leave sorted lists unmodified. */
+	ptr=list;
 
 	while (ptr) {second=second->next;ptr=ptr->next;if (ptr) ptr=ptr->next;}	/* Walk two pointers to find the middle. */
 	if (second && second->prev) second->prev->next=0;	/* Split the lists */
