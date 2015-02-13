@@ -101,9 +101,9 @@ int main()
 	{
 		buf[0]=random[i];cJSON_AddItemToObject(sortme,buf,cJSON_CreateNumber(1));
 	}
-	before=cJSON_Print(sortme);
+	before=cJSON_PrintUnformatted(sortme);
 	cJSONUtils_SortObject(sortme);
-	after=cJSON_Print(sortme);
+	after=cJSON_PrintUnformatted(sortme);
 	printf("Before: [%s]\nAfter: [%s]\n\n",before,after);
 	free(before);free(after);cJSON_Delete(sortme);		
 }

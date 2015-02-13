@@ -4,6 +4,13 @@
 #include <stdio.h>
 #include "cJSON_Utils.h"
 
+static int cJSONUtils_strcasecmp(const char *s1,const char *s2)
+{
+	if (!s1) return (s1==s2)?0:1;if (!s2) return 1;
+	for(; tolower(*s1) == tolower(*s2); ++s1, ++s2)	if(*s1 == 0)	return 0;
+	return tolower(*(const unsigned char *)s1) - tolower(*(const unsigned char *)s2);
+}
+
 /* JSON Pointer implementation: */
 static int cJSONUtils_Pstrcasecmp(const char *a,const char *e)
 {
@@ -115,13 +122,18 @@ static int cJSONUtils_Compare(cJSON *a,cJSON *b)
 	case cJSON_Array:	for (a=a->child,b=b->child;a && b;a=a->next,b=b->next)	{int err=cJSONUtils_Compare(a,b);if (err) return err;}
 						return (a || b)?-4:0;	/* array size mismatch. */
 	case cJSON_Object:
-						if (cJSON_GetArraySize(a)!=cJSON_GetArraySize(b))	return -5;	/* object length mismatch. */
-						for (a=a->child;a;a=a->next)
+						cJSONUtils_SortObject(a);
+						cJSONUtils_SortObject(b);
+						a=a->child,b=b->child;
+						while (a && b)
 						{
-							int err=0;cJSON *s=cJSON_GetObjectItem(b,a->string); if (!s) return -6;	/* missing object member. */
-							err=cJSONUtils_Compare(a,s);if (err) return err;
+							int err;
+							if (cJSONUtils_strcasecmp(a->string,b->string))	return -6;	/* missing member */
+							err=cJSONUtils_Compare(a,b);if (err) return err;
+							a=a->next,b=b->next;
 						}
-						return 0;
+						return (a || b)?-5:0;	/* object length mismatch */
+
 	default:			break;
 	}
 	return 0;
@@ -251,22 +263,25 @@ static void cJSONUtils_CompareToPatch(cJSON *patches,const char *path,cJSON *fro
 
 	case cJSON_Object:
 	{
-		cJSON *a;
-		for (a=from->child;a;a=a->next)
+		cJSON *a,*b;
+		cJSONUtils_SortObject(from);
+		cJSONUtils_SortObject(to);
+		
+		a=from->child,b=to->child;
+		while (a || b)
 		{
-			if (!cJSON_GetObjectItem(to,a->string))	cJSONUtils_GeneratePatch(patches,"remove",path,a->string,0);
-		}
-		for (a=to->child;a;a=a->next)
-		{
-			cJSON *other=cJSON_GetObjectItem(from,a->string);
-			if (!other)	cJSONUtils_GeneratePatch(patches,"add",path,a->string,a);
-			else
+			int diff=(!a)?1:(!b)?-1:cJSONUtils_strcasecmp(a->string,b->string);
+			if (!diff)
 			{
 				char *newpath=(char*)malloc(strlen(path)+cJSONUtils_PointerEncodedstrlen(a->string)+2);
 				cJSONUtils_PointerEncodedstrcpy(newpath+sprintf(newpath,"%s/",path),a->string);
-				cJSONUtils_CompareToPatch(patches,newpath,other,a);
+				cJSONUtils_CompareToPatch(patches,newpath,a,b);
 				free(newpath);
+				a=a->next;
+				b=b->next;
 			}
+			else if (diff<0)	{cJSONUtils_GeneratePatch(patches,"remove",path,a->string,0);	a=a->next;}
+			else				{cJSONUtils_GeneratePatch(patches,"add",path,b->string,b);		b=b->next;}
 		}
 		return;
 	}
@@ -283,12 +298,6 @@ cJSON* cJSONUtils_GeneratePatches(cJSON *from,cJSON *to)
 	return patches;
 }
 
-static int cJSONUtils_strcasecmp(const char *s1,const char *s2)
-{
-	if (!s1) return (s1==s2)?0:1;if (!s2) return 1;
-	for(; tolower(*s1) == tolower(*s2); ++s1, ++s2)	if(*s1 == 0)	return 0;
-	return tolower(*(const unsigned char *)s1) - tolower(*(const unsigned char *)s2);
-}
 
 static cJSON *cJSONUtils_SortList(cJSON *list)
 {
