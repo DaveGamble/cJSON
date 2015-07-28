@@ -38,6 +38,7 @@ extern "C"
 #define cJSON_Object 6
 	
 #define cJSON_IsReference 256
+#define cJSON_StringIsConst 512
 
 /* The cJSON structure: */
 typedef struct cJSON {
@@ -68,6 +69,8 @@ extern cJSON *cJSON_Parse(const char *value);
 extern char  *cJSON_Print(cJSON *item);
 /* Render a cJSON entity to text for transfer/storage without any formatting. Free the char* when finished. */
 extern char  *cJSON_PrintUnformatted(cJSON *item);
+/* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
+extern char *cJSON_PrintBuffered(cJSON *item,int prebuffer,int fmt);
 /* Delete a cJSON entity and all subentities. */
 extern void   cJSON_Delete(cJSON *c);
 
@@ -100,6 +103,7 @@ extern cJSON *cJSON_CreateStringArray(const char **strings,int count);
 /* Append item to the specified array/object. */
 extern void cJSON_AddItemToArray(cJSON *array, cJSON *item);
 extern void	cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item);
+extern void	cJSON_AddItemToObjectCS(cJSON *object,const char *string,cJSON *item);	/* Use this when string is definitely const (i.e. a literal, or as good as), and will definitely survive the cJSON object */
 /* Append reference to item to the specified array/object. Use this when you want to add an existing cJSON to a new cJSON, but don't want to corrupt your existing cJSON. */
 extern void cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item);
 extern void	cJSON_AddItemReferenceToObject(cJSON *object,const char *string,cJSON *item);
@@ -111,6 +115,7 @@ extern cJSON *cJSON_DetachItemFromObject(cJSON *object,const char *string);
 extern void   cJSON_DeleteItemFromObject(cJSON *object,const char *string);
 	
 /* Update array items. */
+extern void cJSON_InsertItemInArray(cJSON *array,int which,cJSON *newitem);	/* Shifts pre-existing items to the right. */
 extern void cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem);
 extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 
@@ -135,6 +140,7 @@ extern void cJSON_Minify(char *json);
 
 /* When assigning an integer value, it needs to be propagated to valuedouble too. */
 #define cJSON_SetIntValue(object,val)			((object)?(object)->valueint=(object)->valuedouble=(val):(val))
+#define cJSON_SetNumberValue(object,val)		((object)?(object)->valueint=(object)->valuedouble=(val):(val))
 
 #ifdef __cplusplus
 }

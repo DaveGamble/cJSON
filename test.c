@@ -43,8 +43,10 @@ void doit(char *text)
 /* Read a file, parse, render back, etc. */
 void dofile(char *filename)
 {
-	FILE *f=fopen(filename,"rb");fseek(f,0,SEEK_END);long len=ftell(f);fseek(f,0,SEEK_SET);
-	char *data=(char*)malloc(len+1);fread(data,1,len,f);data[len]='\0';fclose(f);
+	FILE *f;long len;char *data;
+	
+	f=fopen(filename,"rb");fseek(f,0,SEEK_END);len=ftell(f);fseek(f,0,SEEK_SET);
+	data=(char*)malloc(len+1);fread(data,1,len,f);data[len]='\0';fclose(f);
 	doit(data);
 	free(data);
 }
@@ -56,6 +58,16 @@ struct record {const char *precision;double lat,lon;const char *address,*city,*s
 void create_objects()
 {
 	cJSON *root,*fmt,*img,*thm,*fld;char *out;int i;	/* declare a few. */
+	/* Our "days of the week" array: */
+	const char *strings[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+	/* Our matrix: */
+	int numbers[3][3]={{0,-1,0},{1,0,0},{0,0,1}};
+	/* Our "gallery" item: */
+	int ids[4]={116,943,234,38793};
+	/* Our array of "records": */
+	struct record fields[2]={
+		{"zip",37.7668,-1.223959e+2,"","SAN FRANCISCO","CA","94107","US"},
+		{"zip",37.371991,-1.22026e+2,"","SUNNYVALE","CA","94085","US"}};
 
 	/* Here we construct some JSON standards, from the JSON site. */
 	
@@ -72,13 +84,11 @@ void create_objects()
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);	/* Print to text, Delete the cJSON, print it, release the string. */
 
 	/* Our "days of the week" array: */
-	const char *strings[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
 	root=cJSON_CreateStringArray(strings,7);
 
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
 	/* Our matrix: */
-	int numbers[3][3]={{0,-1,0},{1,0,0},{0,0,1}};
 	root=cJSON_CreateArray();
 	for (i=0;i<3;i++) cJSON_AddItemToArray(root,cJSON_CreateIntArray(numbers[i],3));
 
@@ -88,7 +98,6 @@ void create_objects()
 
 
 	/* Our "gallery" item: */
-	int ids[4]={116,943,234,38793};
 	root=cJSON_CreateObject();
 	cJSON_AddItemToObject(root, "Image", img=cJSON_CreateObject());
 	cJSON_AddNumberToObject(img,"Width",800);
@@ -103,9 +112,6 @@ void create_objects()
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
 	/* Our array of "records": */
-	struct record fields[2]={
-		{"zip",37.7668,-1.223959e+2,"","SAN FRANCISCO","CA","94107","US"},
-		{"zip",37.371991,-1.22026e+2,"","SUNNYVALE","CA","94085","US"}};
 
 	root=cJSON_CreateArray();
 	for (i=0;i<2;i++)
