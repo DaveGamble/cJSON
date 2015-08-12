@@ -1,2 +1,8 @@
 .svn
 test
+*.o
+*.a
+*.so
+*.swp
+*.patch
+tags
