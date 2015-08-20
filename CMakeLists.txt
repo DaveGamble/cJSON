@@ -8,11 +8,15 @@ file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
 
 add_library(${PROJ_CJSON} STATIC ${HEADERS} ${SOURCES})
-target_link_libraries(${PROJ_CJSON} m)
+if (NOT WIN32)
+	target_link_libraries(${PROJ_CJSON} m)
+endif()
 
 add_library(${PROJ_CJSON}.shared SHARED ${HEADERS} ${SOURCES})
 set_target_properties(${PROJ_CJSON}.shared PROPERTIES OUTPUT_NAME cJSON)
-target_link_libraries(${PROJ_CJSON}.shared m)
+if (NOT WIN32)
+	target_link_libraries(${PROJ_CJSON}.shared m)
+endif()
 
 
 set(PROJ_CJSON_UTILS cJSON_utils)
