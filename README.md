@@ -63,7 +63,7 @@ Assume that you got this from a file, a webserver, or magic JSON elves, whatever
 you have a char * to it. Everything is a cJSON struct.
 Get it parsed:
 
-  cJSON * root = cJSON_Parse(my_json_string);
+    cJSON * root = cJSON_Parse(my_json_string);
 
 This is an object. We're in C. We don't have objects. But we do have structs.
 What's the framerate?
