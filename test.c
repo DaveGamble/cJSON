@@ -131,6 +131,9 @@ void create_objects()
 	
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
+	root=cJSON_CreateObject();
+	cJSON_AddNumberToObject(root,"number", 1.0/0.0);
+	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 }
 
 int main (int argc, const char * argv[]) {
