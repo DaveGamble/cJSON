@@ -166,9 +166,10 @@ static char *print_number(cJSON *item,printbuffer *p)
 		else	str=(char*)cJSON_malloc(64);	/* This is a nice tradeoff. */
 		if (str)
 		{
-			if (fabs(floor(d)-d)<=DBL_EPSILON && fabs(d)<1.0e60)sprintf(str,"%.0f",d);
-			else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)			sprintf(str,"%e",d);
-			else												sprintf(str,"%f",d);
+			if (fpclassify(d) != FP_ZERO && !isnormal(d))				sprintf(str,"null");
+			else if (fabs(floor(d)-d)<=DBL_EPSILON && fabs(d)<1.0e60)	sprintf(str,"%.0f",d);
+			else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)					sprintf(str,"%e",d);
+			else														sprintf(str,"%f",d);
 		}
 	}
 	return str;
