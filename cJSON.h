@@ -142,6 +142,9 @@ extern void cJSON_Minify(char *json);
 #define cJSON_SetIntValue(object,val)			((object)?(object)->valueint=(object)->valuedouble=(val):(val))
 #define cJSON_SetNumberValue(object,val)		((object)?(object)->valueint=(object)->valuedouble=(val):(val))
 
+/* Macro for iterating over an array */
+#define cJSON_ArrayForEach(pos, head)			for(pos = (head)->child; pos != NULL; pos = pos->next)
+
 #ifdef __cplusplus
 }
 #endif
