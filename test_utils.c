@@ -91,9 +91,16 @@ int main()
 	nums=cJSON_CreateIntArray(numbers,10);
 	num6=cJSON_GetArrayItem(nums,6);
 	cJSON_AddItemToObject(object,"numbers",nums);
-	printf("Pointer: [%s]\n",cJSONUtils_FindPointerFromObjectTo(object,num6));
-	printf("Pointer: [%s]\n",cJSONUtils_FindPointerFromObjectTo(object,nums));
-	printf("Pointer: [%s]\n",cJSONUtils_FindPointerFromObjectTo(object,object));
+	char *temp=cJSONUtils_FindPointerFromObjectTo(object,num6);
+	printf("Pointer: [%s]\n",temp);
+	free(temp);
+	temp=cJSONUtils_FindPointerFromObjectTo(object,nums);
+	printf("Pointer: [%s]\n",temp);
+	free(temp);
+	temp=cJSONUtils_FindPointerFromObjectTo(object,object);
+	printf("Pointer: [%s]\n",temp);
+	free(temp);
+	cJSON_Delete(object);
 
 	/* JSON Sort test: */
 	sortme=cJSON_CreateObject();
