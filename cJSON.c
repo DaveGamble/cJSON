@@ -350,7 +350,6 @@ char *cJSON_PrintBuffered(cJSON *item,int prebuffer,int fmt)
 	p.length=prebuffer;
 	p.offset=0;
 	return print_value(item,0,fmt,&p);
-	return p.buffer;
 }
 
 
