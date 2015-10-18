@@ -209,7 +209,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object,cJSON *patch)
 int cJSONUtils_ApplyPatches(cJSON *object,cJSON *patches)
 {
 	int err;
-	if (!patches->type==cJSON_Array) return 1;	/* malformed patches. */
+	if (patches->type!=cJSON_Array) return 1;	/* malformed patches. */
 	if (patches) patches=patches->child;
 	while (patches)
 	{
