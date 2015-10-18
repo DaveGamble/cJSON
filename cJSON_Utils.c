@@ -186,7 +186,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object,cJSON *patch)
 	cJSONUtils_InplaceDecodePointerString(childptr);
 
 	/* add, remove, replace, move, copy, test. */
-	if (!parent) {free(parentptr); return 9;}	/* Couldn't find object to add to. */
+	if (!parent) {free(parentptr); cJSON_Delete(value); return 9;}	/* Couldn't find object to add to. */
 	else if (parent->type==cJSON_Array)
 	{
 		if (!strcmp(childptr,"-"))	cJSON_AddItemToArray(parent,value);
@@ -196,6 +196,10 @@ static int cJSONUtils_ApplyPatch(cJSON *object,cJSON *patch)
 	{
 		cJSON_DeleteItemFromObject(parent,childptr);
 		cJSON_AddItemToObject(parent,childptr,value);
+	}
+	else
+	{
+		cJSON_Delete(value);
 	}
 	free(parentptr);
 	return 0;
