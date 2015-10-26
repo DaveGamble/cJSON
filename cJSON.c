@@ -563,7 +563,7 @@ static char *print_object(cJSON *item,int depth,int fmt,printbuffer *p)
 		else	out=(char*)cJSON_malloc(fmt?depth+4:3);
 		if (!out)	return 0;
 		ptr=out;*ptr++='{';
-		if (fmt) {*ptr++='\n';for (i=0;i<depth-1;i++) *ptr++='\t';}
+		if (fmt) {*ptr++='\n';for (i=0;i<depth;i++) *ptr++='\t';}
 		*ptr++='}';*ptr++=0;
 		return out;
 	}
