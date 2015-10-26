@@ -253,6 +253,15 @@ static const char *parse_string(cJSON *item,const char *str)
 static char *print_string_ptr(const char *str,printbuffer *p)
 {
 	const char *ptr;char *ptr2,*out;int len=0,flag=0;unsigned char token;
+
+	if (!str)
+	{
+		if (p)	out=ensure(p,3);
+		else	out=(char*)cJSON_malloc(3);
+		if (!out) return 0;
+		strcpy(out,"\"\"");
+		return out;
+	}
 	
 	for (ptr=str;*ptr;ptr++) flag|=((*ptr>0 && *ptr<32)||(*ptr=='\"')||(*ptr=='\\'))?1:0;
 	if (!flag)
@@ -268,14 +277,6 @@ static char *print_string_ptr(const char *str,printbuffer *p)
 		return out;
 	}
 	
-	if (!str)
-	{
-		if (p)	out=ensure(p,3);
-		else	out=(char*)cJSON_malloc(3);
-		if (!out) return 0;
-		strcpy(out,"\"\"");
-		return out;
-	}
 	ptr=str;while ((token=*ptr) && ++len) {if (strchr("\"\\\b\f\n\r\t",token)) len++; else if (token<32) len+=5;ptr++;}
 	
 	if (p)	out=ensure(p,len+3);
