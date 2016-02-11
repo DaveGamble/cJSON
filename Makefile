@@ -22,9 +22,8 @@ DYLIBCMD = $(CC) -shared -o $(DYLIBNAME)
 ## create dynamic (shared) library on Darwin (base OS for MacOSX and IOS)
 ifeq (Darwin, $(uname_S))
   DYLIBNAME = $(LIBNAME).dylib
-endif
 ## create dyanmic (shared) library on SunOS
-ifeq (SunOS, $(uname_S))
+else ifeq (SunOS, $(uname_S))
   DYLIBCMD = $(CC) -G -o $(DYLIBNAME)
   INSTALL = cp -r
 endif
@@ -55,6 +54,11 @@ install: $(DYLIBNAME) $(STLIBNAME)
 		$(INSTALL) cJSON.h $(INSTALL_INCLUDE_PATH)
 		$(INSTALL) $(DYLIBNAME) $(INSTALL_LIBRARY_PATH)
 		$(INSTALL) $(STLIBNAME) $(INSTALL_LIBRARY_PATH)
+
+uninstall:
+		rm -rf $(INSTALL_LIBRARY_PATH)/$(DYLIBNAME)
+		rm -rf $(INSTALL_LIBRARY_PATH)/$(STLIBNAME)
+		rm -rf $(INSTALL_INCLUDE_PATH)/cJSON.h
 
 clean: 
 		rm -rf $(DYLIBNAME) $(STLIBNAME) $(TESTS) *.o
