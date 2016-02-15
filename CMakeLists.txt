@@ -33,6 +33,12 @@ add_library(${PROJ_CJSON_UTILS}.shared SHARED ${HEADERS_UTILS} ${SOURCES_UTILS})
 set_target_properties(${PROJ_CJSON_UTILS}.shared PROPERTIES OUTPUT_NAME cJSON_utils)
 target_link_libraries(${PROJ_CJSON_UTILS}.shared ${PROJ_CJSON}.shared)
 
+install (TARGETS ${PROJ_CJSON} DESTINATION bin)
+install (TARGETS ${PROJ_CJSON}.shared DESTINATION bin)
+install (FILES cJSON.h DESTINATION include)
+install (TARGETS ${PROJ_CJSON_UTILS} DESTINATION bin)
+install (TARGETS ${PROJ_CJSON_UTILS}.shared DESTINATION bin)
+install (FILES cJSON_Utils.h DESTINATION include)
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
 if(ENABLE_CJSON_TEST)
