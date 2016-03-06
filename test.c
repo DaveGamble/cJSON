@@ -144,12 +144,30 @@ int main (int argc, const char * argv[]) {
 	char text4[]="{\n		\"Image\": {\n			\"Width\":  800,\n			\"Height\": 600,\n			\"Title\":  \"View from 15th Floor\",\n			\"Thumbnail\": {\n				\"Url\":    \"http:/*www.example.com/image/481989943\",\n				\"Height\": 125,\n				\"Width\":  \"100\"\n			},\n			\"IDs\": [116, 943, 234, 38793]\n		}\n	}";
 	char text5[]="[\n	 {\n	 \"precision\": \"zip\",\n	 \"Latitude\":  37.7668,\n	 \"Longitude\": -122.3959,\n	 \"Address\":   \"\",\n	 \"City\":      \"SAN FRANCISCO\",\n	 \"State\":     \"CA\",\n	 \"Zip\":       \"94107\",\n	 \"Country\":   \"US\"\n	 },\n	 {\n	 \"precision\": \"zip\",\n	 \"Latitude\":  37.371991,\n	 \"Longitude\": -122.026020,\n	 \"Address\":   \"\",\n	 \"City\":      \"SUNNYVALE\",\n	 \"State\":     \"CA\",\n	 \"Zip\":       \"94085\",\n	 \"Country\":   \"US\"\n	 }\n	 ]";
 
+    char text6[] = "<!DOCTYPE html>"
+        "<html>\n"
+        "<head>\n"
+        "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+        "  <style type=\"text/css\">\n"
+        "    html, body, iframe { margin: 0; padding: 0; height: 100%; }\n"
+        "    iframe { display: block; width: 100%; border: none; }\n"
+        "  </style>\n"
+        "<title>Application Error</title>\n"
+        "</head>\n"
+        "<body>\n"
+        "  <iframe src="//s3.amazonaws.com/heroku_pages/error.html">\n"
+        "    <p>Application Error</p>\n"
+        "  </iframe>\n"
+        "</body>\n"
+        "</html>\n";
+
 	/* Process each json textblock by parsing, then rebuilding: */
 	doit(text1);
 	doit(text2);	
 	doit(text3);
 	doit(text4);
 	doit(text5);
+    doit(text6);
 
 	/* Parse standard testfiles: */
 /*	dofile("../../tests/test1"); */
@@ -157,6 +175,7 @@ int main (int argc, const char * argv[]) {
 /*	dofile("../../tests/test3"); */
 /*	dofile("../../tests/test4"); */
 /*	dofile("../../tests/test5"); */
+/*	dofile("../../tests/test6"); */
 
 	/* Now some samplecode for building objects concisely: */
 	create_objects();
