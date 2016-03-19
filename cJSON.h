@@ -126,6 +126,7 @@ need to be released. With recurse!=0, it will duplicate any children connected t
 The item->next and ->prev pointers are always zero on return from Duplicate. */
 
 /* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
+/* If you supply a ptr in return_parse_end and parsing fails, then return_parse_end will contain a pointer to the error. If not, then cJSON_GetErrorPtr() does the job. */
 extern cJSON *cJSON_ParseWithOpts(const char *value,const char **return_parse_end,int require_null_terminated);
 
 extern void cJSON_Minify(char *json);
