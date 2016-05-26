@@ -143,6 +143,103 @@ static int update(printbuffer *p)
 	return p->offset+strlen(str);
 }
 
+#ifndef FP_ZERO
+
+// The Following is derived from https://github.com/JuliaLang/openlibm
+
+/*-
+ * Copyright (c) 2004 David Schultz <das@FreeBSD.ORG>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ */
+
+#ifndef _DENORM
+#define _DENORM		(-2)	/* C9X only */
+#define _FINITE		(-1)
+#define _INFCODE	1
+#define _NANCODE	2
+#endif
+
+#define FP_INFINITE		_INFCODE
+#define FP_NAN			_NANCODE
+#define FP_NORMAL		_FINITE
+#define FP_SUBNORMAL	_DENORM
+#define FP_ZERO			0
+
+union IEEEd2bits {
+	double	d;
+	struct {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#if __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__
+		unsigned int	manl	:32;
+#endif
+		unsigned int	manh	:20;
+		unsigned int	exp	:11;
+		unsigned int	sign	:1;
+#if __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__
+		unsigned int	manl	:32;
+#endif
+#else /* _BIG_ENDIAN */
+		unsigned int	sign	:1;
+		unsigned int	exp	:11;
+		unsigned int	manh	:20;
+		unsigned int	manl	:32;
+#endif
+	} bits;
+};
+
+int isnormal(double d)
+{
+	union IEEEd2bits u;
+
+	u.d = d;
+	return (u.bits.exp != 0 && u.bits.exp != 2047);
+}
+
+int fpclassify(double d)
+{
+	union IEEEd2bits u;
+
+	u.d = d;
+	if (u.bits.exp == 2047) {
+		if (u.bits.manl == 0 && u.bits.manh == 0) {
+			return FP_INFINITE;
+		} else {
+			return FP_NAN;
+		}
+	} else if (u.bits.exp != 0) {
+		return FP_NORMAL;
+	} else if (u.bits.manl == 0 && u.bits.manh == 0) {
+		return FP_ZERO;
+	} else {
+		return FP_SUBNORMAL;
+	}
+}
+
+// end openlibm copyright
+#endif
+
 /* Render the number nicely from the given item into a string. */
 static char *print_number(cJSON *item,printbuffer *p)
 {
