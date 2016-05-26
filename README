@@ -107,7 +107,7 @@ Sibling has type Object, name "format", and a child.
 That child has type String, name "type", value "rect", and a sibling:
 Sibling has type Number, name "width", value 1920, and a sibling:
 Sibling has type Number, name "height", value 1080, and a sibling:
-Sibling hs type False, name "interlace", and a sibling:
+Sibling has type False, name "interlace", and a sibling:
 Sibling has type Number, name "frame rate", value 24
 
 Here's the structure:
@@ -216,11 +216,15 @@ cJSON *objects[24];
 
 cJSON *Create_array_of_anything(cJSON **items,int num)
 {
-	int i;cJSON *prev, *root=cJSON_CreateArray();
+	int i;
+	cJSON *prev = NULL, 
+	cJSON *root=cJSON_CreateArray();
 	for (i=0;i<24;i++)
 	{
-		if (!i)	root->child=objects[i];
-		else	prev->next=objects[i], objects[i]->prev=prev;
+		if (!i)	
+			root->child=objects[i];
+		else	
+			prev->next=objects[i], objects[i]->prev=prev;
 		prev=objects[i];
 	}
 	return root;
