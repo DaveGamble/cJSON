@@ -143,8 +143,15 @@ static int update(printbuffer *p)
 	return p->offset+strlen(str);
 }
 
-#ifndef FP_ZERO
+#ifdef CJSON_TEST
+#define CJSON_TESTABLE_FUNCTION(f) CJSONTest_ ## f
+#else
+#define CJSON_TESTABLE_FUNCTION(f) f
+#endif
 
+#if (!FP_ZERO || CJSON_TEST)
+
+#warning "Local implementation of floating point classification functions."
 // The Following is derived from https://github.com/JuliaLang/openlibm
 
 /*-
@@ -181,11 +188,17 @@ static int update(printbuffer *p)
 #define _NANCODE	2
 #endif
 
+#ifndef FP_ZERO
+#define FP_ZERO			0
 #define FP_INFINITE		_INFCODE
 #define FP_NAN			_NANCODE
 #define FP_NORMAL		_FINITE
 #define FP_SUBNORMAL	_DENORM
-#define FP_ZERO			0
+#endif
+
+#ifndef __FLOAT_WORD_ORDER__
+#define __FLOAT_WORD_ORDER__ __BYTE_ORDER__
+#endif
 
 union IEEEd2bits {
 	double	d;
@@ -209,7 +222,7 @@ union IEEEd2bits {
 	} bits;
 };
 
-int isnormal(double d)
+int CJSON_TESTABLE_FUNCTION(isnormal)(double d)
 {
 	union IEEEd2bits u;
 
@@ -217,7 +230,7 @@ int isnormal(double d)
 	return (u.bits.exp != 0 && u.bits.exp != 2047);
 }
 
-int fpclassify(double d)
+int CJSON_TESTABLE_FUNCTION(fpclassify)(double d)
 {
 	union IEEEd2bits u;
 
@@ -263,7 +276,7 @@ static char *print_number(cJSON *item,printbuffer *p)
 		else	str=(char*)cJSON_malloc(64);	/* This is a nice tradeoff. */
 		if (str)
 		{
-			if (fpclassify(d) != FP_ZERO && !isnormal(d))				sprintf(str,"null");
+			if (CJSON_TESTABLE_FUNCTION(fpclassify)(d) != FP_ZERO && !CJSON_TESTABLE_FUNCTION(isnormal)(d))				sprintf(str,"null");
 			else if (fabs(floor(d)-d)<=DBL_EPSILON && fabs(d)<1.0e60)	sprintf(str,"%.0f",d);
 			else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)					sprintf(str,"%e",d);
 			else														sprintf(str,"%f",d);

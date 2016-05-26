@@ -47,7 +47,7 @@ $(OBJ): cJSON.c cJSON.h
 		$(CC) -ansi -pedantic -c $(R_CFLAGS) $<
 
 $(TESTS): cJSON.c cJSON.h test.c
-		$(CC)  cJSON.c test.c -o test -lm -I.
+		$(CC) $(CFLAGS) cJSON.c test.c -o test -lm -I. 
 
 install: $(DYLIBNAME) $(STLIBNAME)
 		mkdir -p $(INSTALL_LIBRARY_PATH) $(INSTALL_INCLUDE_PATH)
