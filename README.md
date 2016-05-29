@@ -111,7 +111,7 @@ Sibling has type Object, name "format", and a child.
 That child has type String, name "type", value "rect", and a sibling:
 Sibling has type Number, name "width", value 1920, and a sibling:
 Sibling has type Number, name "height", value 1080, and a sibling:
-Sibling hs type False, name "interlace", and a sibling:
+Sibling has type False, name "interlace", and a sibling:
 Sibling has type Number, name "frame rate", value 24
 
 Here's the structure:
