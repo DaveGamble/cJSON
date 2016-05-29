@@ -148,5 +148,18 @@ int main()
 
 		free(before);free(patchtext);free(after);cJSON_Delete(object);cJSON_Delete(patch);
 	}
+	
+	/* Generate Merge tests: */
+	for (i=0;i<15;i++)
+	{
+		cJSON *from=cJSON_Parse(merges[i][0]);
+		cJSON *to=cJSON_Parse(merges[i][2]);
+		cJSON *patch=cJSONUtils_GenerateMergePatch(from,to);
+		from=cJSONUtils_MergePatch(from,patch);
+		char *patchtext=cJSON_PrintUnformatted(patch);
+		char *patchedtext=cJSON_PrintUnformatted(from);
+		printf("Patch [%s] vs [%s] = [%s] vs [%s] (%s)\n",patchtext,merges[i][1],patchedtext,merges[i][2],strcmp(patchedtext,merges[i][2])?"FAIL":"OK");
+		cJSON_Delete(from);cJSON_Delete(to);cJSON_Delete(patch);free(patchtext);free(patchedtext);
+	}
 
 }
