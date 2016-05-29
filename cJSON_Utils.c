@@ -343,4 +343,20 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
 
 void cJSONUtils_SortObject(cJSON *object)	{object->child=cJSONUtils_SortList(object->child);}
 
+cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch) {
+	if (!patch || patch->type != cJSON_Object) {cJSON_Delete(target);return cJSON_Duplicate(patch,1);}
+	if (!target || target->type != cJSON_Object) {cJSON_Delete(target);target=cJSON_CreateObject();}
 
+	patch=patch->child;
+	while (patch)
+	{
+		if (patch->type == cJSON_NULL) cJSON_DeleteItemFromObject(target,patch->string);
+		else
+		{
+			cJSON *replaceme=cJSON_DetachItemFromObject(target,patch->string);
+			cJSON_AddItemToObject(target,patch->string,cJSONUtils_MergePatch(replaceme,patch));
+		}
+		patch=patch->next;
+	}
+	return target;
+}

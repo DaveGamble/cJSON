@@ -21,6 +21,9 @@ int cJSONUtils_ApplyPatches(cJSON *object,cJSON *patches);	/* Returns 0 for succ
 // Code not added to library since this strategy is a LOT slower.
 */
 
+/* Implement RFC7386 (https://tools.ietf.org/html/rfc7396) JSON Merge Patch spec. */
+cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch); /* target will be modified by patch. return value is new ptr for target. */
+
 char *cJSONUtils_FindPointerFromObjectTo(cJSON *object,cJSON *target);	/* Given a root object and a target object, construct a pointer from one to the other.	*/
 
 void cJSONUtils_SortObject(cJSON *object);	/* Sorts the members of the object into alphabetical order.	*/

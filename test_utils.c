@@ -40,6 +40,25 @@ int main()
 	{"{\"/\": 9,\"~1\": 10}","[{\"op\": \"test\", \"path\": \"/~01\", \"value\": 10}]",""},
 	{"{\"/\": 9,\"~1\": 10}","[{\"op\": \"test\", \"path\": \"/~01\", \"value\": \"10\"}]",""},
 	{"{ \"foo\": [\"bar\"] }","[ { \"op\": \"add\", \"path\": \"/foo/-\", \"value\": [\"abc\", \"def\"] }]","{\"foo\": [\"bar\", [\"abc\", \"def\"]] }"}};
+	
+	/* JSON Apply Merge tests: */
+	const char *merges[15][3]={
+		{"{\"a\":\"b\"}", "{\"a\":\"c\"}", "{\"a\":\"c\"}"},
+		{"{\"a\":\"b\"}", "{\"b\":\"c\"}", "{\"a\":\"b\",\"b\":\"c\"}"},
+		{"{\"a\":\"b\"}", "{\"a\":null}", "{}"},
+		{"{\"a\":\"b\",\"b\":\"c\"}", "{\"a\":null}", "{\"b\":\"c\"}"},
+		{"{\"a\":[\"b\"]}", "{\"a\":\"c\"}", "{\"a\":\"c\"}"},
+		{"{\"a\":\"c\"}", "{\"a\":[\"b\"]}", "{\"a\":[\"b\"]}"},
+		{"{\"a\":{\"b\":\"c\"}}", "{\"a\":{\"b\":\"d\",\"c\":null}}", "{\"a\":{\"b\":\"d\"}}"},
+		{"{\"a\":[{\"b\":\"c\"}]}", "{\"a\":[1]}", "{\"a\":[1]}"},
+		{"[\"a\",\"b\"]", "[\"c\",\"d\"]", "[\"c\",\"d\"]"},
+		{"{\"a\":\"b\"}", "[\"c\"]", "[\"c\"]"},
+		{"{\"a\":\"foo\"}", "null", "null"},
+		{"{\"a\":\"foo\"}", "\"bar\"", "\"bar\""},
+		{"{\"e\":null}", "{\"a\":1}", "{\"e\":null,\"a\":1}"},
+		{"[1,2]", "{\"a\":\"b\",\"c\":null}", "{\"a\":\"b\"}"},
+		{"{}","{\"a\":{\"bb\":{\"ccc\":null}}}", "{\"a\":{\"bb\":{}}}"}};
+		
 
 	/* Misc tests */
 	int numbers[10]={0,1,2,3,4,5,6,7,8,9};
@@ -113,4 +132,21 @@ int main()
 	after=cJSON_PrintUnformatted(sortme);
 	printf("Before: [%s]\nAfter: [%s]\n\n",before,after);
 	free(before);free(after);cJSON_Delete(sortme);		
+	
+	/* Merge tests: */
+	printf("JSON Merge Patch tests\n");
+	for (i=0;i<15;i++)
+	{
+		cJSON *object=cJSON_Parse(merges[i][0]);
+		cJSON *patch=cJSON_Parse(merges[i][1]);
+		char *before=cJSON_PrintUnformatted(object);
+		char *patchtext=cJSON_PrintUnformatted(patch);
+		printf("Before: [%s] -> [%s] = ",before,patchtext);
+		object=cJSONUtils_MergePatch(object,patch);
+		char *after=cJSON_PrintUnformatted(object);
+		printf("[%s] vs [%s] (%s)\n",after,merges[i][2],strcmp(after,merges[i][2])?"FAIL":"OK");
+
+		free(before);free(patchtext);free(after);cJSON_Delete(object);cJSON_Delete(patch);
+	}
+
 }
