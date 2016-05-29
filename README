@@ -216,11 +216,15 @@ cJSON *objects[24];
 
 cJSON *Create_array_of_anything(cJSON **items,int num)
 {
-	int i;cJSON *prev, *root=cJSON_CreateArray();
+	int i;
+	cJSON *prev = NULL, 
+	cJSON *root=cJSON_CreateArray();
 	for (i=0;i<24;i++)
 	{
-		if (!i)	root->child=objects[i];
-		else	prev->next=objects[i], objects[i]->prev=prev;
+		if (!i)	
+			root->child=objects[i];
+		else	
+			prev->next=objects[i], objects[i]->prev=prev;
 		prev=objects[i];
 	}
 	return root;

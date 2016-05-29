@@ -27,7 +27,8 @@
 /* Parse text to JSON, then render back to text, and print! */
 void doit(char *text)
 {
-	char *out;cJSON *json;
+	char *out;
+	cJSON *json;
 	
 	json=cJSON_Parse(text);
 	if (!json) {printf("Error before: [%s]\n",cJSON_GetErrorPtr());}
@@ -43,11 +44,23 @@ void doit(char *text)
 /* Read a file, parse, render back, etc. */
 void dofile(char *filename)
 {
-	FILE *f;long len;char *data;
+	FILE *f;
+	long len;
+	char *data;
 	
-	f=fopen(filename,"rb");fseek(f,0,SEEK_END);len=ftell(f);fseek(f,0,SEEK_SET);
-	data=(char*)malloc(len+1);fread(data,1,len,f);data[len]='\0';fclose(f);
+	f=fopen(filename,"rb");
+
+	fseek(f,0,SEEK_END);
+	len=ftell(f);
+	fseek(f,0,SEEK_SET);
+
+	data=(char*)malloc(len+1);
+	fread(data,1,len,f);
+
+	data[len]='\0';
+	fclose(f);
 	doit(data);
+
 	free(data);
 }
 
@@ -130,9 +143,8 @@ void create_objects()
 /*	cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root,1),"City",cJSON_CreateIntArray(ids,4)); */
 	
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
-
 	root=cJSON_CreateObject();
-	cJSON_AddNumberToObject(root,"number", 1.0/0.0);
+	cJSON_AddNumberToObject(root,"number", 1.0);
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 }
 
@@ -162,20 +174,26 @@ int main (int argc, const char * argv[]) {
         "</html>\n";
 
 	/* Process each json textblock by parsing, then rebuilding: */
+	
+	
+	/*
 	doit(text1);
 	doit(text2);	
 	doit(text3);
 	doit(text4);
 	doit(text5);
     doit(text6);
+	*/
+	
 
 	/* Parse standard testfiles: */
-/*	dofile("../../tests/test1"); */
-/*	dofile("../../tests/test2"); */
-/*	dofile("../../tests/test3"); */
-/*	dofile("../../tests/test4"); */
-/*	dofile("../../tests/test5"); */
-/*	dofile("../../tests/test6"); */
+	
+	dofile("../../tests/test1"); 
+	dofile("../../tests/test2"); 
+	dofile("../../tests/test3"); 
+	dofile("../../tests/test4"); 
+	dofile("../../tests/test5"); 
+	dofile("../../tests/test6"); 
 
 	/* Now some samplecode for building objects concisely: */
 	create_objects();
