@@ -68,6 +68,7 @@ void create_objects()
 	struct record fields[2]={
 		{"zip",37.7668,-1.223959e+2,"","SAN FRANCISCO","CA","94107","US"},
 		{"zip",37.371991,-1.22026e+2,"","SUNNYVALE","CA","94085","US"}};
+	volatile double zero = 0.0;
 
 	/* Here we construct some JSON standards, from the JSON site. */
 	
@@ -132,7 +133,7 @@ void create_objects()
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
 	root=cJSON_CreateObject();
-	cJSON_AddNumberToObject(root,"number", 1.0);
+	cJSON_AddNumberToObject(root,"number", 1.0/zero);
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 }
 
@@ -181,7 +182,7 @@ int main (int argc, const char * argv[]) {
 	doit(text3);
 	doit(text4);
 	doit(text5);
-	doit(text6);
+    doit(text6);
 	doit(text7);
 
 	/* Parse standard testfiles: */
