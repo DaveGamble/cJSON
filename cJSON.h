@@ -36,7 +36,8 @@ extern "C"
 #define cJSON_String (1 << 4)
 #define cJSON_Array  (1 << 5)
 #define cJSON_Object (1 << 6)
-	
+
+#define cJSON_NumberIsInt 128
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
@@ -48,7 +49,7 @@ typedef struct cJSON {
 	int type;					/* The type of the item, as above. */
 
 	char *valuestring;			/* The item's string, if type==cJSON_String */
-	int valueint;				/* The item's number, if type==cJSON_Number */
+	long long valueint;			/* The item's number, if type==cJSON_Number */
 	double valuedouble;			/* The item's number, if type==cJSON_Number */
 
 	char *string;				/* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
@@ -140,8 +141,8 @@ extern void cJSON_Minify(char *json);
 #define cJSON_AddStringToObject(object,name,s)	cJSON_AddItemToObject(object, name, cJSON_CreateString(s))
 
 /* When assigning an integer value, it needs to be propagated to valuedouble too. */
-#define cJSON_SetIntValue(object,val)			((object)?(object)->valueint=(object)->valuedouble=(val):(val))
-#define cJSON_SetNumberValue(object,val)		((object)?(object)->valueint=(object)->valuedouble=(val):(val))
+#define cJSON_SetIntValue(object,val)			((object)?((object)->valuedouble=(double)(object)->valueint=(val)):(val))
+#define cJSON_SetNumberValue(object,val)		((object)?((object)->valueint=(long long)(object)->valuedouble=(val)):(val))
 
 /* Macro for iterating over an array */
 #define cJSON_ArrayForEach(pos, head)			for(pos = (head)->child; pos != NULL; pos = pos->next)
