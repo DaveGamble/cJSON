@@ -132,7 +132,7 @@ void create_objects()
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 
 	root=cJSON_CreateObject();
-	cJSON_AddNumberToObject(root,"number", 1.0/0.0);
+	cJSON_AddNumberToObject(root,"number", 1.0);
 	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
 }
 
@@ -160,6 +160,20 @@ int main (int argc, const char * argv[]) {
         "  </iframe>\n"
         "</body>\n"
         "</html>\n";
+	char text7[] = "{\n"
+		"\"0\":0,\n"
+		"\"1\":1,\n"
+		"\"-1\":-1,\n"
+		"\"9223372036854775807\":9223372036854775807,\n"
+		"\"-9223372036854775808\":-9223372036854775808,\n"
+		"\"0.0\":0.0,\n"
+		"\"1.1\":1.1,\n"
+		"\"-1.1\":-1.1,\n"
+		"\"12345678901.234567890\":12345678901.234567890,\n"
+		"\"1234567890.123456789e99\":1234567890.123456789e99,\n"
+		"\"1234567890.123456789E99\":1234567890.123456789E99\n"
+		"}";
+
 
 	/* Process each json textblock by parsing, then rebuilding: */
 	doit(text1);
@@ -167,7 +181,8 @@ int main (int argc, const char * argv[]) {
 	doit(text3);
 	doit(text4);
 	doit(text5);
-    doit(text6);
+	doit(text6);
+	doit(text7);
 
 	/* Parse standard testfiles: */
 /*	dofile("../../tests/test1"); */

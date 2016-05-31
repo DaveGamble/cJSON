@@ -95,22 +95,25 @@ void cJSON_Delete(cJSON *c)
 /* Parse the input text to generate a number, and populate the result into item. */
 static const char *parse_number(cJSON *item,const char *num)
 {
-	double n=0,sign=1,scale=0;int subscale=0,signsubscale=1;
+	double n=0,scale=0;int subscale=0,signsubscale=1;
+    	long long int i=0,sign=1;
 
+	int intflag = cJSON_NumberIsInt;     /* Assume it's an integer until proven wrong */
 	if (*num=='-') sign=-1,num++;	/* Has sign? */
 	if (*num=='0') num++;			/* is zero */
-	if (*num>='1' && *num<='9')	do	n=(n*10.0)+(*num++ -'0');	while (*num>='0' && *num<='9');	/* Number? */
-	if (*num=='.' && num[1]>='0' && num[1]<='9') {num++;		do	n=(n*10.0)+(*num++ -'0'),scale--; while (*num>='0' && *num<='9');}	/* Fractional part? */
+	if (*num>='1' && *num<='9')	do	n=(n*10.0)+(*num -'0'),i=(i*10)+(*num-'0'),num++;	while (*num>='0' && *num<='9');	/* Number? */
+	if (*num=='.' && num[1]>='0' && num[1]<='9') {num++; intflag=0;do n=(n*10.0)+(*num++ -'0'),scale--; while (*num>='0' && *num<='9');}	/* Fractional part? */
 	if (*num=='e' || *num=='E')		/* Exponent? */
-	{	num++;if (*num=='+') num++;	else if (*num=='-') signsubscale=-1,num++;		/* With sign? */
+	{	num++;intflag=0;if (*num=='+') num++;	else if (*num=='-') signsubscale=-1,num++;		/* With sign? */
 		while (*num>='0' && *num<='9') subscale=(subscale*10)+(*num++ - '0');	/* Number? */
 	}
 
 	n=sign*n*pow(10.0,(scale+subscale*signsubscale));	/* number = +/- number.fraction * 10^+/- exponent */
-	
-	item->valuedouble=n;
-	item->valueint=(int)n;
-	item->type=cJSON_Number;
+	i=sign*i;
+
+	item->valuedouble=(intflag) ? (double)i : n;
+	item->valueint=(intflag) ? i : (long long)n;
+	item->type=cJSON_Number|intflag;
 	return num;
 }
 
@@ -147,29 +150,38 @@ static int update(printbuffer *p)
 static char *print_number(cJSON *item,printbuffer *p)
 {
 	char *str=0;
-	double d=item->valuedouble;
-	if (d==0)
+	if (item->type & cJSON_NumberIsInt)
 	{
-		if (p)	str=ensure(p,2);
-		else	str=(char*)cJSON_malloc(2);	/* special case for 0. */
-		if (str) strcpy(str,"0");
-	}
-	else if (fabs(((double)item->valueint)-d)<=DBL_EPSILON && d<=INT_MAX && d>=INT_MIN)
-	{
-		if (p)	str=ensure(p,21);
-		else	str=(char*)cJSON_malloc(21);	/* 2^64+1 can be represented in 21 chars. */
-		if (str)	sprintf(str,"%d",item->valueint);
+		if (p)	str = ensure(p, 21);
+		else	str = (char*)cJSON_malloc(21);	/* 2^64+1 can be represented in 21 chars. */
+		if (str)	sprintf(str, "%lld", item->valueint);
 	}
 	else
 	{
-		if (p)	str=ensure(p,64);
-		else	str=(char*)cJSON_malloc(64);	/* This is a nice tradeoff. */
-		if (str)
+		double d=item->valuedouble;
+		if (d==0)
 		{
-			if (fpclassify(d) != FP_ZERO && !isnormal(d))				sprintf(str,"null");
-			else if (fabs(floor(d)-d)<=DBL_EPSILON && fabs(d)<1.0e60)	sprintf(str,"%.0f",d);
-			else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)					sprintf(str,"%e",d);
-			else														sprintf(str,"%f",d);
+			if (p)	str=ensure(p,2);
+			else	str=(char*)cJSON_malloc(2);	/* special case for 0. */
+			if (str) strcpy(str,"0");
+		}
+		else if (fabs(((double)item->valueint)-d)<=DBL_EPSILON && d<=INT_MAX && d>=INT_MIN)
+		{
+			if (p)	str=ensure(p,21);
+			else	str=(char*)cJSON_malloc(21);	/* 2^64+1 can be represented in 21 chars. */
+			if (str)	sprintf(str,"%d",item->valueint);
+		}
+		else
+		{
+			if (p)	str=ensure(p,64);
+			else	str=(char*)cJSON_malloc(64);	/* This is a nice tradeoff. */
+			if (str)
+			{
+				if (fpclassify(d) != FP_ZERO && !isnormal(d))				sprintf(str,"null");
+				else if (fabs(floor(d)-d)<=DBL_EPSILON && fabs(d)<1.0e60)	sprintf(str,"%.0f",d);
+				else if (fabs(d)<1.0e-6 || fabs(d)>1.0e9)					sprintf(str,"%e",d);
+				else														sprintf(str,"%f",d);
+			}
 		}
 	}
 	return str;
@@ -378,7 +390,7 @@ static char *print_value(cJSON *item,int depth,int fmt,printbuffer *p)
 	if (!item) return 0;
 	if (p)
 	{
-		switch ((item->type)&255)
+		switch ((item->type)&127)
 		{
 			case cJSON_NULL:	{out=ensure(p,5);	if (out) strcpy(out,"null");	break;}
 			case cJSON_False:	{out=ensure(p,6);	if (out) strcpy(out,"false");	break;}
@@ -391,7 +403,7 @@ static char *print_value(cJSON *item,int depth,int fmt,printbuffer *p)
 	}
 	else
 	{
-		switch ((item->type)&255)
+		switch ((item->type)&127)
 		{
 			case cJSON_NULL:	out=cJSON_strdup("null");	break;
 			case cJSON_False:	out=cJSON_strdup("false");break;
@@ -701,6 +713,7 @@ cJSON *cJSON_CreateNumber(double num)			{cJSON *item=cJSON_New_Item();if(item){i
 cJSON *cJSON_CreateString(const char *string)	{cJSON *item=cJSON_New_Item();if(item){item->type=cJSON_String;item->valuestring=cJSON_strdup(string);if(!item->valuestring){cJSON_Delete(item);return 0;}}return item;}
 cJSON *cJSON_CreateArray(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_Array;return item;}
 cJSON *cJSON_CreateObject(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_Object;return item;}
+cJSON *cJSON_CreateInteger(long long num)			{cJSON *item=cJSON_New_Item();if(item){item->type= cJSON_Number|cJSON_NumberIsInt;item->valuedouble=(double)num;item->valueint=num;}return item;}
 
 /* Create Arrays: */
 cJSON *cJSON_CreateIntArray(const int *numbers,int count)		{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!n){cJSON_Delete(a);return 0;}if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}

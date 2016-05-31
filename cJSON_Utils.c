@@ -243,7 +243,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches,const char *path,cJSON *fro
 	
 	switch (from->type)
 	{
-	case cJSON_Number:	
+	case cJSON_Number:
 		if (from->valueint!=to->valueint || from->valuedouble!=to->valuedouble)
 			cJSONUtils_GeneratePatch(patches,"replace",path,0,to);
 		return;
