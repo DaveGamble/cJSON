@@ -50,13 +50,16 @@ How to build & install libcJSON.so:
 ----------
 
 First you must regenerate Makefile, in your terminal, type
-    cmake .
+
+    $ cmake .
 
 Second build all files to get libcJSON.so, type
-    make
+
+    $ make
 
 and then, install libcJSON.so and all head files, the default path is '/usr/local/', type
-    make install
+
+    $ make install
 
 
 Some JSON:
