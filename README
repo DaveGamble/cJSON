@@ -47,6 +47,19 @@ I lifted some JSON from this page: http://www.json.org/fatfree.html
 That page inspired me to write cJSON, which is a parser that tries to share the same
 philosophy as JSON itself. Simple, dumb, out of the way.
 
+How to build & install libsJSON.so:
+
+First you must regenerate Makefile, in your terminal, type
+    cmake .
+
+Second build all files to get libcJSON.so, type
+    make
+
+and then, install libcJSON.so and all head files, the default path is
+'/usr/local/', type
+    make install
+
+
 Some JSON:
 {
     "name": "Jack (\"Bee\") Nimble", 
