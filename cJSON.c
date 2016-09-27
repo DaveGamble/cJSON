@@ -213,7 +213,12 @@ static int pow2gt (int x)
     return x + 1;
 }
 
-typedef struct {char *buffer; int length; int offset; } printbuffer;
+typedef struct
+{
+    char *buffer;
+    int length;
+    int offset;
+} printbuffer;
 
 static char* ensure(printbuffer *p,int needed)
 {
