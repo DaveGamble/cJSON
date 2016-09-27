@@ -430,8 +430,19 @@ static unsigned parse_hex4(const char *str)
     return h;
 }
 
+/* first bytes of UTF8 encoding for a given length in bytes */
+static const unsigned char firstByteMark[7] =
+{
+    0x00, /* should never happen */
+    0x00, /* 0xxxxxxx */
+    0xC0, /* 110xxxxx */
+    0xE0, /* 1110xxxx */
+    0xF0, /* 11110xxx */
+    0xF8,
+    0xFC
+};
+
 /* Parse the input text into an unescaped cstring, and populate item. */
-static const unsigned char firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 static const char *parse_string(cJSON *item,const char *str,const char **ep)
 {
 	const char *ptr=str+1,*end_ptr=str+1;char *ptr2;char *out;int len=0;unsigned uc,uc2;
