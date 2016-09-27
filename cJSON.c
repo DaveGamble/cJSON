@@ -344,17 +344,90 @@ static char *print_number(cJSON *item, printbuffer *p)
     return str;
 }
 
+/* parse 4 digit hexadecimal number */
 static unsigned parse_hex4(const char *str)
 {
-	unsigned h=0;
-	if (*str>='0' && *str<='9') h+=(*str)-'0'; else if (*str>='A' && *str<='F') h+=10+(*str)-'A'; else if (*str>='a' && *str<='f') h+=10+(*str)-'a'; else return 0;
-	h=h<<4;str++;
-	if (*str>='0' && *str<='9') h+=(*str)-'0'; else if (*str>='A' && *str<='F') h+=10+(*str)-'A'; else if (*str>='a' && *str<='f') h+=10+(*str)-'a'; else return 0;
-	h=h<<4;str++;
-	if (*str>='0' && *str<='9') h+=(*str)-'0'; else if (*str>='A' && *str<='F') h+=10+(*str)-'A'; else if (*str>='a' && *str<='f') h+=10+(*str)-'a'; else return 0;
-	h=h<<4;str++;
-	if (*str>='0' && *str<='9') h+=(*str)-'0'; else if (*str>='A' && *str<='F') h+=10+(*str)-'A'; else if (*str>='a' && *str<='f') h+=10+(*str)-'a'; else return 0;
-	return h;
+    unsigned h = 0;
+    /* first digit */
+    if ((*str >= '0') && (*str <= '9'))
+    {
+        h += (*str) - '0';
+    }
+    else if ((*str >= 'A') && (*str <= 'F'))
+    {
+        h += 10 + (*str) - 'A';
+    }
+    else if ((*str >= 'a') && (*str <= 'f'))
+    {
+        h += 10 + (*str) - 'a';
+    }
+    else /* invalid */
+    {
+        return 0;
+    }
+
+
+    /* second digit */
+    h = h << 4;
+    str++;
+    if ((*str >= '0') && (*str <= '9'))
+    {
+        h += (*str) - '0';
+    }
+    else if ((*str >= 'A') && (*str <= 'F'))
+    {
+        h += 10 + (*str) - 'A';
+    }
+    else if ((*str >= 'a') && (*str <= 'f'))
+    {
+        h += 10 + (*str) - 'a';
+    }
+    else /* invalid */
+    {
+        return 0;
+    }
+
+    /* third digit */
+    h = h << 4;
+    str++;
+    if ((*str >= '0') && (*str <= '9'))
+    {
+        h += (*str) - '0';
+    }
+    else if ((*str >= 'A') && (*str <= 'F'))
+    {
+        h += 10 + (*str) - 'A';
+    }
+    else if ((*str >= 'a') && (*str <= 'f'))
+    {
+        h += 10 + (*str) - 'a';
+    }
+    else /* invalid */
+    {
+        return 0;
+    }
+
+    /* fourth digit */
+    h = h << 4;
+    str++;
+    if ((*str >= '0') && (*str <= '9'))
+    {
+        h += (*str) - '0';
+    }
+    else if ((*str >= 'A') && (*str <= 'F'))
+    {
+        h += 10 + (*str) - 'A';
+    }
+    else if ((*str >= 'a') && (*str <= 'f'))
+    {
+        h += 10 + (*str) - 'a';
+    }
+    else /* invalid */
+    {
+        return 0;
+    }
+
+    return h;
 }
 
 /* Parse the input text into an unescaped cstring, and populate item. */
