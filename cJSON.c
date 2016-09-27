@@ -130,25 +130,73 @@ void cJSON_Delete(cJSON *c)
 }
 
 /* Parse the input text to generate a number, and populate the result into item. */
-static const char *parse_number(cJSON *item,const char *num)
+static const char *parse_number(cJSON *item, const char *num)
 {
-	double n=0,sign=1,scale=0;int subscale=0,signsubscale=1;
+    double n = 0;
+    double sign = 1;
+    double scale = 0;
+    int subscale = 0;
+    int signsubscale = 1;
 
-	if (*num=='-') sign=-1,num++;	/* Has sign? */
-	if (*num=='0') num++;			/* is zero */
-	if (*num>='1' && *num<='9')	do	n=(n*10.0)+(*num++ -'0');	while (*num>='0' && *num<='9');	/* Number? */
-	if (*num=='.' && num[1]>='0' && num[1]<='9') {num++;		do	n=(n*10.0)+(*num++ -'0'),scale--; while (*num>='0' && *num<='9');}	/* Fractional part? */
-	if (*num=='e' || *num=='E')		/* Exponent? */
-	{	num++;if (*num=='+') num++;	else if (*num=='-') signsubscale=-1,num++;		/* With sign? */
-		while (*num>='0' && *num<='9') subscale=(subscale*10)+(*num++ - '0');	/* Number? */
-	}
+    /* Has sign? */
+    if (*num == '-')
+    {
+        sign = -1;
+        num++;
+    }
+    /* is zero */
+    if (*num == '0')
+    {
+        num++;
+    }
+    /* Number? */
+    if ((*num >= '1') && (*num <= '9'))
+    {
+        do
+        {
+            n = (n * 10.0) + (*num++ - '0');
+        }
+        while ((*num >= '0') && (*num<='9'));
+    }
+    /* Fractional part? */
+    if ((*num == '.') && (num[1] >= '0') && (num[1] <= '9'))
+    {
+        num++;
+        do
+        {
+            n = (n  *10.0) + (*num++ - '0');
+            scale--;
+        } while ((*num >= '0') && (*num <= '9'));
+    }
+    /* Exponent? */
+    if ((*num == 'e') || (*num == 'E'))
+    {
+        num++;
+        /* With sign? */
+        if (*num == '+')
+        {
+            num++;
+        }
+        else if (*num == '-')
+        {
+            signsubscale = -1;
+            num++;
+        }
+        /* Number? */
+        while ((*num>='0') && (*num<='9'))
+        {
+            subscale = (subscale * 10) + (*num++ - '0');
+        }
+    }
 
-	n=sign*n*pow(10.0,(scale+subscale*signsubscale));	/* number = +/- number.fraction * 10^+/- exponent */
-	
-	item->valuedouble=n;
-	item->valueint=(int)n;
-	item->type=cJSON_Number;
-	return num;
+    /* number = +/- number.fraction * 10^+/- exponent */
+    n = sign * n * pow(10.0, (scale + subscale * signsubscale));
+
+    item->valuedouble = n;
+    item->valueint = (int)n;
+    item->type = cJSON_Number;
+
+    return num;
 }
 
 static int pow2gt (int x)	{	--x;	x|=x>>1;	x|=x>>2;	x|=x>>4;	x|=x>>8;	x|=x>>16;	return x+1;	}
