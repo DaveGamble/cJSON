@@ -853,18 +853,49 @@ char *cJSON_PrintBuffered(cJSON *item, int prebuffer, int fmt)
 
 
 /* Parser core - when encountering text, process appropriately. */
-static const char *parse_value(cJSON *item,const char *value,const char **ep)
+static const char *parse_value(cJSON *item, const char *value, const char **ep)
 {
-	if (!value)						return 0;	/* Fail on null. */
-	if (!strncmp(value,"null",4))	{ item->type=cJSON_NULL;  return value+4; }
-	if (!strncmp(value,"false",5))	{ item->type=cJSON_False; return value+5; }
-	if (!strncmp(value,"true",4))	{ item->type=cJSON_True; item->valueint=1;	return value+4; }
-	if (*value=='\"')				{ return parse_string(item,value,ep); }
-	if (*value=='-' || (*value>='0' && *value<='9'))	{ return parse_number(item,value); }
-	if (*value=='[')				{ return parse_array(item,value,ep); }
-	if (*value=='{')				{ return parse_object(item,value,ep); }
+    if (!value)
+    {
+        /* Fail on null. */
+        return 0;
+    }
 
-	*ep=value;return 0;	/* failure. */
+    /* parse the different types of values */
+    if (!strncmp(value, "null", 4))
+    {
+        item->type = cJSON_NULL;
+        return value + 4;
+    }
+    if (!strncmp(value, "false", 5))
+    {
+        item->type = cJSON_False;
+        return value + 5;
+    }
+    if (!strncmp(value, "true", 4))
+    {
+        item->type = cJSON_True;
+        item->valueint = 1;
+        return value + 4;
+    }
+    if (*value == '\"')
+    {
+        return parse_string(item, value, ep);
+    }
+    if ((*value == '-') || ((*value >= '0') && (*value <= '9')))
+    {
+        return parse_number(item, value);
+    }
+    if (*value == '[')
+    {
+        return parse_array(item, value, ep);
+    }
+    if (*value == '{')
+    {
+        return parse_object(item, value, ep);
+    }
+
+    *ep=value;return 0;	/* failure. */
 }
 
 /* Render a value to text. */
