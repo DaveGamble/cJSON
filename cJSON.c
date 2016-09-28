@@ -766,12 +766,12 @@ static char *print_string(cJSON *item, printbuffer *p)
 }
 
 /* Predeclare these prototypes. */
-static const char *parse_value(cJSON *item,const char *value,const char **ep);
-static char *print_value(cJSON *item,int depth,int fmt,printbuffer *p);
-static const char *parse_array(cJSON *item,const char *value,const char **ep);
-static char *print_array(cJSON *item,int depth,int fmt,printbuffer *p);
-static const char *parse_object(cJSON *item,const char *value,const char **ep);
-static char *print_object(cJSON *item,int depth,int fmt,printbuffer *p);
+static const char *parse_value(cJSON *item, const char *value, const char **ep);
+static char *print_value(cJSON *item, int depth, int fmt, printbuffer *p);
+static const char *parse_array(cJSON *item, const char *value, const char **ep);
+static char *print_array(cJSON *item, int depth, int fmt, printbuffer *p);
+static const char *parse_object(cJSON *item, const char *value, const char **ep);
+static char *print_object(cJSON *item, int depth, int fmt, printbuffer *p);
 
 /* Utility to jump whitespace and cr/lf */
 static const char *skip(const char *in) {while (in && *in && (unsigned char)*in<=32) in++; return in;}
