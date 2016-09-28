@@ -615,63 +615,150 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
 }
 
 /* Render the cstring provided to an escaped version that can be printed. */
-static char *print_string_ptr(const char *str,printbuffer *p)
+static char *print_string_ptr(const char *str, printbuffer *p)
 {
-	const char *ptr;char *ptr2,*out;int len=0,flag=0;unsigned char token;
+    const char *ptr;
+    char *ptr2;
+    char *out;
+    int len = 0;
+    int flag = 0;
+    unsigned char token;
 
-	if (!str)
-	{
-		if (p)	out=ensure(p,3);
-		else	out=(char*)cJSON_malloc(3);
-		if (!out) return 0;
-		strcpy(out,"\"\"");
-		return out;
-	}
-	
-	for (ptr=str;*ptr;ptr++) flag|=((*ptr>0 && *ptr<32)||(*ptr=='\"')||(*ptr=='\\'))?1:0;
-	if (!flag)
-	{
-		len=ptr-str;
-		if (p) out=ensure(p,len+3);
-		else		out=(char*)cJSON_malloc(len+3);
-		if (!out) return 0;
-		ptr2=out;*ptr2++='\"';
-		strcpy(ptr2,str);
-		ptr2[len]='\"';
-		ptr2[len+1]=0;
-		return out;
-	}
-	
-	ptr=str;while ((token=*ptr) && ++len) {if (strchr("\"\\\b\f\n\r\t",token)) len++; else if (token<32) len+=5;ptr++;}
-	
-	if (p)	out=ensure(p,len+3);
-	else	out=(char*)cJSON_malloc(len+3);
-	if (!out) return 0;
+    /* empty string */
+    if (!str)
+    {
+        if (p)
+        {
+            out = ensure(p, 3);
+        }
+        else
+        {
+            out = (char*)cJSON_malloc(3);
+        }
+        if (!out)
+        {
+            return 0;
+        }
+        strcpy(out, "\"\"");
 
-	ptr2=out;ptr=str;
-	*ptr2++='\"';
-	while (*ptr)
-	{
-		if ((unsigned char)*ptr>31 && *ptr!='\"' && *ptr!='\\') *ptr2++=*ptr++;
-		else
-		{
-			*ptr2++='\\';
-			switch (token=*ptr++)
-			{
-				case '\\':	*ptr2++='\\';	break;
-				case '\"':	*ptr2++='\"';	break;
-				case '\b':	*ptr2++='b';	break;
-				case '\f':	*ptr2++='f';	break;
-				case '\n':	*ptr2++='n';	break;
-				case '\r':	*ptr2++='r';	break;
-				case '\t':	*ptr2++='t';	break;
-				default: sprintf(ptr2,"u%04x",token);ptr2+=5;	break;	/* escape and print */
-			}
-		}
-	}
-	*ptr2++='\"';*ptr2++=0;
-	return out;
+        return out;
+    }
+
+    /* set "flag" to 1 if something needs to be escaped */
+    for (ptr = str; *ptr; ptr++)
+    {
+        flag |= (((*ptr > 0) && (*ptr < 32)) /* unprintable characters */
+                || (*ptr == '\"') /* double quote */
+                || (*ptr == '\\')) /* backslash */
+            ? 1
+            : 0;
+    }
+    /* no characters have to be escaped */
+    if (!flag)
+    {
+        len = ptr - str;
+        if (p)
+        {
+            out = ensure(p, len + 3);
+        }
+        else
+        {
+            out = (char*)cJSON_malloc(len + 3);
+        }
+        if (!out)
+        {
+            return 0;
+        }
+
+        ptr2 = out;
+        *ptr2++ = '\"';
+        strcpy(ptr2, str);
+        ptr2[len] = '\"';
+        ptr2[len + 1] = '\0';
+
+        return out;
+    }
+
+    ptr = str;
+    /* calculate additional space that is needed for escaping */
+    while ((token = *ptr) && ++len)
+    {
+        if (strchr("\"\\\b\f\n\r\t", token))
+        {
+            len++; /* +1 for the backslash */
+        }
+        else if (token < 32)
+        {
+            len += 5; /* +5 for \uXXXX */
+        }
+        ptr++;
+    }
+
+    if (p)
+    {
+        out = ensure(p, len + 3);
+    }
+    else
+    {
+        out = (char*)cJSON_malloc(len + 3);
+    }
+    if (!out)
+    {
+        return 0;
+    }
+
+    ptr2 = out;
+    ptr = str;
+    *ptr2++ = '\"';
+    /* copy the string */
+    while (*ptr)
+    {
+        if (((unsigned char)*ptr > 31) && (*ptr != '\"') && (*ptr != '\\'))
+        {
+            /* normal character, copy */
+            *ptr2++ = *ptr++;
+        }
+        else
+        {
+            /* character needs to be escaped */
+            *ptr2++ = '\\';
+            switch (token = *ptr++)
+            {
+                case '\\':
+                    *ptr2++ = '\\';
+                    break;
+                case '\"':
+                    *ptr2++ = '\"';
+                    break;
+                case '\b':
+                    *ptr2++ = 'b';
+                    break;
+                case '\f':
+                    *ptr2++ = 'f';
+                    break;
+                case '\n':
+                    *ptr2++ = 'n';
+                    break;
+                case '\r':
+                    *ptr2++ = 'r';
+                    break;
+                case '\t':
+                    *ptr2++ = 't';
+                    break;
+                default:
+                    /* escape and print as unicode codepoint */
+                    sprintf(ptr2, "u%04x", token);
+                    ptr2 += 5;
+                    break;
+            }
+        }
+    }
+    *ptr2++ = '\"';
+    *ptr2++ = '\0';
+
+    return out;
 }
+
 /* Invote print_string_ptr (which is useful) on an item. */
 static char *print_string(cJSON *item,printbuffer *p)	{return print_string_ptr(item->valuestring,p);}
 
