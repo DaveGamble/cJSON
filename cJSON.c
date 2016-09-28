@@ -759,8 +759,11 @@ static char *print_string_ptr(const char *str, printbuffer *p)
     return out;
 }
 
-/* Invote print_string_ptr (which is useful) on an item. */
-static char *print_string(cJSON *item,printbuffer *p)	{return print_string_ptr(item->valuestring,p);}
+/* Invoke print_string_ptr (which is useful) on an item. */
+static char *print_string(cJSON *item, printbuffer *p)
+{
+    return print_string_ptr(item->valuestring, p);
+}
 
 /* Predeclare these prototypes. */
 static const char *parse_value(cJSON *item,const char *value,const char **ep);
