@@ -980,29 +980,68 @@ static char *print_value(cJSON *item, int depth, int fmt, printbuffer *p)
 /* Build an array from input text. */
 static const char *parse_array(cJSON *item,const char *value,const char **ep)
 {
-	cJSON *child;
-	if (*value!='[')	{*ep=value;return 0;}	/* not an array! */
+    cJSON *child;
+    if (*value != '[')
+    {
+        /* not an array! */
+        *ep = value;
+        return 0;
+    }
 
-	item->type=cJSON_Array;
-	value=skip(value+1);
-	if (*value==']') return value+1;	/* empty array. */
+    item->type = cJSON_Array;
+    value = skip(value + 1);
+    if (*value == ']')
+    {
+        /* empty array. */
+        return value + 1;
+    }
 
-	item->child=child=cJSON_New_Item();
-	if (!item->child) return 0;		 /* memory fail */
-	value=skip(parse_value(child,skip(value),ep));	/* skip any spacing, get the value. */
-	if (!value) return 0;
+    item->child = child = cJSON_New_Item();
+    if (!item->child)
+    {
+        /* memory fail */
+        return 0;
+    }
+    /* skip any spacing, get the value. */
+    value = skip(parse_value(child, skip(value), ep));
+    if (!value)
+    {
+        return 0;
+    }
 
-	while (*value==',')
-	{
-		cJSON *new_item;
-		if (!(new_item=cJSON_New_Item())) return 0; 	/* memory fail */
-		child->next=new_item;new_item->prev=child;child=new_item;
-		value=skip(parse_value(child,skip(value+1),ep));
-		if (!value) return 0;	/* memory fail */
-	}
+    /* loop through the comma separated array elements */
+    while (*value == ',')
+    {
+        cJSON *new_item;
+        if (!(new_item = cJSON_New_Item()))
+        {
+            /* memory fail */
+            return 0;
+        }
+        /* add new item to end of the linked list */
+        child->next = new_item;
+        new_item->prev = child;
+        child = new_item;
 
-	if (*value==']') return value+1;	/* end of array */
-	*ep=value;return 0;	/* malformed. */
+        /* go to the next comma */
+        value = skip(parse_value(child, skip(value + 1), ep));
+        if (!value)
+        {
+            /* memory fail */
+            return 0;
+        }
+    }
+
+    if (*value == ']')
+    {
+        /* end of array */
+        return value + 1;
+    }
+
+    /* malformed. */
+    *ep = value;
+
+    return 0;
 }
 
 /* Render an array to text */
