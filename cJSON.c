@@ -1211,39 +1211,98 @@ static char *print_array(cJSON *item, int depth, int fmt, printbuffer *p)
 }
 
 /* Build an object from the text. */
-static const char *parse_object(cJSON *item,const char *value,const char **ep)
+static const char *parse_object(cJSON *item, const char *value, const char **ep)
 {
-	cJSON *child;
-	if (*value!='{')	{*ep=value;return 0;}	/* not an object! */
-	
-	item->type=cJSON_Object;
-	value=skip(value+1);
-	if (*value=='}') return value+1;	/* empty array. */
-	
-	item->child=child=cJSON_New_Item();
-	if (!item->child) return 0;
-	value=skip(parse_string(child,skip(value),ep));
-	if (!value) return 0;
-	child->string=child->valuestring;child->valuestring=0;
-	if (*value!=':') {*ep=value;return 0;}	/* fail! */
-	value=skip(parse_value(child,skip(value+1),ep));	/* skip any spacing, get the value. */
-	if (!value) return 0;
-	
-	while (*value==',')
-	{
-		cJSON *new_item;
-		if (!(new_item=cJSON_New_Item()))	return 0; /* memory fail */
-		child->next=new_item;new_item->prev=child;child=new_item;
-		value=skip(parse_string(child,skip(value+1),ep));
-		if (!value) return 0;
-		child->string=child->valuestring;child->valuestring=0;
-		if (*value!=':') {*ep=value;return 0;}	/* fail! */
-		value=skip(parse_value(child,skip(value+1),ep));	/* skip any spacing, get the value. */
-		if (!value) return 0;
-	}
-	
-	if (*value=='}') return value+1;	/* end of array */
-	*ep=value;return 0;	/* malformed. */
+    cJSON *child;
+    if (*value != '{')
+    {
+        /* not an object! */
+        *ep = value;
+        return 0;
+    }
+
+    item->type = cJSON_Object;
+    value = skip(value + 1);
+    if (*value == '}')
+    {
+        /* empty object. */
+        return value + 1;
+    }
+
+    child = cJSON_New_Item();
+    item->child = child;
+    if (!item->child)
+    {
+        return 0;
+    }
+    /* parse first key */
+    value = skip(parse_string(child, skip(value), ep));
+    if (!value)
+    {
+        return 0;
+    }
+    /* use string as key, not value */
+    child->string = child->valuestring;
+    child->valuestring = 0;
+
+    if (*value != ':')
+    {
+        /* invalid object. */
+        *ep = value;
+        return 0;
+    }
+    /* skip any spacing, get the value. */
+    value = skip(parse_value(child, skip(value + 1), ep));
+    if (!value)
+    {
+        return 0;
+    }
+
+    while (*value == ',')
+    {
+        cJSON *new_item;
+        if (!(new_item = cJSON_New_Item()))
+        {
+            /* memory fail */
+            return 0;
+        }
+        /* add to linked list */
+        child->next = new_item;
+        new_item->prev = child;
+
+        child = new_item;
+        value = skip(parse_string(child, skip(value + 1), ep));
+        if (!value)
+        {
+            return 0;
+        }
+
+        /* use string as key, not value */
+        child->string = child->valuestring;
+        child->valuestring = 0;
+
+        if (*value != ':')
+        {
+            /* invalid object. */
+            *ep = value;
+            return 0;
+        }
+        /* skip any spacing, get the value. */
+        value = skip(parse_value(child, skip(value + 1), ep));
+        if (!value)
+        {
+            return 0;
+        }
+    }
+    /* end of object */
+    if (*value == '}')
+    {
+        return value + 1;
+    }
+
+    /* malformed */
+    *ep = value;
+    return 0;
 }
 
 /* Render an object to text. */
