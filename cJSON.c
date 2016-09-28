@@ -825,7 +825,10 @@ cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, int
 }
 
 /* Default options for cJSON_Parse */
-cJSON *cJSON_Parse(const char *value) {return cJSON_ParseWithOpts(value,0,0);}
+cJSON *cJSON_Parse(const char *value)
+{
+    return cJSON_ParseWithOpts(value, 0, 0);
+}
 
 /* Render a cJSON item/entity/structure to text. */
 char *cJSON_Print(cJSON *item)				{return print_value(item,0,1,0);}
