@@ -1621,9 +1621,26 @@ int cJSON_HasObjectItem(cJSON *object,const char *string)
 }
 
 /* Utility for array list handling. */
-static void suffix_object(cJSON *prev,cJSON *item) {prev->next=item;item->prev=prev;}
+static void suffix_object(cJSON *prev, cJSON *item)
+{
+    prev->next = item;
+    item->prev = prev;
+}
+
 /* Utility for handling references. */
-static cJSON *create_reference(cJSON *item) {cJSON *ref=cJSON_New_Item();if (!ref) return 0;memcpy(ref,item,sizeof(cJSON));ref->string=0;ref->type|=cJSON_IsReference;ref->next=ref->prev=0;return ref;}
+static cJSON *create_reference(cJSON *item)
+{
+    cJSON *ref = cJSON_New_Item();
+    if (!ref)
+    {
+        return 0;
+    }
+    memcpy(ref, item, sizeof(cJSON));
+    ref->string = 0;
+    ref->type |= cJSON_IsReference;
+    ref->next = ref->prev = 0;
+    return ref;
+}
 
 /* Add item to array/object. */
 void   cJSON_AddItemToArray(cJSON *array, cJSON *item)						{cJSON *c=array->child;if (!item) return; if (!c) {array->child=item;} else {while (c && c->next) c=c->next; suffix_object(c,item);}}
