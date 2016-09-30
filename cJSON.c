@@ -1615,7 +1615,10 @@ cJSON *cJSON_GetObjectItem(cJSON *object, const char *string)
     return c;
 }
 
-int cJSON_HasObjectItem(cJSON *object,const char *string)		{return cJSON_GetObjectItem(object,string)?1:0;}
+int cJSON_HasObjectItem(cJSON *object,const char *string)
+{
+    return cJSON_GetObjectItem(object, string) ? 1 : 0;
+}
 
 /* Utility for array list handling. */
 static void suffix_object(cJSON *prev,cJSON *item) {prev->next=item;item->prev=prev;}
