@@ -1795,9 +1795,36 @@ void cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)
     }
 }
 
-void   cJSON_ReplaceItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) return;
-	newitem->next=c->next;newitem->prev=c->prev;if (newitem->next) newitem->next->prev=newitem;
-	if (c==array->child) array->child=newitem; else newitem->prev->next=newitem;c->next=c->prev=0;cJSON_Delete(c);}
+void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
+{
+    cJSON *c = array->child;
+    while (c && (which > 0))
+    {
+        c = c->next;
+        which--;
+    }
+    if (!c)
+    {
+        return;
+    }
+    newitem->next = c->next;
+    newitem->prev = c->prev;
+    if (newitem->next)
+    {
+        newitem->next->prev = newitem;
+    }
+    if (c == array->child)
+    {
+        array->child = newitem;
+    }
+    else
+    {
+        newitem->prev->next = newitem;
+    }
+    c->next = c->prev = 0;
+    cJSON_Delete(c);
+}
+
 void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && cJSON_strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
 
 /* Create basic types: */
