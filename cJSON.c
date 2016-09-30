@@ -1581,7 +1581,18 @@ static char *print_object(cJSON *item, int depth, int fmt, printbuffer *p)
 }
 
 /* Get Array size/item / object item. */
-int    cJSON_GetArraySize(cJSON *array)							{cJSON *c=array->child;int i=0;while(c)i++,c=c->next;return i;}
+int    cJSON_GetArraySize(cJSON *array)
+{
+    cJSON *c = array->child;
+    int i = 0;
+    while(c)
+    {
+        i++;
+        c = c->next;
+    }
+    return i;
+}
+
 cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array?array->child:0;while (c && item>0) item--,c=c->next; return c;}
 cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object?object->child:0;while (c && cJSON_strcasecmp(c->string,string)) c=c->next; return c;}
 int cJSON_HasObjectItem(cJSON *object,const char *string)		{return cJSON_GetObjectItem(object,string)?1:0;}
