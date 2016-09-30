@@ -1763,7 +1763,10 @@ cJSON *cJSON_DetachItemFromObject(cJSON *object, const char *string)
     return 0;
 }
 
-void   cJSON_DeleteItemFromObject(cJSON *object,const char *string) {cJSON_Delete(cJSON_DetachItemFromObject(object,string));}
+void cJSON_DeleteItemFromObject(cJSON *object, const char *string)
+{
+    cJSON_Delete(cJSON_DetachItemFromObject(object, string));
+}
 
 /* Replace array/object items with new ones. */
 void   cJSON_InsertItemInArray(cJSON *array,int which,cJSON *newitem)		{cJSON *c=array->child;while (c && which>0) c=c->next,which--;if (!c) {cJSON_AddItemToArray(array,newitem);return;}
