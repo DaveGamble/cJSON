@@ -1939,7 +1939,34 @@ cJSON *cJSON_CreateObject(void)
 }
 
 /* Create Arrays: */
-cJSON *cJSON_CreateIntArray(const int *numbers,int count)		{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!n){cJSON_Delete(a);return 0;}if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
+cJSON *cJSON_CreateIntArray(const int *numbers, int count)
+{
+    int i;
+    cJSON *n = 0;
+    cJSON *p = 0;
+    cJSON *a = cJSON_CreateArray();
+    for(i = 0; a && (i < count); i++)
+    {
+        n = cJSON_CreateNumber(numbers[i]);
+        if (!n)
+        {
+            cJSON_Delete(a);
+            return 0;
+        }
+        if(!i)
+        {
+            a->child = n;
+        }
+        else
+        {
+            suffix_object(p, n);
+        }
+        p = n;
+    }
+
+    return a;
+}
+
 cJSON *cJSON_CreateFloatArray(const float *numbers,int count)	{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!n){cJSON_Delete(a);return 0;}if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
 cJSON *cJSON_CreateDoubleArray(const double *numbers,int count)	{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateNumber(numbers[i]);if(!n){cJSON_Delete(a);return 0;}if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
 cJSON *cJSON_CreateStringArray(const char **strings,int count)	{int i;cJSON *n=0,*p=0,*a=cJSON_CreateArray();for(i=0;a && i<count;i++){n=cJSON_CreateString(strings[i]);if(!n){cJSON_Delete(a);return 0;}if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
