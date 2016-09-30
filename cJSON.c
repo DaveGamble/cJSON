@@ -1643,7 +1643,29 @@ static cJSON *create_reference(cJSON *item)
 }
 
 /* Add item to array/object. */
-void   cJSON_AddItemToArray(cJSON *array, cJSON *item)						{cJSON *c=array->child;if (!item) return; if (!c) {array->child=item;} else {while (c && c->next) c=c->next; suffix_object(c,item);}}
+void   cJSON_AddItemToArray(cJSON *array, cJSON *item)
+{
+    cJSON *c = array->child;
+    if (!item)
+    {
+        return;
+    }
+    if (!c)
+    {
+        /* list is empty, start new one */
+        array->child = item;
+    }
+    else
+    {
+        /* append to the end */
+        while (c && c->next)
+        {
+            c = c->next;
+        }
+        suffix_object(c, item);
+    }
+}
+
 void   cJSON_AddItemToObject(cJSON *object,const char *string,cJSON *item)	{if (!item) return; if (item->string) cJSON_free(item->string);item->string=cJSON_strdup(string);cJSON_AddItemToArray(object,item);}
 void   cJSON_AddItemToObjectCS(cJSON *object,const char *string,cJSON *item)	{if (!item) return; if (!(item->type&cJSON_StringIsConst) && item->string) cJSON_free(item->string);item->string=(char*)string;item->type|=cJSON_StringIsConst;cJSON_AddItemToArray(object,item);}
 void	cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)						{cJSON_AddItemToArray(array,create_reference(item));}
