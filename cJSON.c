@@ -1593,7 +1593,18 @@ int    cJSON_GetArraySize(cJSON *array)
     return i;
 }
 
-cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array?array->child:0;while (c && item>0) item--,c=c->next; return c;}
+cJSON *cJSON_GetArrayItem(cJSON *array, int item)
+{
+    cJSON *c = array ? array->child : 0;
+    while (c && item > 0)
+    {
+        item--;
+        c = c->next;
+    }
+
+    return c;
+}
+
 cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object?object->child:0;while (c && cJSON_strcasecmp(c->string,string)) c=c->next; return c;}
 int cJSON_HasObjectItem(cJSON *object,const char *string)		{return cJSON_GetObjectItem(object,string)?1:0;}
 
