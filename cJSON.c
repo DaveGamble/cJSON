@@ -1605,7 +1605,16 @@ cJSON *cJSON_GetArrayItem(cJSON *array, int item)
     return c;
 }
 
-cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object?object->child:0;while (c && cJSON_strcasecmp(c->string,string)) c=c->next; return c;}
+cJSON *cJSON_GetObjectItem(cJSON *object, const char *string)
+{
+    cJSON *c = object ? object->child : 0;
+    while (c && cJSON_strcasecmp(c->string, string))
+    {
+        c = c->next;
+    }
+    return c;
+}
+
 int cJSON_HasObjectItem(cJSON *object,const char *string)		{return cJSON_GetObjectItem(object,string)?1:0;}
 
 /* Utility for array list handling. */
