@@ -1916,7 +1916,17 @@ cJSON *cJSON_CreateString(const char *string)
     return item;
 }
 
-cJSON *cJSON_CreateArray(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_Array;return item;}
+cJSON *cJSON_CreateArray(void)
+{
+    cJSON *item = cJSON_New_Item();
+    if(item)
+    {
+        item->type=cJSON_Array;
+    }
+
+    return item;
+}
+
 cJSON *cJSON_CreateObject(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_Object;return item;}
 
 /* Create Arrays: */
