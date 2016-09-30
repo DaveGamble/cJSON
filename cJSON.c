@@ -1842,7 +1842,17 @@ void cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem
 }
 
 /* Create basic types: */
-cJSON *cJSON_CreateNull(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_NULL;return item;}
+cJSON *cJSON_CreateNull(void)
+{
+    cJSON *item = cJSON_New_Item();
+    if(item)
+    {
+        item->type = cJSON_NULL;
+    }
+
+    return item;
+}
+
 cJSON *cJSON_CreateTrue(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_True;return item;}
 cJSON *cJSON_CreateFalse(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_False;return item;}
 cJSON *cJSON_CreateBool(int b)					{cJSON *item=cJSON_New_Item();if(item)item->type=b?cJSON_True:cJSON_False;return item;}
