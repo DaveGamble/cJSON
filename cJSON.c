@@ -1683,7 +1683,22 @@ void   cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
     cJSON_AddItemToArray(object,item);
 }
 
-void   cJSON_AddItemToObjectCS(cJSON *object,const char *string,cJSON *item)	{if (!item) return; if (!(item->type&cJSON_StringIsConst) && item->string) cJSON_free(item->string);item->string=(char*)string;item->type|=cJSON_StringIsConst;cJSON_AddItemToArray(object,item);}
+/* Add an item to an object with constant string as key */
+void   cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
+{
+    if (!item)
+    {
+        return;
+    }
+    if (!(item->type & cJSON_StringIsConst) && item->string)
+    {
+        cJSON_free(item->string);
+    }
+    item->string = (char*)string;
+    item->type |= cJSON_StringIsConst;
+    cJSON_AddItemToArray(object, item);
+}
+
 void	cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)						{cJSON_AddItemToArray(array,create_reference(item));}
 void	cJSON_AddItemReferenceToObject(cJSON *object,const char *string,cJSON *item)	{cJSON_AddItemToObject(object,string,create_reference(item));}
 
