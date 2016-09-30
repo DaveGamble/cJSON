@@ -1825,7 +1825,21 @@ void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
     cJSON_Delete(c);
 }
 
-void   cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem){int i=0;cJSON *c=object->child;while(c && cJSON_strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=cJSON_strdup(string);cJSON_ReplaceItemInArray(object,i,newitem);}}
+void cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
+{
+    int i = 0;
+    cJSON *c = object->child;
+    while(c && cJSON_strcasecmp(c->string, string))
+    {
+        i++;
+        c = c->next;
+    }
+    if(c)
+    {
+        newitem->string = cJSON_strdup(string);
+        cJSON_ReplaceItemInArray(object, i, newitem);
+    }
+}
 
 /* Create basic types: */
 cJSON *cJSON_CreateNull(void)					{cJSON *item=cJSON_New_Item();if(item)item->type=cJSON_NULL;return item;}
