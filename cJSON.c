@@ -677,6 +677,27 @@ cJSON *cJSON_GetArrayItem(cJSON *array,int item)				{cJSON *c=array?array->child
 cJSON *cJSON_GetObjectItem(cJSON *object,const char *string)	{cJSON *c=object?object->child:0;while (c && cJSON_strcasecmp(c->string,string)) c=c->next; return c;}
 int cJSON_HasObjectItem(cJSON *object,const char *string)		{return cJSON_GetObjectItem(object,string)?1:0;}
 
+cJSON *cJSON_GetDotObjectItem(cJSON *object,const char *string) {
+    int node_name_length;
+    char *node_name;
+    const char *position;
+        
+    position = strchr(string, '.');
+    if (position != NULL) {
+        node_name_length = position - string;
+        node_name = (char*)cJSON_malloc(node_name_length + 1);
+        strncpy(node_name, string, node_name_length);
+
+        object = cJSON_GetObjectItem(object, node_name);
+        cJSON_free(node_name);
+
+        return cJSON_GetDotObjectItem(object, position + 1);
+    }
+    else {
+        return cJSON_GetObjectItem(object, string);
+    }
+}
+
 /* Utility for array list handling. */
 static void suffix_object(cJSON *prev,cJSON *item) {prev->next=item;item->prev=prev;}
 /* Utility for handling references. */
