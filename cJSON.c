@@ -61,6 +61,26 @@ static int cJSON_strcasecmp(const char *s1, const char *s2)
     return tolower(*(const unsigned char *)s1) - tolower(*(const unsigned char *)s2);
 }
 
+static int cJSON_strncasecmp(const char *s1, const char *s2, size_t comparelen)
+{
+    if (!s1)
+    {
+        return (s1 == s2) ? 0 : 1;
+    }
+    if (!s2)
+    {
+        return 1;
+    }
+    for (; tolower(*s1) == tolower(*s2); ++s1, ++s2, comparelen--)
+    {
+        if (*s1 == 0 || comparelen == 1)
+        {
+            return 0;
+        }
+    }
+    return tolower(*(const unsigned char*)s1) - tolower(*(const unsigned char*)s2);
+}
+
 static void *(*cJSON_malloc)(size_t sz) = malloc;
 static void (*cJSON_free)(void *ptr) = free;
 
@@ -1615,9 +1635,42 @@ cJSON *cJSON_GetObjectItem(cJSON *object, const char *string)
     return c;
 }
 
-int cJSON_HasObjectItem(cJSON *object,const char *string)
+cJSON *cJSON_GetSizedObjectItem(cJSON *object, const char *string, size_t length)
+{
+    cJSON *c = object ? object->child : 0;
+    while (c && cJSON_strncasecmp(c->string, string, length))
+    {
+        c = c->next;
+    }
+    return c;
+}
+
+cJSON *cJSON_GetDotObjectItem(cJSON *object, const char *string)
+{
+    size_t node_name_length;
+    const char *position;
+ 
+    position = strchr(string, '.');
+    if (position != NULL)
+    {
+        node_name_length = position - string;
+        object = cJSON_GetSizedObjectItem(object, string, node_name_length);
+        return cJSON_GetDotObjectItem(object, position + 1);
+    }
+    else
+    {
+        return cJSON_GetObjectItem(object, string);
+    }
+}
+
+int cJSON_HasObjectItem(cJSON *object, const char *string)
 {
     return cJSON_GetObjectItem(object, string) ? 1 : 0;
+}
+
+int cJSON_HasDotObjectItem(cJSON *object, const char* string)
+{
+    return cJSON_GetDotObjectItem(object, string) ? 1 : 0;
 }
 
 /* Utility for array list handling. */
