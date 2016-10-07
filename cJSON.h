@@ -92,6 +92,8 @@ extern cJSON *cJSON_GetArrayItem(cJSON *array, int item);
 extern cJSON *cJSON_GetObjectItem(cJSON *object, const char *string);
 extern cJSON *cJSON_GetDotObjectItem(cJSON *object, const char *string);
 extern int cJSON_HasObjectItem(cJSON *object, const char *string);
+extern int cJSON_HasDotObjectItem(cJSON *object, const char* string);
+
 /* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when cJSON_Parse() returns 0. 0 when cJSON_Parse() succeeds. */
 extern const char *cJSON_GetErrorPtr(void);
 	
