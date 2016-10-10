@@ -27,125 +27,269 @@
 /* Parse text to JSON, then render back to text, and print! */
 void doit(char *text)
 {
-	char *out;cJSON *json;
+    char *out;
+    cJSON *json;
 
-	json=cJSON_Parse(text);
-	if (!json) {printf("Error before: [%s]\n",cJSON_GetErrorPtr());}
-	else
-	{
-		out=cJSON_Print(json);
-		cJSON_Delete(json);
-		printf("%s\n",out);
-		free(out);
-	}
+    json = cJSON_Parse(text);
+    if (!json)
+    {
+        printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+    }
+    else
+    {
+        out = cJSON_Print(json);
+        cJSON_Delete(json);
+        printf("%s\n", out);
+        free(out);
+    }
 }
 
 /* Read a file, parse, render back, etc. */
 void dofile(char *filename)
 {
-	FILE *f;long len;char *data;
+    FILE *f;
+    long len;
+    char *data;
 
-	f=fopen(filename,"rb");fseek(f,0,SEEK_END);len=ftell(f);fseek(f,0,SEEK_SET);
-	data=(char*)malloc(len+1);fread(data,1,len,f);data[len]='\0';fclose(f);
-	doit(data);
-	free(data);
+    /* open in read binary mode */
+    f = fopen(filename,"rb");
+    /* get the length */
+    fseek(f, 0, SEEK_END);
+    len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    data = (char*)malloc(len + 1);
+
+    fread(data, 1, len, f);
+    data[len] = '\0';
+    fclose(f);
+
+    doit(data);
+    free(data);
 }
 
 /* Used by some code below as an example datatype. */
-struct record {const char *precision;double lat,lon;const char *address,*city,*state,*zip,*country; };
+struct record
+{
+    const char *precision;
+    double lat;
+    double lon;
+    const char *address;
+    const char *city;
+    const char *state;
+    const char *zip;
+    const char *country;
+};
 
 /* Create a bunch of objects as demonstration. */
 void create_objects()
 {
-	cJSON *root,*fmt,*img,*thm,*fld;char *out;int i;	/* declare a few. */
-	/* Our "days of the week" array: */
-	const char *strings[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-	/* Our matrix: */
-	int numbers[3][3]={{0,-1,0},{1,0,0},{0,0,1}};
-	/* Our "gallery" item: */
-	int ids[4]={116,943,234,38793};
-	/* Our array of "records": */
-	struct record fields[2]={
-		{"zip",37.7668,-1.223959e+2,"","SAN FRANCISCO","CA","94107","US"},
-		{"zip",37.371991,-1.22026e+2,"","SUNNYVALE","CA","94085","US"}};
-	volatile double zero = 0.0;
+    /* declare a few. */
+    cJSON *root;
+    cJSON *fmt;
+    cJSON *img;
+    cJSON *thm;
+    cJSON *fld;
+    char *out;
+    int i;
 
-	/* Here we construct some JSON standards, from the JSON site. */
+    /* Our "days of the week" array: */
+    const char *strings[7] =
+    {
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    };
+    /* Our matrix: */
+    int numbers[3][3] =
+    {
+        {0, -1, 0},
+        {1, 0, 0},
+        {0 ,0, 1}
+    };
+    /* Our "gallery" item: */
+    int ids[4] = { 116, 943, 234, 38793 };
+    /* Our array of "records": */
+    struct record fields[2] =
+    {
+        {
+            "zip",
+            37.7668,
+            -1.223959e+2,
+            "",
+            "SAN FRANCISCO",
+            "CA",
+            "94107",
+            "US"
+        },
+        {
+            "zip",
+            37.371991,
+            -1.22026e+2,
+            "",
+            "SUNNYVALE",
+            "CA",
+            "94085",
+            "US"
+        }
+    };
+    volatile double zero = 0.0;
 
-	/* Our "Video" datatype: */
-	root=cJSON_CreateObject();
-	cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
-	cJSON_AddItemToObject(root, "format", fmt=cJSON_CreateObject());
-	cJSON_AddStringToObject(fmt,"type",		"rect");
-	cJSON_AddNumberToObject(fmt,"width",		1920);
-	cJSON_AddNumberToObject(fmt,"height",		1080);
-	cJSON_AddFalseToObject (fmt,"interlace");
-	cJSON_AddNumberToObject(fmt,"frame rate",	24);
+    /* Here we construct some JSON standards, from the JSON site. */
 
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);	/* Print to text, Delete the cJSON, print it, release the string. */
+    /* Our "Video" datatype: */
+    root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
+    cJSON_AddItemToObject(root, "format", fmt = cJSON_CreateObject());
+    cJSON_AddStringToObject(fmt, "type", "rect");
+    cJSON_AddNumberToObject(fmt, "width", 1920);
+    cJSON_AddNumberToObject(fmt, "height", 1080);
+    cJSON_AddFalseToObject (fmt, "interlace");
+    cJSON_AddNumberToObject(fmt, "frame rate", 24);
 
-	/* Our "days of the week" array: */
-	root=cJSON_CreateStringArray(strings,7);
+    /* Print to text */
+    out = cJSON_Print(root);
+    /* Delete the cJSON */
+    cJSON_Delete(root);
+    /* print it */
+    printf("%s\n",out);
+    /* release the string */
+    free(out);
 
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
+    /* Our "days of the week" array: */
+    root = cJSON_CreateStringArray(strings, 7);
 
-	/* Our matrix: */
-	root=cJSON_CreateArray();
-	for (i=0;i<3;i++) cJSON_AddItemToArray(root,cJSON_CreateIntArray(numbers[i],3));
+    out = cJSON_Print(root);
+    cJSON_Delete(root);
+    printf("%s\n", out);
+    free(out);
 
-/*	cJSON_ReplaceItemInArray(root,1,cJSON_CreateString("Replacement")); */
+    /* Our matrix: */
+    root = cJSON_CreateArray();
+    for (i = 0; i < 3; i++)
+    {
+        cJSON_AddItemToArray(root, cJSON_CreateIntArray(numbers[i], 3));
+    }
 
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
+    /* cJSON_ReplaceItemInArray(root, 1, cJSON_CreateString("Replacement")); */
+
+    out = cJSON_Print(root);
+    cJSON_Delete(root);
+    printf("%s\n", out);
+    free(out);
 
 
-	/* Our "gallery" item: */
-	root=cJSON_CreateObject();
-	cJSON_AddItemToObject(root, "Image", img=cJSON_CreateObject());
-	cJSON_AddNumberToObject(img,"Width",800);
-	cJSON_AddNumberToObject(img,"Height",600);
-	cJSON_AddStringToObject(img,"Title","View from 15th Floor");
-	cJSON_AddItemToObject(img, "Thumbnail", thm=cJSON_CreateObject());
-	cJSON_AddStringToObject(thm, "Url", "http:/*www.example.com/image/481989943");
-	cJSON_AddNumberToObject(thm,"Height",125);
-	cJSON_AddStringToObject(thm,"Width","100");
-	cJSON_AddItemToObject(img,"IDs", cJSON_CreateIntArray(ids,4));
+    /* Our "gallery" item: */
+    root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "Image", img = cJSON_CreateObject());
+    cJSON_AddNumberToObject(img, "Width", 800);
+    cJSON_AddNumberToObject(img, "Height", 600);
+    cJSON_AddStringToObject(img, "Title", "View from 15th Floor");
+    cJSON_AddItemToObject(img, "Thumbnail", thm = cJSON_CreateObject());
+    cJSON_AddStringToObject(thm, "Url", "http:/*www.example.com/image/481989943");
+    cJSON_AddNumberToObject(thm, "Height", 125);
+    cJSON_AddStringToObject(thm, "Width", "100");
+    cJSON_AddItemToObject(img, "IDs", cJSON_CreateIntArray(ids, 4));
 
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
+    out = cJSON_Print(root);
+    cJSON_Delete(root);
+    printf("%s\n", out);
+    free(out);
 
-	/* Our array of "records": */
+    /* Our array of "records": */
 
-	root=cJSON_CreateArray();
-	for (i=0;i<2;i++)
-	{
-		cJSON_AddItemToArray(root,fld=cJSON_CreateObject());
-		cJSON_AddStringToObject(fld, "precision", fields[i].precision);
-		cJSON_AddNumberToObject(fld, "Latitude", fields[i].lat);
-		cJSON_AddNumberToObject(fld, "Longitude", fields[i].lon);
-		cJSON_AddStringToObject(fld, "Address", fields[i].address);
-		cJSON_AddStringToObject(fld, "City", fields[i].city);
-		cJSON_AddStringToObject(fld, "State", fields[i].state);
-		cJSON_AddStringToObject(fld, "Zip", fields[i].zip);
-		cJSON_AddStringToObject(fld, "Country", fields[i].country);
-	}
+    root = cJSON_CreateArray();
+    for (i = 0; i < 2; i++)
+    {
+        cJSON_AddItemToArray(root, fld = cJSON_CreateObject());
+        cJSON_AddStringToObject(fld, "precision", fields[i].precision);
+        cJSON_AddNumberToObject(fld, "Latitude", fields[i].lat);
+        cJSON_AddNumberToObject(fld, "Longitude", fields[i].lon);
+        cJSON_AddStringToObject(fld, "Address", fields[i].address);
+        cJSON_AddStringToObject(fld, "City", fields[i].city);
+        cJSON_AddStringToObject(fld, "State", fields[i].state);
+        cJSON_AddStringToObject(fld, "Zip", fields[i].zip);
+        cJSON_AddStringToObject(fld, "Country", fields[i].country);
+    }
 
-/*	cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root,1),"City",cJSON_CreateIntArray(ids,4)); */
+    /* cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root, 1), "City", cJSON_CreateIntArray(ids, 4)); */
 
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
+    out = cJSON_Print(root);
+    cJSON_Delete(root);
+    printf("%s\n", out);
+    free(out);
 
-	root=cJSON_CreateObject();
-	cJSON_AddNumberToObject(root,"number", 1.0/zero);
-	out=cJSON_Print(root);	cJSON_Delete(root);	printf("%s\n",out);	free(out);
+    root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "number", 1.0 / zero);
+    out = cJSON_Print(root);
+    cJSON_Delete(root);
+    printf("%s\n", out);
+    free(out);
 }
 
-int main (int argc, const char * argv[]) {
-	/* a bunch of json: */
-	char text1[]="{\n\"name\": \"Jack (\\\"Bee\\\") Nimble\", \n\"format\": {\"type\":       \"rect\", \n\"width\":      1920, \n\"height\":     1080, \n\"interlace\":  false,\"frame rate\": 24\n}\n}";
-	char text2[]="[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
-	char text3[]="[\n    [0, -1, 0],\n    [1, 0, 0],\n    [0, 0, 1]\n	]\n";
-	char text4[]="{\n		\"Image\": {\n			\"Width\":  800,\n			\"Height\": 600,\n			\"Title\":  \"View from 15th Floor\",\n			\"Thumbnail\": {\n				\"Url\":    \"http:/*www.example.com/image/481989943\",\n				\"Height\": 125,\n				\"Width\":  \"100\"\n			},\n			\"IDs\": [116, 943, 234, 38793]\n		}\n	}";
-	char text5[]="[\n	 {\n	 \"precision\": \"zip\",\n	 \"Latitude\":  37.7668,\n	 \"Longitude\": -122.3959,\n	 \"Address\":   \"\",\n	 \"City\":      \"SAN FRANCISCO\",\n	 \"State\":     \"CA\",\n	 \"Zip\":       \"94107\",\n	 \"Country\":   \"US\"\n	 },\n	 {\n	 \"precision\": \"zip\",\n	 \"Latitude\":  37.371991,\n	 \"Longitude\": -122.026020,\n	 \"Address\":   \"\",\n	 \"City\":      \"SUNNYVALE\",\n	 \"State\":     \"CA\",\n	 \"Zip\":       \"94085\",\n	 \"Country\":   \"US\"\n	 }\n	 ]";
+int main (int argc, const char *argv[])
+{
+    /* a bunch of json: */
+    char text1[] =
+        "{\n"
+        "\"name\": \"Jack (\\\"Bee\\\") Nimble\", \n"
+        "\"format\": {\"type\":       \"rect\", \n"
+        "\"width\":      1920, \n"
+        "\"height\":     1080, \n"
+        "\"interlace\":  false,\"frame rate\": 24\n"
+        "}\n"
+        "}";
+    char text2[] = "[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
+    char text3[] =
+        "[\n"
+        "    [0, -1, 0],\n"
+        "    [1, 0, 0],\n"
+        "    [0, 0, 1]\n"
+        "\t]\n";
+    char text4[] =
+        "{\n"
+        "\t\t\"Image\": {\n"
+        "\t\t\t\"Width\":  800,\n"
+        "\t\t\t\"Height\": 600,\n"
+        "\t\t\t\"Title\":  \"View from 15th Floor\",\n"
+        "\t\t\t\"Thumbnail\": {\n"
+        "\t\t\t\t\"Url\":    \"http:/*www.example.com/image/481989943\",\n"
+        "\t\t\t\t\"Height\": 125,\n"
+        "\t\t\t\t\"Width\":  \"100\"\n"
+        "\t\t\t},\n"
+        "\t\t\t\"IDs\": [116, 943, 234, 38793]\n"
+        "\t\t}\n"
+        "\t}";
+    char text5[] =
+        "[\n"
+        "\t {\n"
+        "\t \"precision\": \"zip\",\n"
+        "\t \"Latitude\":  37.7668,\n"
+        "\t \"Longitude\": -122.3959,\n"
+        "\t \"Address\":   \"\",\n"
+        "\t \"City\":      \"SAN FRANCISCO\",\n"
+        "\t \"State\":     \"CA\",\n"
+        "\t \"Zip\":       \"94107\",\n"
+        "\t \"Country\":   \"US\"\n"
+        "\t },\n"
+        "\t {\n"
+        "\t \"precision\": \"zip\",\n"
+        "\t \"Latitude\":  37.371991,\n"
+        "\t \"Longitude\": -122.026020,\n"
+        "\t \"Address\":   \"\",\n"
+        "\t \"City\":      \"SUNNYVALE\",\n"
+        "\t \"State\":     \"CA\",\n"
+        "\t \"Zip\":       \"94085\",\n"
+        "\t \"Country\":   \"US\"\n"
+        "\t }\n"
+        "\t ]";
 
-    char text6[] = "<!DOCTYPE html>"
+    char text6[] =
+        "<!DOCTYPE html>"
         "<html>\n"
         "<head>\n"
         "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
@@ -162,24 +306,24 @@ int main (int argc, const char * argv[]) {
         "</body>\n"
         "</html>\n";
 
-	/* Process each json textblock by parsing, then rebuilding: */
-	doit(text1);
-	doit(text2);
-	doit(text3);
-	doit(text4);
-	doit(text5);
+    /* Process each json textblock by parsing, then rebuilding: */
+    doit(text1);
+    doit(text2);
+    doit(text3);
+    doit(text4);
+    doit(text5);
     doit(text6);
 
-	/* Parse standard testfiles: */
-/*	dofile("../../tests/test1"); */
-/*	dofile("../../tests/test2"); */
-/*	dofile("../../tests/test3"); */
-/*	dofile("../../tests/test4"); */
-/*	dofile("../../tests/test5"); */
-/*	dofile("../../tests/test6"); */
+    /* Parse standard testfiles: */
+    /* dofile("../../tests/test1"); */
+    /* dofile("../../tests/test2"); */
+    /* dofile("../../tests/test3"); */
+    /* dofile("../../tests/test4"); */
+    /* dofile("../../tests/test5"); */
+    /* dofile("../../tests/test6"); */
 
-	/* Now some samplecode for building objects concisely: */
-	create_objects();
+    /* Now some samplecode for building objects concisely: */
+    create_objects();
 
-	return 0;
+    return 0;
 }
