@@ -75,15 +75,27 @@ static int cJSONUtils_PointerEncodedstrlen(const char *s)
     return l;
 }
 
-static void cJSONUtils_PointerEncodedstrcpy(char *d,const char *s)
+static void cJSONUtils_PointerEncodedstrcpy(char *d, const char *s)
 {
-	for (;*s;s++)
-	{
-		if (*s=='/') {*d++='~';*d++='1';}
-		else if (*s=='~') {*d++='~';*d++='0';}
-		else *d++=*s;
-	}
-	*d=0;
+    for (; *s; s++)
+    {
+        if (*s == '/')
+        {
+            *d++ = '~';
+            *d++ = '1';
+        }
+        else if (*s == '~')
+        {
+            *d++ = '~';
+            *d++ = '0';
+        }
+        else
+        {
+            *d++ = *s;
+        }
+    }
+
+    *d = '\0';
 }
 
 char *cJSONUtils_FindPointerFromObjectTo(cJSON *object,cJSON *target)
