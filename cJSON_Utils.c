@@ -26,15 +26,39 @@ static int cJSONUtils_strcasecmp(const char *s1, const char *s2)
 }
 
 /* JSON Pointer implementation: */
-static int cJSONUtils_Pstrcasecmp(const char *a,const char *e)
+static int cJSONUtils_Pstrcasecmp(const char *a, const char *e)
 {
-	if (!a || !e) return (a==e)?0:1;
-	for (;*a && *e && *e!='/';a++,e++) {
-		if (*e=='~') {if (!(e[1]=='0' && *a=='~') && !(e[1]=='1' && *a=='/')) return 1;  else e++;}
-		else if (tolower(*a)!=tolower(*e)) return 1;
-	}
-	if ((*e!=0 && *e!='/') != (*a!=0)) return 1;
-	return 0;
+    if (!a || !e)
+    {
+        return (a == e) ? 0 : 1; /* both NULL? */
+    }
+    for (; *a && *e && (*e != '/'); a++, e++) /* compare until next '/' */
+    {
+        if (*e == '~')
+        {
+            /* check for escaped '~' (~0) and '/' (~1) */
+            if (!((e[1] == '0') && (*a == '~')) && !((e[1] == '1') && (*a == '/')))
+            {
+                /* invalid escape sequence or wrong character in *a */
+                return 1;
+            }
+            else
+            {
+                e++;
+            }
+        }
+        else if (tolower(*a) != tolower(*e))
+        {
+            return 1;
+        }
+    }
+    if (((*e != 0) && (*e != '/')) != (*a != 0))
+    {
+        /* one string has ended, the other not */
+        return 1;
+    }
+
+    return 0;
 }
 
 static int cJSONUtils_PointerEncodedstrlen(const char *s)	{int l=0;for (;*s;s++,l++) if (*s=='~' || *s=='/') l++;return l;}
