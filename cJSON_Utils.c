@@ -146,24 +146,47 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
     return 0;
 }
 
-cJSON *cJSONUtils_GetPointer(cJSON *object,const char *pointer)
+cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 {
-	while (*pointer++=='/' && object)
-	{
-		if (object->type==cJSON_Array)
-		{
-			int which=0; while (*pointer>='0' && *pointer<='9') which=(10*which) + *pointer++ - '0';
-			if (*pointer && *pointer!='/') return 0;
-			object=cJSON_GetArrayItem(object,which);
-		}
-		else if (object->type==cJSON_Object)
-		{
-			object=object->child;	while (object && cJSONUtils_Pstrcasecmp(object->string,pointer)) object=object->next;	/* GetObjectItem. */
-			while (*pointer && *pointer!='/') pointer++;
-		}
-		else return 0;
-	}
-	return object;
+    /* follow path of the pointer */
+    while ((*pointer++ == '/') && object)
+    {
+        if (object->type == cJSON_Array)
+        {
+            int which = 0;
+            /* parse array index */
+            while ((*pointer >= '0') && (*pointer <= '9'))
+            {
+                which = (10 * which) + (*pointer++ - '0');
+            }
+            if (*pointer && (*pointer != '/'))
+            {
+                /* not end of string or new path token */
+                return 0;
+            }
+            object = cJSON_GetArrayItem(object, which);
+        }
+        else if (object->type == cJSON_Object)
+        {
+            object = object->child;
+            /* GetObjectItem. */
+            while (object && cJSONUtils_Pstrcasecmp(object->string, pointer))
+            {
+                object = object->next;
+            }
+            /* skip to the next path token or end of string */
+            while (*pointer && (*pointer != '/'))
+            {
+                pointer++;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    return object;
 }
 
 /* JSON Patch implementation. */
