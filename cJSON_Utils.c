@@ -98,37 +98,52 @@ static void cJSONUtils_PointerEncodedstrcpy(char *d, const char *s)
     *d = '\0';
 }
 
-char *cJSONUtils_FindPointerFromObjectTo(cJSON *object,cJSON *target)
+char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 {
-	int type=object->type,c=0;cJSON *obj=0;
+    int type = object->type;
+    int c = 0;
+    cJSON *obj = 0;
 
-	if (object==target) return strdup("");
+    if (object == target)
+    {
+        /* found */
+        return strdup("");
+    }
 
-	for (obj=object->child;obj;obj=obj->next,c++)
-	{
-		char *found=cJSONUtils_FindPointerFromObjectTo(obj,target);
-		if (found)
-		{
-			if (type==cJSON_Array)
-			{
-				char *ret=(char*)malloc(strlen(found)+23);
-				sprintf(ret,"/%d%s",c,found);
-				free(found);
-				return ret;
-			}
-			else if (type==cJSON_Object)
-			{
-				char *ret=(char*)malloc(strlen(found)+cJSONUtils_PointerEncodedstrlen(obj->string)+2);
-				*ret='/';cJSONUtils_PointerEncodedstrcpy(ret+1,obj->string);
-				strcat(ret,found);
-				free(found);
-				return ret;
-			}
-			free(found);
-			return 0;
-		}
-	}
-	return 0;
+    /* recursively search all children of the object */
+    for (obj = object->child; obj; obj = obj->next, c++)
+    {
+        char *found = cJSONUtils_FindPointerFromObjectTo(obj, target);
+        if (found)
+        {
+            if (type == cJSON_Array)
+            {
+                /* reserve enough memory for a 64 bit integer + '/' and '\0' */
+                char *ret = (char*)malloc(strlen(found) + 23);
+                sprintf(ret, "/%d%s", c, found); /* /<array_index><path> */
+                free(found);
+
+                return ret;
+            }
+            else if (type == cJSON_Object)
+            {
+                char *ret = (char*)malloc(strlen(found) + cJSONUtils_PointerEncodedstrlen(obj->string) + 2);
+                *ret = '/';
+                cJSONUtils_PointerEncodedstrcpy(ret + 1, obj->string);
+                strcat(ret, found);
+                free(found);
+
+                return ret;
+            }
+
+            /* reached leaf of the tree, found nothing */
+            free(found);
+            return 0;
+        }
+    }
+
+    /* not found */
+    return 0;
 }
 
 cJSON *cJSONUtils_GetPointer(cJSON *object,const char *pointer)
