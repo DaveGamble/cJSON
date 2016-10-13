@@ -61,7 +61,19 @@ static int cJSONUtils_Pstrcasecmp(const char *a, const char *e)
     return 0;
 }
 
-static int cJSONUtils_PointerEncodedstrlen(const char *s)	{int l=0;for (;*s;s++,l++) if (*s=='~' || *s=='/') l++;return l;}
+static int cJSONUtils_PointerEncodedstrlen(const char *s)
+{
+    int l = 0;
+    for (; *s; s++, l++)
+    {
+        if ((*s == '~') || (*s == '/'))
+        {
+            l++;
+        }
+    }
+
+    return l;
+}
 
 static void cJSONUtils_PointerEncodedstrcpy(char *d,const char *s)
 {
