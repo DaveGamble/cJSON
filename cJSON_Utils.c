@@ -205,19 +205,41 @@ static void cJSONUtils_InplaceDecodePointerString(char *string)
     *s2 = '\0';
 }
 
-static cJSON *cJSONUtils_PatchDetach(cJSON *object,const char *path)
+static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
 {
-	char *parentptr=0,*childptr=0;cJSON *parent=0,*ret=0;
+    char *parentptr = 0;
+    char *childptr = 0;
+    cJSON *parent = 0;
+    cJSON *ret = 0;
 
-	parentptr=strdup(path);	childptr=strrchr(parentptr,'/');	if (childptr) *childptr++=0;
-	parent=cJSONUtils_GetPointer(object,parentptr);
-	cJSONUtils_InplaceDecodePointerString(childptr);
+    /* copy path and split it in parent and child */
+    parentptr = strdup(path);
+    childptr = strrchr(parentptr, '/'); /* last '/' */
+    if (childptr)
+    {
+        /* split strings */
+        *childptr++ = '\0';
+    }
+    parent = cJSONUtils_GetPointer(object, parentptr);
+    cJSONUtils_InplaceDecodePointerString(childptr);
 
-	if (!parent) ret=0;	/* Couldn't find object to remove child from. */
-	else if (parent->type==cJSON_Array)		ret=cJSON_DetachItemFromArray(parent,atoi(childptr));
-	else if (parent->type==cJSON_Object)	ret=cJSON_DetachItemFromObject(parent,childptr);
-	free(parentptr);
-	return ret;
+    if (!parent)
+    {
+        /* Couldn't find object to remove child from. */
+        ret = 0;
+    }
+    else if (parent->type == cJSON_Array)
+    {
+        ret = cJSON_DetachItemFromArray(parent, atoi(childptr));
+    }
+    else if (parent->type == cJSON_Object)
+    {
+        ret = cJSON_DetachItemFromObject(parent, childptr);
+    }
+    free(parentptr);
+
+    /* return the detachted item */
+    return ret;
 }
 
 static int cJSONUtils_Compare(cJSON *a,cJSON *b)
