@@ -603,13 +603,13 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const char *path, cJSON *f
     }
 }
 
-cJSON* cJSONUtils_GeneratePatches(cJSON *from,cJSON *to)
+cJSON* cJSONUtils_GeneratePatches(cJSON *from, cJSON *to)
 {
-	cJSON *patches=cJSON_CreateArray();	
-	cJSONUtils_CompareToPatch(patches,"",from,to);
-	return patches;
-}
+    cJSON *patches = cJSON_CreateArray();
+    cJSONUtils_CompareToPatch(patches, "", from, to);
 
+    return patches;
+}
 
 static cJSON *cJSONUtils_SortList(cJSON *list)
 {
