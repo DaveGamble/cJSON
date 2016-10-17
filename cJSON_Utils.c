@@ -509,63 +509,99 @@ void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, 
     cJSONUtils_GeneratePatch(array, op, path, 0, val);
 }
 
-static void cJSONUtils_CompareToPatch(cJSON *patches,const char *path,cJSON *from,cJSON *to)
+static void cJSONUtils_CompareToPatch(cJSON *patches, const char *path, cJSON *from, cJSON *to)
 {
-	if (from->type!=to->type)	{cJSONUtils_GeneratePatch(patches,"replace",path,0,to);	return;	}
-	
-	switch (from->type)
-	{
-	case cJSON_Number:	
-		if (from->valueint!=to->valueint || from->valuedouble!=to->valuedouble)
-			cJSONUtils_GeneratePatch(patches,"replace",path,0,to);
-		return;
-						
-	case cJSON_String:	
-		if (strcmp(from->valuestring,to->valuestring)!=0)
-			cJSONUtils_GeneratePatch(patches,"replace",path,0,to);
-		return;
+    if (from->type != to->type)
+    {
+        cJSONUtils_GeneratePatch(patches, "replace", path, 0, to);
+        return;
+    }
 
-	case cJSON_Array:
-	{
-		int c;char *newpath=(char*)malloc(strlen(path)+23);	/* Allow space for 64bit int. */
-		for (c=0,from=from->child,to=to->child;from && to;from=from->next,to=to->next,c++){
-										sprintf(newpath,"%s/%d",path,c);	cJSONUtils_CompareToPatch(patches,newpath,from,to);
-		}
-		for (;from;from=from->next,c++)	{sprintf(newpath,"%d",c);	cJSONUtils_GeneratePatch(patches,"remove",path,newpath,0);	}
-		for (;to;to=to->next,c++)		cJSONUtils_GeneratePatch(patches,"add",path,"-",to);
-		free(newpath);
-		return;
-	}
+    switch (from->type)
+    {
+        case cJSON_Number:
+            if ((from->valueint != to->valueint) || (from->valuedouble != to->valuedouble))
+            {
+                cJSONUtils_GeneratePatch(patches, "replace", path, 0, to);
+            }
+            return;
 
-	case cJSON_Object:
-	{
-		cJSON *a,*b;
-		cJSONUtils_SortObject(from);
-		cJSONUtils_SortObject(to);
-		
-		a=from->child,b=to->child;
-		while (a || b)
-		{
-			int diff=(!a)?1:(!b)?-1:cJSONUtils_strcasecmp(a->string,b->string);
-			if (!diff)
-			{
-				char *newpath=(char*)malloc(strlen(path)+cJSONUtils_PointerEncodedstrlen(a->string)+2);
-				cJSONUtils_PointerEncodedstrcpy(newpath+sprintf(newpath,"%s/",path),a->string);
-				cJSONUtils_CompareToPatch(patches,newpath,a,b);
-				free(newpath);
-				a=a->next;
-				b=b->next;
-			}
-			else if (diff<0)	{cJSONUtils_GeneratePatch(patches,"remove",path,a->string,0);	a=a->next;}
-			else				{cJSONUtils_GeneratePatch(patches,"add",path,b->string,b);		b=b->next;}
-		}
-		return;
-	}
+        case cJSON_String:
+            if (strcmp(from->valuestring, to->valuestring) != 0)
+            {
+                cJSONUtils_GeneratePatch(patches, "replace", path, 0, to);
+            }
+            return;
 
-	default:			break;
-	}
+        case cJSON_Array:
+        {
+            int c;
+            char *newpath = (char*)malloc(strlen(path) + 23); /* Allow space for 64bit int. */
+            /* generate patches for all array elements that exist in "from" and "to" */
+            for (c = 0, from = from->child, to = to->child; from && to; from = from->next, to = to->next, c++)
+            {
+                sprintf(newpath, "%s/%d", path, c); /* path of the current array element */
+                cJSONUtils_CompareToPatch(patches, newpath, from, to);
+            }
+            /* remove leftover elements from 'from' that are not in 'to' */
+            for (; from; from = from->next, c++)
+            {
+                sprintf(newpath, "%d", c);
+                cJSONUtils_GeneratePatch(patches, "remove", path, newpath, 0);
+            }
+            /* add new elements in 'to' that were not in 'from' */
+            for (; to; to = to->next, c++)
+            {
+                cJSONUtils_GeneratePatch(patches, "add", path, "-", to);
+            }
+            free(newpath);
+            return;
+        }
+
+        case cJSON_Object:
+        {
+            cJSON *a;
+            cJSON *b;
+            cJSONUtils_SortObject(from);
+            cJSONUtils_SortObject(to);
+
+            a = from->child;
+            b = to->child;
+            /* for all object values in the object with more of them */
+            while (a || b)
+            {
+                int diff = (!a) ? 1 : ((!b) ? -1 : cJSONUtils_strcasecmp(a->string, b->string));
+                if (!diff)
+                {
+                    /* both object keys are the same */
+                    char *newpath = (char*)malloc(strlen(path) + cJSONUtils_PointerEncodedstrlen(a->string) + 2);
+                    cJSONUtils_PointerEncodedstrcpy(newpath + sprintf(newpath, "%s/", path), a->string);
+                    /* create a patch for the element */
+                    cJSONUtils_CompareToPatch(patches, newpath, a, b);
+                    free(newpath);
+                    a = a->next;
+                    b = b->next;
+                }
+                else if (diff < 0)
+                {
+                    /* object element doesn't exist in 'to' --> remove it */
+                    cJSONUtils_GeneratePatch(patches, "remove", path, a->string, 0);
+                    a = a->next;
+                }
+                else
+                {
+                    /* object element doesn't exist in 'from' --> add it */
+                    cJSONUtils_GeneratePatch(patches, "add", path, b->string, b);
+                    b = b->next;
+                }
+            }
+            return;
+        }
+
+        default:
+            break;
+    }
 }
-
 
 cJSON* cJSONUtils_GeneratePatches(cJSON *from,cJSON *to)
 {
