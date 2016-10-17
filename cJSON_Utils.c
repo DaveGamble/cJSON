@@ -504,7 +504,10 @@ static void cJSONUtils_GeneratePatch(cJSON *patches, const char *op, const char 
     cJSON_AddItemToArray(patches, patch);
 }
 
-void cJSONUtils_AddPatchToArray(cJSON *array,const char *op,const char *path,cJSON *val)	{cJSONUtils_GeneratePatch(array,op,path,0,val);}
+void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val)
+{
+    cJSONUtils_GeneratePatch(array, op, path, 0, val);
+}
 
 static void cJSONUtils_CompareToPatch(cJSON *patches,const char *path,cJSON *from,cJSON *to)
 {
