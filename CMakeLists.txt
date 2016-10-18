@@ -9,6 +9,10 @@ set(CJSON_VERSION "${CJSON_VERSION_MAJOR}.${CJSON_VERSION_MINOR}.${CJSON_VERSION
 
 add_compile_options(-ansi -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -Wwrite-strings)
 
+#variables for pkg-config
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(libdir "${CMAKE_INSTALL_PREFIX}/lib")
+
 #cJSON
 set(PROJ_CJSON cJSON)
 set(CJSON_LIB cjson)
@@ -22,8 +26,12 @@ if (NOT WIN32)
     target_link_libraries(${CJSON_LIB} m)
 endif()
 
+configure_file("${cJSON_SOURCE_DIR}/libcjson.pc.in"
+    "${cJSON_BINARY_DIR}/libcjson.pc" @ONLY)
+
 install(TARGETS ${CJSON_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON.h DESTINATION include/cjson)
+install (FILES ${cJSON_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
 
 set_target_properties(${CJSON_LIB}
     PROPERTIES
