@@ -1658,7 +1658,7 @@ void   cJSON_AddItemToArray(cJSON *array, cJSON *item)
     else
     {
         /* append to the end */
-        while (c && c->next)
+        while (c->next)
         {
             c = c->next;
         }
