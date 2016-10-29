@@ -756,34 +756,58 @@ cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
     return target;
 }
 
-cJSON *cJSONUtils_GenerateMergePatch(cJSON *from,cJSON *to)
+cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
 {
-	cJSON *patch=0;
-	if (!to) return cJSON_CreateNull();
-	if (to->type!=cJSON_Object || !from || from->type!=cJSON_Object) return cJSON_Duplicate(to,1);
-	cJSONUtils_SortObject(from);
-	cJSONUtils_SortObject(to);
-	from=from->child;to=to->child;
-	patch=cJSON_CreateObject();
-	while (from || to)
-	{
-		int compare=from?(to?strcmp(from->string,to->string):-1):1;
-		if (compare<0)
-		{
-			cJSON_AddItemToObject(patch,from->string,cJSON_CreateNull());
-			from=from->next;
-		}
-		else if (compare>0)
-		{
-			cJSON_AddItemToObject(patch,to->string,cJSON_Duplicate(to,1));
-			to=to->next;
-		}
-		else
-		{
-			if (cJSONUtils_Compare(from,to)) cJSON_AddItemToObject(patch,to->string,cJSONUtils_GenerateMergePatch(from,to));
-			from=from->next;to=to->next;
-		}
-	}
-	if (!patch->child) {cJSON_Delete(patch);return 0;}
-	return patch;
+    cJSON *patch = 0;
+    if (!to)
+    {
+        /* patch to delete everything */
+        return cJSON_CreateNull();
+    }
+    if ((to->type != cJSON_Object) || !from || (from->type != cJSON_Object))
+    {
+        return cJSON_Duplicate(to, 1);
+    }
+
+    cJSONUtils_SortObject(from);
+    cJSONUtils_SortObject(to);
+
+    from = from->child;
+    to = to->child;
+    patch = cJSON_CreateObject();
+    while (from || to)
+    {
+        int compare = from ? (to ? strcmp(from->string, to->string) : -1) : 1;
+        if (compare < 0)
+        {
+            /* from has a value that to doesn't have -> remove */
+            cJSON_AddItemToObject(patch, from->string, cJSON_CreateNull());
+            from = from->next;
+        }
+        else if (compare > 0)
+        {
+            /* to has a value that from doesn't have -> add to patch */
+            cJSON_AddItemToObject(patch, to->string, cJSON_Duplicate(to, 1));
+            to = to->next;
+        }
+        else
+        {
+            /* object key exists in both objects */
+            if (cJSONUtils_Compare(from, to))
+            {
+                /* not identical --> generate a patch */
+                cJSON_AddItemToObject(patch, to->string, cJSONUtils_GenerateMergePatch(from, to));
+            }
+            /* next key in the object */
+            from = from->next;
+            to = to->next;
+        }
+    }
+    if (!patch->child)
+    {
+        cJSON_Delete(patch);
+        return 0;
+    }
+
+    return patch;
 }
