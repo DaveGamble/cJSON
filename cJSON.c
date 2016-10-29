@@ -1722,7 +1722,7 @@ cJSON *cJSON_DetachItemFromArray(cJSON *array, int which)
         /* item doesn't exist */
         return 0;
     }
-	if (c->prev)
+    if (c->prev)
     {
         /* not the first element */
         c->prev->next = c->next;
