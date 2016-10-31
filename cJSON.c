@@ -845,6 +845,10 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, int fmt)
 {
     printbuffer p;
     p.buffer = (char*)cJSON_malloc(prebuffer);
+    if (!p.buffer)
+    {
+        return 0;
+    }
     p.length = prebuffer;
     p.offset = 0;
 
