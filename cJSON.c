@@ -116,7 +116,7 @@ void cJSON_Delete(cJSON *c)
         {
             cJSON_Delete(c->child);
         }
-        if (!(c->type & cJSON_IsReference) && c->valuestring)
+        if ((c->type & cJSON_String) && !(c->type & cJSON_IsReference) && c->valuestring)
         {
             cJSON_free(c->valuestring);
         }
@@ -899,7 +899,7 @@ static const char *parse_value(cJSON *item, const char *value, const char **ep)
         return parse_object(item, value, ep);
     }
 
-    *ep=value;return 0;	/* failure. */
+    *ep=value;return 0; /* failure. */
 }
 
 /* Render a value to text. */
