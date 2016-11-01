@@ -50,7 +50,7 @@ static int cJSON_strcasecmp(const char *s1, const char *s2)
     {
         return 1;
     }
-    for(; tolower(*s1) == tolower(*s2); ++s1, ++s2)
+    for(; tolower(*(const unsigned char *)s1) == tolower(*(const unsigned char *)s2); ++s1, ++s2)
     {
         if (*s1 == 0)
         {

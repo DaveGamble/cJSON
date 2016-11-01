@@ -39,7 +39,7 @@ $(DYLIBNAME): $(OBJ)
 		$(DYLIBCMD) $< $(LDFLAGS)
 	
 $(STLIBNAME): $(OBJ)
-		ar rcs $@ $<
+		$(AR) rcs $@ $<
 
 $(OBJ): cJSON.c cJSON.h 
 
