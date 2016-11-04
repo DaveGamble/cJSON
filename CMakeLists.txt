@@ -6,6 +6,8 @@ set(CJSON_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_VERSION "${CJSON_VERSION_MAJOR}.${CJSON_VERSION_MINOR}.${CJSON_VERSION_PATCH}")
 
+add_compile_options(-ansi -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -Wwrite-strings)
+
 #cJSON
 set(PROJ_CJSON cJSON)
 set(CJSON_LIB cjson)
