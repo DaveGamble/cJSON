@@ -22,6 +22,11 @@ endif()
 install(TARGETS ${CJSON_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON.h DESTINATION include/cjson)
 
+set_target_properties(${CJSON_LIB}
+    PROPERTIES
+        SOVERSION ${CJSON_VERSION_SO}
+        VERSION ${CJSON_VERSION})
+
 #cJSON_Utils
 set(PROJ_CJSON_UTILS cJSON_utils)
 set(CJSON_UTILS_LIB cjson_utils)
@@ -35,6 +40,11 @@ target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
 install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON_Utils.h DESTINATION include/cjson)
+
+set_target_properties(${CJSON_UTILS_LIB}
+    PROPERTIES
+        SOVERSION ${CJSON_VERSION_SO}
+        VERSION ${CJSON_VERSION})
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
 if(ENABLE_CJSON_TEST)
