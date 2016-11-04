@@ -69,7 +69,27 @@ if(ENABLE_CJSON_UTILS)
             VERSION "${CJSON_VERSION}")
 endif()
 
-option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
+# export library information for CMake projects
+export(TARGETS ${CJSON_LIB} ${CJSON_UTILS_LIB}
+  FILE ${PROJECT_BINARY_DIR}/cJSONConfigTargets.cmake)
+
+# create the other package config files
+configure_file(
+  cJSONConfig.cmake.in
+  ${PROJECT_BINARY_DIR}/cJSONConfig.cmake @ONLY)
+configure_file(
+  cJSONConfigVersion.cmake.in
+  ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake @ONLY)
+
+# Install package config files
+install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
+  ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake
+  ${PROJECT_BINARY_DIR}/cJSONConfigTargets.cmake
+  DESTINATION lib/cmake/cJSON)
+
+option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
+
+
 if(ENABLE_CJSON_TEST)
     set(TEST_CJSON cJSON_test)
     add_executable("${TEST_CJSON}" test.c)
