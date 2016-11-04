@@ -4,6 +4,7 @@ set(CJSON_VERSION_MAJOR 1)
 set(CJSON_VERSION_MINOR 0)
 set(CJSON_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
+set(CJSON_UTILS_VERSION_SO 1)
 set(CJSON_VERSION "${CJSON_VERSION_MAJOR}.${CJSON_VERSION_MINOR}.${CJSON_VERSION_PATCH}")
 
 add_compile_options(-ansi -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -Wwrite-strings)
@@ -45,7 +46,7 @@ install(FILES cJSON_Utils.h DESTINATION include/cjson)
 
 set_target_properties(${CJSON_UTILS_LIB}
     PROPERTIES
-        SOVERSION ${CJSON_VERSION_SO}
+        SOVERSION ${CJSON_UTILS_VERSION_SO}
         VERSION ${CJSON_VERSION})
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
