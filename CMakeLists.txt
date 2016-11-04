@@ -8,39 +8,41 @@ set(CJSON_VERSION "${CJSON_VERSION_MAJOR}.${CJSON_VERSION_MINOR}.${CJSON_VERSION
 
 #cJSON
 set(PROJ_CJSON cJSON)
+set(CJSON_LIB cjson)
 project(${PROJ_CJSON} C)
 
 file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
 
-add_library(${PROJ_CJSON} ${HEADERS} ${SOURCES})
+add_library(${CJSON_LIB} ${HEADERS} ${SOURCES})
 if (NOT WIN32)
-    target_link_libraries(${PROJ_CJSON} m)
+    target_link_libraries(${CJSON_LIB} m)
 endif()
 
-install(TARGETS ${PROJ_CJSON} DESTINATION lib${LIB_SUFFIX})
-install(FILES cJSON.h DESTINATION include/cJSON)
+install(TARGETS ${CJSON_LIB} DESTINATION lib${LIB_SUFFIX})
+install(FILES cJSON.h DESTINATION include/cjson)
 
 #cJSON_Utils
 set(PROJ_CJSON_UTILS cJSON_utils)
+set(CJSON_UTILS_LIB cjson_utils)
 project(${PROJ_CJSON_UTILS} C)
 
 file(GLOB HEADERS_UTILS cJSON_Utils.h)
 set(SOURCES_UTILS cJSON_Utils.c)
 
-add_library(${PROJ_CJSON_UTILS} ${HEADERS_UTILS} ${SOURCES_UTILS})
-target_link_libraries(${PROJ_CJSON_UTILS} ${PROJ_CJSON})
+add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
+target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
-install(TARGETS ${PROJ_CJSON_UTILS} DESTINATION lib${LIB_SUFFIX})
+install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON_Utils.h DESTINATION include/cJSON)
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
 if(ENABLE_CJSON_TEST)
     set(TEST_CJSON cJSON_test)
     add_executable(${TEST_CJSON} test.c)
-    target_link_libraries(${TEST_CJSON} ${PROJ_CJSON})
+    target_link_libraries(${TEST_CJSON} ${CJSON_LIB})
 
     set(TEST_CJSON_UTILS cJSON_test_utils)
     add_executable(${TEST_CJSON_UTILS} test_utils.c)
-    target_link_libraries(${TEST_CJSON_UTILS} ${PROJ_CJSON_UTILS})
+    target_link_libraries(${TEST_CJSON_UTILS} ${CJSON_UTILS_LIB})
 endif()
