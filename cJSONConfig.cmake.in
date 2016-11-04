@@ -1,0 +1,14 @@
+# Whether the utils lib was build.
+set(CJSON_UTILS_FOUND @ENABLE_CJSON_UTILS@)
+
+# All cJson libraries (including the utils lib if present
+set(CJSON_LIBRARIES @CJSON_UTILS_LIB@ @CJSON_LIB@)
+# The cJSON utils library
+set(CJSON_UTILS_LIBRARY @CJSON_UTILS_LIB@)
+# The cJSON library
+set(CJSON_LIBRARY @CJSON_LIB@)
+# The include directories used by cJSON
+set(CJSON_INCLUDE_DIRS @CMAKE_INSTALL_PREFIX@/include)
+
+get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include("${_dir}/cJSONConfigTargets.cmake")
