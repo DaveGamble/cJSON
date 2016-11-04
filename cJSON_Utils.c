@@ -4,6 +4,21 @@
 #include <stdio.h>
 #include "cJSON_Utils.h"
 
+static char* cJSONUtils_strdup(const char* str)
+{
+    size_t len;
+    char* copy;
+
+    len = strlen(str) + 1;
+    if (!(copy = (char*)malloc(len)))
+    {
+        return 0;
+    }
+    memcpy(copy, str, len);
+
+    return copy;
+}
+
 static int cJSONUtils_strcasecmp(const char *s1, const char *s2)
 {
     if (!s1)
@@ -107,7 +122,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
     if (object == target)
     {
         /* found */
-        return strdup("");
+        return cJSONUtils_strdup("");
     }
 
     /* recursively search all children of the object */
@@ -213,7 +228,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
     cJSON *ret = 0;
 
     /* copy path and split it in parent and child */
-    parentptr = strdup(path);
+    parentptr = cJSONUtils_strdup(path);
     childptr = strrchr(parentptr, '/'); /* last '/' */
     if (childptr)
     {
@@ -416,7 +431,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     /* Now, just add "value" to "path". */
 
     /* split pointer in parent and child */
-    parentptr = strdup(path->valuestring);
+    parentptr = cJSONUtils_strdup(path->valuestring);
     childptr = strrchr(parentptr, '/');
     if (childptr)
     {
