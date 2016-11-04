@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(PROJ_CJSON cJSON)
-
-project(${PROJ_CJSON} C)
 set(CJSON_VERSION_MAJOR 1)
 set(CJSON_VERSION_MINOR 0)
 set(CJSON_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_VERSION "${CJSON_VERSION_MAJOR}.${CJSON_VERSION_MINOR}.${CJSON_VERSION_PATCH}")
+
+#cJSON
+set(PROJ_CJSON cJSON)
+project(${PROJ_CJSON} C)
 
 file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
@@ -17,8 +18,11 @@ if (NOT WIN32)
 	target_link_libraries(${PROJ_CJSON} m)
 endif()
 
-set(PROJ_CJSON_UTILS cJSON_utils)
+install (TARGETS ${PROJ_CJSON} DESTINATION lib${LIB_SUFFIX})
+install (FILES cJSON.h DESTINATION include/cJSON)
 
+#cJSON_Utils
+set(PROJ_CJSON_UTILS cJSON_utils)
 project(${PROJ_CJSON_UTILS} C)
 
 file(GLOB HEADERS_UTILS cJSON_Utils.h)
@@ -27,8 +31,6 @@ set(SOURCES_UTILS cJSON_Utils.c)
 add_library(${PROJ_CJSON_UTILS} ${HEADERS_UTILS} ${SOURCES_UTILS})
 target_link_libraries(${PROJ_CJSON_UTILS} ${PROJ_CJSON})
 
-install (TARGETS ${PROJ_CJSON} DESTINATION lib${LIB_SUFFIX})
-install (FILES cJSON.h DESTINATION include/cJSON)
 install (TARGETS ${PROJ_CJSON_UTILS} DESTINATION lib${LIB_SUFFIX})
 install (FILES cJSON_Utils.h DESTINATION include/cJSON)
 
