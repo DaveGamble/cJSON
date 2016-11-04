@@ -34,7 +34,7 @@ add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
 target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
 install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
-install(FILES cJSON_Utils.h DESTINATION include/cJSON)
+install(FILES cJSON_Utils.h DESTINATION include/cjson)
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
 if(ENABLE_CJSON_TEST)
