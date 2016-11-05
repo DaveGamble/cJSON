@@ -14,9 +14,9 @@ if(("${CMAKE_C_COMPILER_ID}" MATCHES "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES
 endif()
 
 #variables for pkg-config
-set(prefix ${CMAKE_INSTALL_PREFIX})
+set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(libdir "${CMAKE_INSTALL_PREFIX}/lib")
-set(version ${CJSON_VERSION})
+set(version "${CJSON_VERSION}")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
@@ -26,22 +26,22 @@ set(CJSON_LIB cjson)
 file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
 
-add_library(${CJSON_LIB} ${HEADERS} ${SOURCES})
+add_library("${CJSON_LIB}" "${HEADERS}" "${SOURCES}")
 if (NOT WIN32)
-    target_link_libraries(${CJSON_LIB} m)
+    target_link_libraries("${CJSON_LIB}" m)
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
 
-install(TARGETS ${CJSON_LIB} DESTINATION lib${LIB_SUFFIX})
+install(TARGETS "${CJSON_LIB}" DESTINATION "lib${LIB_SUFFIX}")
 install(FILES cJSON.h DESTINATION include/cjson)
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION lib/pkgconfig)
 
-set_target_properties(${CJSON_LIB}
+set_target_properties("${CJSON_LIB}"
     PROPERTIES
-        SOVERSION ${CJSON_VERSION_SO}
-        VERSION ${CJSON_VERSION})
+        SOVERSION "${CJSON_VERSION_SO}"
+        VERSION "${CJSON_VERSION}")
 
 #cJSON_Utils
 option(ENABLE_CJSON_UTILS "Enable building the cJSON_Utils library." OFF)
@@ -51,31 +51,31 @@ if(ENABLE_CJSON_UTILS)
     file(GLOB HEADERS_UTILS cJSON_Utils.h)
     set(SOURCES_UTILS cJSON_Utils.c)
 
-    add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
-    target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
+    add_library("${CJSON_UTILS_LIB}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
+    target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
 
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson_utils.pc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
-    install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
+    install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "lib${LIB_SUFFIX}")
     install(FILES cJSON_Utils.h DESTINATION include/cjson)
-    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc DESTINATION lib/pkgconfig)
+    install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" DESTINATION lib/pkgconfig)
 
-    set_target_properties(${CJSON_UTILS_LIB}
+    set_target_properties("${CJSON_UTILS_LIB}"
         PROPERTIES
-            SOVERSION ${CJSON_UTILS_VERSION_SO}
-            VERSION ${CJSON_VERSION})
+            SOVERSION "${CJSON_UTILS_VERSION_SO}"
+            VERSION "${CJSON_VERSION}")
 endif()
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)
     set(TEST_CJSON cJSON_test)
-    add_executable(${TEST_CJSON} test.c)
-    target_link_libraries(${TEST_CJSON} ${CJSON_LIB})
+    add_executable("${TEST_CJSON}" test.c)
+    target_link_libraries("${TEST_CJSON}" "${CJSON_LIB}")
 
     if(ENABLE_CJSON_UTILS)
         set(TEST_CJSON_UTILS cJSON_test_utils)
-        add_executable(${TEST_CJSON_UTILS} test_utils.c)
-        target_link_libraries(${TEST_CJSON_UTILS} ${CJSON_UTILS_LIB})
+        add_executable("${TEST_CJSON_UTILS}" test_utils.c)
+        target_link_libraries("${TEST_CJSON_UTILS}" "${CJSON_UTILS_LIB}")
     endif()
 endif()
