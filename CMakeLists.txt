@@ -31,12 +31,12 @@ if (NOT WIN32)
     target_link_libraries(${CJSON_LIB} m)
 endif()
 
-configure_file("${cJSON_SOURCE_DIR}/libcjson.pc.in"
-    "${cJSON_BINARY_DIR}/libcjson.pc" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson.pc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
 
 install(TARGETS ${CJSON_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON.h DESTINATION include/cjson)
-install (FILES ${cJSON_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
 
 set_target_properties(${CJSON_LIB}
     PROPERTIES
@@ -54,12 +54,12 @@ if(ENABLE_CJSON_UTILS)
     add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
     target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
-    configure_file("${cJSON_SOURCE_DIR}/libcjson_utils.pc.in"
-        "${cJSON_BINARY_DIR}/libcjson_utils.pc" @ONLY)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson_utils.pc.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
     install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
     install(FILES cJSON_Utils.h DESTINATION include/cjson)
-    install (FILES ${cJSON_BINARY_DIR}/libcjson_utils.pc DESTINATION lib/pkgconfig)
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc DESTINATION lib/pkgconfig)
 
     set_target_properties(${CJSON_UTILS_LIB}
         PROPERTIES
