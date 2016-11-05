@@ -44,25 +44,28 @@ set_target_properties(${CJSON_LIB}
         VERSION ${CJSON_VERSION})
 
 #cJSON_Utils
-set(CJSON_UTILS_LIB cjson_utils)
+option(ENABLE_CJSON_UTILS "Enable building the cJSON_Utils library." OFF)
+if(ENABLE_CJSON_UTILS)
+    set(CJSON_UTILS_LIB cjson_utils)
 
-file(GLOB HEADERS_UTILS cJSON_Utils.h)
-set(SOURCES_UTILS cJSON_Utils.c)
+    file(GLOB HEADERS_UTILS cJSON_Utils.h)
+    set(SOURCES_UTILS cJSON_Utils.c)
 
-add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
-target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
+    add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
+    target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
-configure_file("${cJSON_SOURCE_DIR}/libcjson_utils.pc.in"
-    "${cJSON_BINARY_DIR}/libcjson_utils.pc" @ONLY)
+    configure_file("${cJSON_SOURCE_DIR}/libcjson_utils.pc.in"
+        "${cJSON_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
-install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
-install(FILES cJSON_Utils.h DESTINATION include/cjson)
-install (FILES ${cJSON_BINARY_DIR}/libcjson_utils.pc DESTINATION lib/pkgconfig)
+    install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
+    install(FILES cJSON_Utils.h DESTINATION include/cjson)
+    install (FILES ${cJSON_BINARY_DIR}/libcjson_utils.pc DESTINATION lib/pkgconfig)
 
-set_target_properties(${CJSON_UTILS_LIB}
-    PROPERTIES
-        SOVERSION ${CJSON_UTILS_VERSION_SO}
-        VERSION ${CJSON_VERSION})
+    set_target_properties(${CJSON_UTILS_LIB}
+        PROPERTIES
+            SOVERSION ${CJSON_UTILS_VERSION_SO}
+            VERSION ${CJSON_VERSION})
+endif()
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)
@@ -70,7 +73,9 @@ if(ENABLE_CJSON_TEST)
     add_executable(${TEST_CJSON} test.c)
     target_link_libraries(${TEST_CJSON} ${CJSON_LIB})
 
-    set(TEST_CJSON_UTILS cJSON_test_utils)
-    add_executable(${TEST_CJSON_UTILS} test_utils.c)
-    target_link_libraries(${TEST_CJSON_UTILS} ${CJSON_UTILS_LIB})
+    if(ENABLE_CJSON_UTILS)
+        set(TEST_CJSON_UTILS cJSON_test_utils)
+        add_executable(${TEST_CJSON_UTILS} test_utils.c)
+        target_link_libraries(${TEST_CJSON_UTILS} ${CJSON_UTILS_LIB})
+    endif()
 endif()
