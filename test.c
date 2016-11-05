@@ -82,7 +82,7 @@ struct record
 };
 
 /* Create a bunch of objects as demonstration. */
-void create_objects()
+void create_objects(void)
 {
     /* declare a few. */
     cJSON *root;
@@ -231,7 +231,7 @@ void create_objects()
     free(out);
 }
 
-int main (int argc, const char *argv[])
+int main(void)
 {
     /* a bunch of json: */
     char text1[] =

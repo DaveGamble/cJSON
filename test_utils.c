@@ -3,8 +3,13 @@
 #include <string.h>
 #include "cJSON_Utils.h"
 
-int main()
+int main(void)
 {
+	/* Some variables */
+	char *temp = NULL;
+	char *patchtext = NULL;
+	char *patchedtext = NULL;
+
 	int i;
 	/* JSON Pointer tests: */
 	cJSON *root;
@@ -110,7 +115,7 @@ int main()
 	nums=cJSON_CreateIntArray(numbers,10);
 	num6=cJSON_GetArrayItem(nums,6);
 	cJSON_AddItemToObject(object,"numbers",nums);
-	char *temp=cJSONUtils_FindPointerFromObjectTo(object,num6);
+	temp=cJSONUtils_FindPointerFromObjectTo(object,num6);
 	printf("Pointer: [%s]\n",temp);
 	free(temp);
 	temp=cJSONUtils_FindPointerFromObjectTo(object,nums);
@@ -140,10 +145,10 @@ int main()
 		cJSON *object=cJSON_Parse(merges[i][0]);
 		cJSON *patch=cJSON_Parse(merges[i][1]);
 		char *before=cJSON_PrintUnformatted(object);
-		char *patchtext=cJSON_PrintUnformatted(patch);
+		patchtext=cJSON_PrintUnformatted(patch);
 		printf("Before: [%s] -> [%s] = ",before,patchtext);
 		object=cJSONUtils_MergePatch(object,patch);
-		char *after=cJSON_PrintUnformatted(object);
+		after=cJSON_PrintUnformatted(object);
 		printf("[%s] vs [%s] (%s)\n",after,merges[i][2],strcmp(after,merges[i][2])?"FAIL":"OK");
 
 		free(before);free(patchtext);free(after);cJSON_Delete(object);cJSON_Delete(patch);
@@ -156,10 +161,11 @@ int main()
 		cJSON *to=cJSON_Parse(merges[i][2]);
 		cJSON *patch=cJSONUtils_GenerateMergePatch(from,to);
 		from=cJSONUtils_MergePatch(from,patch);
-		char *patchtext=cJSON_PrintUnformatted(patch);
-		char *patchedtext=cJSON_PrintUnformatted(from);
+		patchtext=cJSON_PrintUnformatted(patch);
+		patchedtext=cJSON_PrintUnformatted(from);
 		printf("Patch [%s] vs [%s] = [%s] vs [%s] (%s)\n",patchtext,merges[i][1],patchedtext,merges[i][2],strcmp(patchedtext,merges[i][2])?"FAIL":"OK");
 		cJSON_Delete(from);cJSON_Delete(to);cJSON_Delete(patch);free(patchtext);free(patchedtext);
 	}
 
+	return 0;
 }
