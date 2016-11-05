@@ -1,9 +1,10 @@
 prefix=@prefix@
 libdir=@libdir@
 includedir=${prefix}/include/cJSON
+version=@version@
 
-Name: libcJSON
-Version: 1.0
+Name: libcjson
+Version: ${version}
 Description: Ultralightweight JSON parser in ANSI C
-Libs: -L${libdir} -lcJSON
+Libs: -L${libdir} -lcjson
 Cflags: -I${includedir}

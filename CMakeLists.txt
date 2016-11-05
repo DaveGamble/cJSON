@@ -12,6 +12,7 @@ add_compile_options(-ansi -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -W
 #variables for pkg-config
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(libdir "${CMAKE_INSTALL_PREFIX}/lib")
+set(version ${CJSON_VERSION})
 
 #cJSON
 set(PROJ_CJSON cJSON)
