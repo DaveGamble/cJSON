@@ -14,6 +14,8 @@ set(prefix ${CMAKE_INSTALL_PREFIX})
 set(libdir "${CMAKE_INSTALL_PREFIX}/lib")
 set(version ${CJSON_VERSION})
 
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+
 #cJSON
 set(PROJ_CJSON cJSON)
 set(CJSON_LIB cjson)
