@@ -7,16 +7,21 @@ Contributors
 * [Dave Gamble](https://github.com/DaveGamble)
 * [dieyushi](https://github.com/dieyushi)
 * [Dongwen Huang (黄东文)](https://github.com/DongwenHuang)
-* [ecksun](https://github.com/ecksun)
+* Eswar Yaganti
 * [Evan Todd](https://github.com/etodd)
 * [Fabrice Fontaine](https://github.com/ffontaine)
+* Ian Mobley
+* Irwan Djadjadi
 * [IvanVoid](https://github.com/npi3pak)
 * [Jonathan Fether](https://github.com/jfether)
 * [Kevin Branigan](https://github.com/kbranigan)
+* [Linus Wallgren](https://github.com/ecksun)
 * [Max Bruckner](https://github.com/FSMaxB)
+* Mike Pontillo
+* Paulo Antonio Alvarez
 * [Rafael Leal Dias](https://github.com/rafaeldias)
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)
 * [Weston Schmidt](https://github.com/schmidtw)
 
-And more people on [SourceForge](https://sourceforge.net/p/cjson/bugs/search/?q=status%3Aclosed-rejected+or+status%3Aclosed-out-of-date+or+status%3Awont-fix+or+status%3Aclosed-fixed+or+status%3Aclosed&page=0)
+And probably more people on [SourceForge](https://sourceforge.net/p/cjson/bugs/search/?q=status%3Aclosed-rejected+or+status%3Aclosed-out-of-date+or+status%3Awont-fix+or+status%3Aclosed-fixed+or+status%3Aclosed&page=0)
