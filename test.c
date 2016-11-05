@@ -300,7 +300,7 @@ int main (int argc, const char *argv[])
         "<title>Application Error</title>\n"
         "</head>\n"
         "<body>\n"
-        "  <iframe src="//s3.amazonaws.com/heroku_pages/error.html">\n"
+        "  <iframe src=\"//s3.amazonaws.com/heroku_pages/error.html\">\n"
         "    <p>Application Error</p>\n"
         "  </iframe>\n"
         "</body>\n"
