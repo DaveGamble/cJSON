@@ -50,8 +50,12 @@ set(SOURCES_UTILS cJSON_Utils.c)
 add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
 target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
+configure_file("${cJSON_utils_SOURCE_DIR}/libcjson_utils.pc.in"
+    "${cJSON_utils_BINARY_DIR}/libcjson_utils.pc" @ONLY)
+
 install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON_Utils.h DESTINATION include/cjson)
+install (FILES ${cJSON_utils_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
 
 set_target_properties(${CJSON_UTILS_LIB}
     PROPERTIES
