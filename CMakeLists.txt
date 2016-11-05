@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+project(cJSON C)
+
 set(CJSON_VERSION_MAJOR 1)
 set(CJSON_VERSION_MINOR 0)
 set(CJSON_VERSION_PATCH 0)
@@ -17,9 +19,7 @@ set(version ${CJSON_VERSION})
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 #cJSON
-set(PROJ_CJSON cJSON)
 set(CJSON_LIB cjson)
-project(${PROJ_CJSON} C)
 
 file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
@@ -42,9 +42,7 @@ set_target_properties(${CJSON_LIB}
         VERSION ${CJSON_VERSION})
 
 #cJSON_Utils
-set(PROJ_CJSON_UTILS cJSON_utils)
 set(CJSON_UTILS_LIB cjson_utils)
-project(${PROJ_CJSON_UTILS} C)
 
 file(GLOB HEADERS_UTILS cJSON_Utils.h)
 set(SOURCES_UTILS cJSON_Utils.c)
@@ -52,12 +50,12 @@ set(SOURCES_UTILS cJSON_Utils.c)
 add_library(${CJSON_UTILS_LIB} ${HEADERS_UTILS} ${SOURCES_UTILS})
 target_link_libraries(${CJSON_UTILS_LIB} ${CJSON_LIB})
 
-configure_file("${cJSON_utils_SOURCE_DIR}/libcjson_utils.pc.in"
-    "${cJSON_utils_BINARY_DIR}/libcjson_utils.pc" @ONLY)
+configure_file("${cJSON_SOURCE_DIR}/libcjson_utils.pc.in"
+    "${cJSON_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
 install(TARGETS ${CJSON_UTILS_LIB} DESTINATION lib${LIB_SUFFIX})
 install(FILES cJSON_Utils.h DESTINATION include/cjson)
-install (FILES ${cJSON_utils_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
+install (FILES ${cJSON_BINARY_DIR}/libcjson.pc DESTINATION lib/pkgconfig)
 
 set_target_properties(${CJSON_UTILS_LIB}
     PROPERTIES
