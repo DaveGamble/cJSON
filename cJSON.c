@@ -327,7 +327,7 @@ static char *print_number(const cJSON *item, printbuffer *p)
             {
                 sprintf(str, "null");
             }
-            else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
+            else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60L))
             {
                 sprintf(str, "%.0f", d);
             }
