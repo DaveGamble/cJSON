@@ -8,7 +8,7 @@ set(CJSON_UTILS_LIBRARY @CJSON_UTILS_LIB@)
 # The cJSON library
 set(CJSON_LIBRARY @CJSON_LIB@)
 # The include directories used by cJSON
-set(CJSON_INCLUDE_DIRS @CMAKE_INSTALL_PREFIX@/include)
+set(CJSON_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@")
 
 get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include("${_dir}/cJSONConfigTargets.cmake")

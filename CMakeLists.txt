@@ -17,8 +17,9 @@ endif()
 
 #variables for pkg-config
 set(prefix "${CMAKE_INSTALL_PREFIX}")
-set(libdir "${CMAKE_INSTALL_FULL_LIBDIR}")
+set(libdir "${CMAKE_INSTALL_LIBDIR}")
 set(version "${CJSON_VERSION}")
+set(includedir "${CMAKE_INSTALL_INCLUDEDIR}")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
