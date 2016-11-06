@@ -3,6 +3,7 @@ set(CJSON_UTILS_FOUND @ENABLE_CJSON_UTILS@)
 
 # The include directories used by cJSON
 set(CJSON_INCLUDE_DIRS "@prefix@/@includedir@")
+set(CJSON_INCLUDE_DIR "@prefix@/@includedir@")
 
 get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
