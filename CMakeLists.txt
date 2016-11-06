@@ -37,9 +37,11 @@ endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
 
-install(TARGETS "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+install(TARGETS "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_LIB}")
+# export library information for CMake projects
+install(EXPORT "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
 
 set_target_properties("${CJSON_LIB}"
     PROPERTIES
@@ -60,19 +62,17 @@ if(ENABLE_CJSON_UTILS)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson_utils.pc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
-    install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_UTILS_LIB}")
     install(FILES cJSON_Utils.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
     install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    # export library information for CMake projects
+    install(EXPORT "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
 
     set_target_properties("${CJSON_UTILS_LIB}"
         PROPERTIES
             SOVERSION "${CJSON_UTILS_VERSION_SO}"
             VERSION "${PROJECT_VERSION}")
 endif()
-
-# export library information for CMake projects
-export(TARGETS ${CJSON_LIB} ${CJSON_UTILS_LIB}
-  FILE ${PROJECT_BINARY_DIR}/cJSONConfigTargets.cmake)
 
 # create the other package config files
 configure_file(
@@ -85,12 +85,9 @@ configure_file(
 # Install package config files
 install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
   ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake
-  ${PROJECT_BINARY_DIR}/cJSONConfigTargets.cmake
-  DESTINATION lib/cmake/cJSON)
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
-
-
 if(ENABLE_CJSON_TEST)
     set(TEST_CJSON cJSON_test)
     add_executable("${TEST_CJSON}" test.c)
