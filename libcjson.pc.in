@@ -5,5 +5,7 @@ includedir=${prefix}/@includedir@
 Name: libcjson
 Version: @version@
 Description: Ultralightweight JSON parser in ANSI C
+URL: https://github.com/DaveGamble/cJSON
 Libs: -L${libdir} -lcjson
+Libs.Private: -lm
 Cflags: -I${includedir}
