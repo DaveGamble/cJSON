@@ -4,12 +4,12 @@ include(GNUInstallDirs)
 
 project(cJSON C)
 
-set(CJSON_VERSION_MAJOR 1)
-set(CJSON_VERSION_MINOR 0)
-set(CJSON_VERSION_PATCH 0)
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
-set(CJSON_VERSION "${CJSON_VERSION_MAJOR}.${CJSON_VERSION_MINOR}.${CJSON_VERSION_PATCH}")
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 if(("${CMAKE_C_COMPILER_ID}" MATCHES "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
     add_compile_options(-ansi -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -Wwrite-strings)
@@ -18,7 +18,7 @@ endif()
 #variables for pkg-config
 set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(libdir "${CMAKE_INSTALL_LIBDIR}")
-set(version "${CJSON_VERSION}")
+set(version "${PROJECT_VERSION}")
 set(includedir "${CMAKE_INSTALL_INCLUDEDIR}")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
@@ -44,7 +44,7 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION "${CMAKE_IN
 set_target_properties("${CJSON_LIB}"
     PROPERTIES
         SOVERSION "${CJSON_VERSION_SO}"
-        VERSION "${CJSON_VERSION}")
+        VERSION "${PROJECT_VERSION}")
 
 #cJSON_Utils
 option(ENABLE_CJSON_UTILS "Enable building the cJSON_Utils library." OFF)
@@ -67,7 +67,7 @@ if(ENABLE_CJSON_UTILS)
     set_target_properties("${CJSON_UTILS_LIB}"
         PROPERTIES
             SOVERSION "${CJSON_UTILS_VERSION_SO}"
-            VERSION "${CJSON_VERSION}")
+            VERSION "${PROJECT_VERSION}")
 endif()
 
 # export library information for CMake projects
