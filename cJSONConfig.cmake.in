@@ -9,16 +9,20 @@ get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 # The cJSON library
 set(CJSON_LIBRARY "@CJSON_LIB@")
-# Include the target
-include("${_dir}/cjson.cmake")
+if(@ENABLE_TARGET_EXPORT@)
+  # Include the target
+  include("${_dir}/cjson.cmake")
+endif()
 
 if(CJSON_UTILS_FOUND)
   # The cJSON utils library
   set(CJSON_UTILS_LIBRARY @CJSON_UTILS_LIB@)
   # All cJSON libraries
   set(CJSON_LIBRARIES "@CJSON_UTILS_LIB@" "@CJSON_LIB@")
-  # Include the target
-  include("${_dir}/cjson_utils.cmake")
+  if(@ENABLE_TARGET_EXPORT@)
+    # Include the target
+    include("${_dir}/cjson_utils.cmake")
+  endif()
 else()
   # All cJSON libraries
   set(CJSON_LIBRARIES "@CJSON_LIB@")
