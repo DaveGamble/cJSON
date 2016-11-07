@@ -32,6 +32,20 @@
 #include <ctype.h>
 #include "cJSON.h"
 
+/* Determine the number of bits that an integer has using the preprocessor */
+#if INT_MAX == 32767
+    /* 16 bits */
+    #define INTEGER_SIZE 0x0010
+#elif INT_MAX == 2147483647
+    /* 32 bits */
+    #define INTEGER_SIZE 0x0100
+#elif INT_MAX == 9223372036854775807
+    /* 64 bits */
+    #define INTEGER_SIZE 0x1000
+#else
+    #error "Failed to determine the size of an integer"
+#endif
+
 static const char *global_ep;
 
 const char *cJSON_GetErrorPtr(void)
@@ -207,8 +221,15 @@ static int pow2gt (int x)
     x |= x >> 1;
     x |= x >> 2;
     x |= x >> 4;
+#if INTEGER_SIZE & 0x1110 /* at least 16 bit */
     x |= x >> 8;
+#endif
+#if INTEGER_SIZE & 0x1100 /* at least 32 bit */
     x |= x >> 16;
+#endif
+#if INT_SIZE & 0x1000 /* 64 bit */
+    x |= x >> 32;
+#endif
 
     return x + 1;
 }
