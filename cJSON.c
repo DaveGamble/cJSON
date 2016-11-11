@@ -1861,6 +1861,12 @@ void cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem
     }
     if(c)
     {
+        /* free the old string if not const */
+        if (!(newitem->type & cJSON_StringIsConst) && newitem->string)
+        {
+             cJSON_free(newitem->string);
+        }
+
         newitem->string = cJSON_strdup(string);
         cJSON_ReplaceItemInArray(object, i, newitem);
     }
