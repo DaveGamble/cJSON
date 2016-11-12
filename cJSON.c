@@ -1970,7 +1970,7 @@ cJSON *cJSON_CreateObject(void)
 }
 
 /* Create Arrays: */
-cJSON *cJSON_CreateIntArray(const int *numbers, int count)
+cJSON *cJSON_CreateIntArray(const int *numbers, size_t count)
 {
     int i;
     cJSON *n = 0;
@@ -1998,7 +1998,7 @@ cJSON *cJSON_CreateIntArray(const int *numbers, int count)
     return a;
 }
 
-cJSON *cJSON_CreateFloatArray(const float *numbers, int count)
+cJSON *cJSON_CreateFloatArray(const float *numbers, size_t count)
 {
     int i;
     cJSON *n = 0;
@@ -2026,7 +2026,7 @@ cJSON *cJSON_CreateFloatArray(const float *numbers, int count)
     return a;
 }
 
-cJSON *cJSON_CreateDoubleArray(const double *numbers, int count)
+cJSON *cJSON_CreateDoubleArray(const double *numbers, size_t count)
 {
     int i;
     cJSON *n = 0;
@@ -2054,7 +2054,7 @@ cJSON *cJSON_CreateDoubleArray(const double *numbers, int count)
     return a;
 }
 
-cJSON *cJSON_CreateStringArray(const char **strings, int count)
+cJSON *cJSON_CreateStringArray(const char **strings, size_t count)
 {
     int i;
     cJSON *n = 0;
