@@ -920,7 +920,9 @@ static const char *parse_value(cJSON *item, const char *value, const char **ep)
         return parse_object(item, value, ep);
     }
 
-    *ep=value;return 0;	/* failure. */
+    /* failure. */
+    *ep = value;
+    return 0;
 }
 
 /* Render a value to text. */
