@@ -32,20 +32,6 @@
 #include <ctype.h>
 #include "cJSON.h"
 
-/* Determine the number of bits that an integer has using the preprocessor */
-#if INT_MAX == 32767
-    /* 16 bits */
-    #define INTEGER_SIZE 0x0010
-#elif INT_MAX == 2147483647
-    /* 32 bits */
-    #define INTEGER_SIZE 0x0100
-#elif INT_MAX == 9223372036854775807
-    /* 64 bits */
-    #define INTEGER_SIZE 0x1000
-#else
-    #error "Failed to determine the size of an integer"
-#endif
-
 static const char *global_ep;
 
 const char *cJSON_GetErrorPtr(void)
@@ -216,33 +202,15 @@ static const char *parse_number(cJSON *item, const char *num)
     return num;
 }
 
-/* calculate the next largest power of 2 */
-static int pow2gt (int x)
-{
-    --x;
-
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-#if INTEGER_SIZE & 0x1110 /* at least 16 bit */
-    x |= x >> 8;
-#endif
-#if INTEGER_SIZE & 0x1100 /* at least 32 bit */
-    x |= x >> 16;
-#endif
-#if INT_SIZE & 0x1000 /* 64 bit */
-    x |= x >> 32;
-#endif
-
-    return x + 1;
-}
-
 typedef struct
 {
     char *buffer;
     int length;
     int offset;
 } printbuffer;
+
+
+#define max(a, b) ((a > b) ? a : b)
 
 /* realloc printbuffer if necessary to have at least "needed" bytes more */
 static char* ensure(printbuffer *p, int needed, const cJSON_Hooks * const hooks)
@@ -259,7 +227,11 @@ static char* ensure(printbuffer *p, int needed, const cJSON_Hooks * const hooks)
         return p->buffer + p->offset;
     }
 
-    newsize = pow2gt(needed);
+    newsize = max(p->length, needed) * 2;
+    if (newsize <= needed) {
+        return 0;
+    }
+
     newbuffer = (char*)hooks->malloc_fn(newsize);
     if (!newbuffer)
     {
