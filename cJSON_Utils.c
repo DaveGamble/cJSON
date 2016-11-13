@@ -78,7 +78,7 @@ static int cJSONUtils_Pstrcasecmp(const char *a, const char *e)
 
 static int cJSONUtils_PointerEncodedstrlen(const char *s)
 {
-    int l = 0;
+    size_t l = 0;
     for (; *s; s++, l++)
     {
         if ((*s == '~') || (*s == '/'))
@@ -116,7 +116,7 @@ static void cJSONUtils_PointerEncodedstrcpy(char *d, const char *s)
 char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 {
     int type = object->type;
-    int c = 0;
+    size_t c = 0;
     cJSON *obj = 0;
 
     if (object == target)
@@ -135,7 +135,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
                 char *ret = (char*)malloc(strlen(found) + 23);
-                sprintf(ret, "/%d%s", c, found); /* /<array_index><path> */
+                sprintf(ret, "/%lu%s", (unsigned long)c, found); /* /<array_index><path> */
                 free(found);
 
                 return ret;
@@ -168,7 +168,7 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
     {
         if (object->type == cJSON_Array)
         {
-            int which = 0;
+            size_t which = 0;
             /* parse array index */
             while ((*pointer >= '0') && (*pointer <= '9'))
             {
@@ -550,18 +550,18 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const char *path, cJSON *f
 
         case cJSON_Array:
         {
-            int c;
+            size_t c;
             char *newpath = (char*)malloc(strlen(path) + 23); /* Allow space for 64bit int. */
             /* generate patches for all array elements that exist in "from" and "to" */
             for (c = 0, from = from->child, to = to->child; from && to; from = from->next, to = to->next, c++)
             {
-                sprintf(newpath, "%s/%d", path, c); /* path of the current array element */
+                sprintf(newpath, "%s/%lu", path, (unsigned long)c); /* path of the current array element */
                 cJSONUtils_CompareToPatch(patches, newpath, from, to);
             }
             /* remove leftover elements from 'from' that are not in 'to' */
             for (; from; from = from->next, c++)
             {
-                sprintf(newpath, "%d", c);
+                sprintf(newpath, "%lu", (unsigned long)c);
                 cJSONUtils_GeneratePatch(patches, "remove", path, newpath, 0);
             }
             /* add new elements in 'to' that were not in 'from' */

@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include "cJSON.h"
 
 /* Parse text to JSON, then render back to text, and print! */
@@ -48,7 +49,7 @@ void doit(char *text)
 void dofile(char *filename)
 {
     FILE *f;
-    long len;
+    size_t len;
     char *data;
 
     /* open in read binary mode */
