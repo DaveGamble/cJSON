@@ -12,7 +12,7 @@ static char* cJSONUtils_strdup(const char* str)
     len = strlen(str) + 1;
     if (!(copy = (char*)malloc(len)))
     {
-        return 0;
+        return NULL;
     }
     memcpy(copy, str, len);
 
@@ -153,12 +153,12 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 
             /* reached leaf of the tree, found nothing */
             free(found);
-            return 0;
+            return NULL;
         }
     }
 
     /* not found */
-    return 0;
+    return NULL;
 }
 
 cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
@@ -177,7 +177,7 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
             if (*pointer && (*pointer != '/'))
             {
                 /* not end of string or new path token */
-                return 0;
+                return NULL;
             }
             object = cJSON_GetArrayItem(object, which);
         }
@@ -197,7 +197,7 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
         }
         else
         {
-            return 0;
+            return NULL;
         }
     }
 
@@ -222,10 +222,10 @@ static void cJSONUtils_InplaceDecodePointerString(char *string)
 
 static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
 {
-    char *parentptr = 0;
-    char *childptr = 0;
-    cJSON *parent = 0;
-    cJSON *ret = 0;
+    char *parentptr = NULL;
+    char *childptr = NULL;
+    cJSON *parent = NULL;
+    cJSON *ret = NULL;
 
     /* copy path and split it in parent and child */
     parentptr = cJSONUtils_strdup(path);
@@ -241,7 +241,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
     if (!parent)
     {
         /* Couldn't find object to remove child from. */
-        ret = 0;
+        ret = NULL;
     }
     else if ((parent->type & 0xFF) == cJSON_Array)
     {
@@ -317,13 +317,13 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
 
 static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 {
-    cJSON *op = 0;
-    cJSON *path = 0;
-    cJSON *value = 0;
-    cJSON *parent = 0;
+    cJSON *op = NULL;
+    cJSON *path = NULL;
+    cJSON *value = NULL;
+    cJSON *parent = NULL;
     int opcode = 0;
-    char *parentptr = 0;
-    char *childptr = 0;
+    char *parentptr = NULL;
+    char *childptr = NULL;
 
     op = cJSON_GetObjectItem(patch, "op");
     path = cJSON_GetObjectItem(patch, "path");
@@ -666,13 +666,13 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     if (second && second->prev)
     {
         /* Split the lists */
-        second->prev->next = 0;
+        second->prev->next = NULL;
     }
 
     /* Recursively sort the sub-lists. */
     first = cJSONUtils_SortList(first);
     second = cJSONUtils_SortList(second);
-    list = ptr = 0;
+    list = ptr = NULL;
 
     while (first && second) /* Merge the sub-lists */
     {
@@ -773,7 +773,7 @@ cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
 
 cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
 {
-    cJSON *patch = 0;
+    cJSON *patch = NULL;
     if (!to)
     {
         /* patch to delete everything */
@@ -821,7 +821,7 @@ cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
     if (!patch->child)
     {
         cJSON_Delete(patch);
-        return 0;
+        return NULL;
     }
 
     return patch;
