@@ -6,8 +6,8 @@
 
 static char* cJSONUtils_strdup(const char* str)
 {
-    size_t len;
-    char* copy;
+    size_t len = 0;
+    char *copy = NULL;
 
     len = strlen(str) + 1;
     if (!(copy = (char*)malloc(len)))
@@ -290,7 +290,7 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
             b = b->child;
             while (a && b)
             {
-                int err;
+                int err = 0;
                 /* compare object keys */
                 if (cJSONUtils_strcasecmp(a->string, b->string))
                 {
@@ -475,7 +475,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 
 int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
-    int err;
+    int err = 0;
     if ((patches->type & 0xFF) != cJSON_Array)
     {
         /* malformed patches. */
@@ -550,7 +550,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const char *path, cJSON *f
 
         case cJSON_Array:
         {
-            int c;
+            int c = 0;
             char *newpath = (char*)malloc(strlen(path) + 23); /* Allow space for 64bit int. */
             /* generate patches for all array elements that exist in "from" and "to" */
             for (c = 0, from = from->child, to = to->child; from && to; from = from->next, to = to->next, c++)
@@ -575,8 +575,8 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const char *path, cJSON *f
 
         case cJSON_Object:
         {
-            cJSON *a;
-            cJSON *b;
+            cJSON *a = NULL;
+            cJSON *b = NULL;
             cJSONUtils_SortObject(from);
             cJSONUtils_SortObject(to);
 

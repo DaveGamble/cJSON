@@ -10,9 +10,9 @@ int main(void)
 	char *patchtext = NULL;
 	char *patchedtext = NULL;
 
-	int i;
+	int i = 0;
 	/* JSON Pointer tests: */
-	cJSON *root;
+	cJSON *root = NULL;
 	const char *json="{"
 		"\"foo\": [\"bar\", \"baz\"],"
 		"\"\": 0,"
@@ -68,8 +68,8 @@ int main(void)
 	/* Misc tests */
 	int numbers[10]={0,1,2,3,4,5,6,7,8,9};
 	const char *random="QWERTYUIOPASDFGHJKLZXCVBNM";
-	char buf[2]={0,0},*before,*after;
-	cJSON *object,*nums,*num6,*sortme;
+	char buf[2]={0,0}, *before = NULL,*after = NULL;
+	cJSON *object = NULL, *nums = NULL, *num6 = NULL, *sortme = NULL;
 
 
 

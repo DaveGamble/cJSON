@@ -27,8 +27,8 @@
 /* Parse text to JSON, then render back to text, and print! */
 void doit(char *text)
 {
-    char *out;
-    cJSON *json;
+    char *out = NULL;
+    cJSON *json = NULL;
 
     json = cJSON_Parse(text);
     if (!json)
@@ -47,9 +47,9 @@ void doit(char *text)
 /* Read a file, parse, render back, etc. */
 void dofile(char *filename)
 {
-    FILE *f;
-    long len;
-    char *data;
+    FILE *f = NULL;
+    long len = 0;
+    char *data = NULL;
 
     /* open in read binary mode */
     f = fopen(filename,"rb");
@@ -85,13 +85,13 @@ struct record
 void create_objects(void)
 {
     /* declare a few. */
-    cJSON *root;
-    cJSON *fmt;
-    cJSON *img;
-    cJSON *thm;
-    cJSON *fld;
-    char *out;
-    int i;
+    cJSON *root = NULL;
+    cJSON *fmt = NULL;
+    cJSON *img = NULL;
+    cJSON *thm = NULL;
+    cJSON *fld = NULL;
+    char *out = NULL;
+    int i = 0;
 
     /* Our "days of the week" array: */
     const char *strings[7] =
