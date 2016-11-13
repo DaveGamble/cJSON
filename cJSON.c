@@ -46,6 +46,11 @@
     #error "Failed to determine the size of an integer"
 #endif
 
+/* define our own boolean type */
+typedef int bool;
+#define true ((bool)1)
+#define false ((bool)0)
+
 static const char *global_ep = NULL;
 
 const char *cJSON_GetErrorPtr(void)
@@ -647,7 +652,7 @@ static char *print_string_ptr(const char *str, printbuffer *p)
     char *ptr2 = NULL;
     char *out = NULL;
     int len = 0;
-    int flag = 0;
+    bool flag = false;
     unsigned char token = '\0';
 
     /* empty string */
@@ -793,11 +798,11 @@ static char *print_string(const cJSON *item, printbuffer *p)
 
 /* Predeclare these prototypes. */
 static const char *parse_value(cJSON *item, const char *value, const char **ep);
-static char *print_value(const cJSON *item, int depth, int fmt, printbuffer *p);
+static char *print_value(const cJSON *item, int depth, bool fmt, printbuffer *p);
 static const char *parse_array(cJSON *item, const char *value, const char **ep);
-static char *print_array(const cJSON *item, int depth, int fmt, printbuffer *p);
+static char *print_array(const cJSON *item, int depth, bool fmt, printbuffer *p);
 static const char *parse_object(cJSON *item, const char *value, const char **ep);
-static char *print_object(const cJSON *item, int depth, int fmt, printbuffer *p);
+static char *print_object(const cJSON *item, int depth, bool fmt, printbuffer *p);
 
 /* Utility to jump whitespace and cr/lf */
 static const char *skip(const char *in)
@@ -811,7 +816,7 @@ static const char *skip(const char *in)
 }
 
 /* Parse an object - create a new root, and populate. */
-cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, int require_null_terminated)
+cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, bool require_null_terminated)
 {
     const char *end = NULL;
     /* use global error pointer if no specific one was given */
@@ -867,7 +872,7 @@ char *cJSON_PrintUnformatted(const cJSON *item)
     return print_value(item, 0, 0, 0);
 }
 
-char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, int fmt)
+char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, bool fmt)
 {
     printbuffer p;
     p.buffer = (char*)cJSON_malloc(prebuffer);
@@ -931,7 +936,7 @@ static const char *parse_value(cJSON *item, const char *value, const char **ep)
 }
 
 /* Render a value to text. */
-static char *print_value(const cJSON *item, int depth, int fmt, printbuffer *p)
+static char *print_value(const cJSON *item, int depth, bool fmt, printbuffer *p)
 {
     char *out = NULL;
 
@@ -1077,7 +1082,7 @@ static const char *parse_array(cJSON *item,const char *value,const char **ep)
 }
 
 /* Render an array to text */
-static char *print_array(const cJSON *item, int depth, int fmt, printbuffer *p)
+static char *print_array(const cJSON *item, int depth, bool fmt, printbuffer *p)
 {
     char **entries;
     char *out = NULL;
@@ -1087,7 +1092,7 @@ static char *print_array(const cJSON *item, int depth, int fmt, printbuffer *p)
     cJSON *child = item->child;
     int numentries = 0;
     int i = 0;
-    int fail = 0;
+    bool fail = false;
     size_t tmplen = 0;
 
     /* How many entries in the array? */
@@ -1183,7 +1188,7 @@ static char *print_array(const cJSON *item, int depth, int fmt, printbuffer *p)
             }
             else
             {
-                fail = 1;
+                fail = true;
             }
             child = child->next;
         }
@@ -1196,7 +1201,7 @@ static char *print_array(const cJSON *item, int depth, int fmt, printbuffer *p)
         /* If that fails, we fail. */
         if (!out)
         {
-            fail = 1;
+            fail = true;
         }
 
         /* Handle failure. */
@@ -1338,7 +1343,7 @@ static const char *parse_object(cJSON *item, const char *value, const char **ep)
 }
 
 /* Render an object to text. */
-static char *print_object(const cJSON *item, int depth, int fmt, printbuffer *p)
+static char *print_object(const cJSON *item, int depth, bool fmt, printbuffer *p)
 {
     char **entries = NULL;
     char **names = NULL;
@@ -1351,7 +1356,7 @@ static char *print_object(const cJSON *item, int depth, int fmt, printbuffer *p)
     int j = 0;
     cJSON *child = item->child;
     int numentries = 0;
-    int fail = 0;
+    bool fail = false;
     size_t tmplen = 0;
 
     /* Count the number of entries. */
@@ -1521,7 +1526,7 @@ static char *print_object(const cJSON *item, int depth, int fmt, printbuffer *p)
             }
             else
             {
-                fail = 1;
+                fail = true;
             }
             child = child->next;
         }
@@ -1533,7 +1538,7 @@ static char *print_object(const cJSON *item, int depth, int fmt, printbuffer *p)
         }
         if (!out)
         {
-            fail = 1;
+            fail = true;
         }
 
         /* Handle failure */
@@ -1647,7 +1652,7 @@ cJSON *cJSON_GetObjectItem(const cJSON *object, const char *string)
     return c;
 }
 
-int cJSON_HasObjectItem(const cJSON *object,const char *string)
+bool cJSON_HasObjectItem(const cJSON *object,const char *string)
 {
     return cJSON_GetObjectItem(object, string) ? 1 : 0;
 }
@@ -1913,7 +1918,7 @@ cJSON *cJSON_CreateFalse(void)
     return item;
 }
 
-cJSON *cJSON_CreateBool(int b)
+cJSON *cJSON_CreateBool(bool b)
 {
     cJSON *item = cJSON_New_Item();
     if(item)
@@ -2090,7 +2095,7 @@ cJSON *cJSON_CreateStringArray(const char **strings, int count)
 }
 
 /* Duplication */
-cJSON *cJSON_Duplicate(const cJSON *item, int recurse)
+cJSON *cJSON_Duplicate(const cJSON *item, bool recurse)
 {
     cJSON *newitem = NULL;
     cJSON *cptr = NULL;
