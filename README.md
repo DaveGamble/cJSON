@@ -94,7 +94,7 @@ make
 make DESTDIR=$pkgdir install
 ```
 
-CMake supports a lot of different platforms, not only UNIX Makefiles, but only UNIX Makefiles have been tested. It works on GNU/Linux and has been confirmed to compile on some versions of macOS, FreeBSD, Cygwin, Solaris and OpenIndiana.
+CMake supports a lot of different platforms, not only UNIX Makefiles, but only UNIX Makefiles have been tested. It works on GNU/Linux and has been confirmed to compile on some versions of macOS, Cygwin, Solaris and OpenIndiana.
 
 #### Makefile
 If you don't have CMake available, but still have make. You can use the makefile to build cJSON:
@@ -123,7 +123,7 @@ If you want, you can install the compiled library to your system using `make ins
 ```
 
 Assume that you got this from a file, a webserver, or magic JSON elves, whatever,
-you have a char * to it. Everything is a cJSON struct.
+you have a `char *` to it. Everything is a `cJSON` struct.
 Get it parsed:
 
 ```c
@@ -134,20 +134,20 @@ This is an object. We're in C. We don't have objects. But we do have structs.
 What's the framerate?
 
 ```c
-cJSON * format = cJSON_GetObjectItem(root,"format");
-int framerate = cJSON_GetObjectItem(format,"frame rate")->valueint;
+cJSON *format = cJSON_GetObjectItem(root, "format");
+int framerate = cJSON_GetObjectItem(format, "frame rate")->valueint;
 ```
 
 Want to change the framerate?
 
 ```c
-cJSON_GetObjectItem(format,"frame rate")->valueint = 25;
+cJSON_GetObjectItem(format, "frame rate")->valueint = 25;
 ```
 
 Back to disk?
 
 ```c
-char * rendered = cJSON_Print(root);
+char *rendered = cJSON_Print(root);
 ```
 
 Finished? Delete the root (this takes care of everything else).
@@ -160,7 +160,8 @@ That's AUTO mode. If you're going to use Auto mode, you really ought to check po
 before you dereference them. If you want to see how you'd build this struct in code?
 
 ```c
-cJSON *root,*fmt;
+cJSON *root;
+cJSON *fmt;
 root = cJSON_CreateObject();
 cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
 cJSON_AddItemToObject(root, "format", fmt = cJSON_CreateObject());
@@ -172,92 +173,113 @@ cJSON_AddNumberToObject(fmt, "frame rate", 24);
 ```
 
 Hopefully we can agree that's not a lot of code? There's no overhead, no unnecessary setup.
-Look at test.c for a bunch of nice examples, mostly all ripped off the json.org site, and
+Look at `test.c` for a bunch of nice examples, mostly all ripped off the [json.org](http://json.org) site, and
 a few from elsewhere.
 
 What about manual mode? First up you need some detail.
-Let's cover how the cJSON objects represent the JSON data.
+Let's cover how the `cJSON` objects represent the JSON data.
 cJSON doesn't distinguish arrays from objects in handling; just type.
-Each cJSON has, potentially, a child, siblings, value, a name.
+Each `cJSON` has, potentially, a child, siblings, value, a name.
 
-The root object has: Object Type and a Child
-The Child has name "name", with value "Jack ("Bee") Nimble", and a sibling:
-Sibling has type Object, name "format", and a child.
-That child has type String, name "type", value "rect", and a sibling:
-Sibling has type Number, name "width", value 1920, and a sibling:
-Sibling has type Number, name "height", value 1080, and a sibling:
-Sibling has type False, name "interlace", and a sibling:
-Sibling has type Number, name "frame rate", value 24
+* The `root` object has: *Object* Type and a Child
+* The Child has name "name", with value "Jack ("Bee") Nimble", and a sibling:
+* Sibling has type *Object*, name "format", and a child.
+* That child has type *String*, name "type", value "rect", and a sibling:
+* Sibling has type *Number*, name "width", value 1920, and a sibling:
+* Sibling has type *Number*, name "height", value 1080, and a sibling:
+* Sibling has type *False*, name "interlace", and a sibling:
+* Sibling has type *Number*, name "frame rate", value 24
 
-# Here's the structure:
+### Here's the structure:
 
 ```c
 typedef struct cJSON {
-  struct cJSON *next,*prev;
-  struct cJSON *child;
+    struct cJSON *next,*prev;
+    struct cJSON *child;
 
-  int type;
+    int type;
 
-  char *valuestring;
-  int valueint;
-  double valuedouble;
+    char *valuestring;
+    int valueint;
+    double valuedouble;
 
-  char *string;
+    char *string;
 } cJSON;
 ```
 
 By default all values are 0 unless set by virtue of being meaningful.
 
-next/prev is a doubly linked list of siblings. next takes you to your sibling,
-prev takes you back from your sibling to you.
-Only objects and arrays have a "child", and it's the head of the doubly linked list.
-A "child" entry will have prev==0, but next potentially points on. The last sibling has next=0.
-The type expresses Null/True/False/Number/String/Array/Object, all of which are #defined in
-cJSON.h
+`next`/`prev` is a doubly linked list of siblings. `next` takes you to your sibling,
+`prev` takes you back from your sibling to you.
+Only objects and arrays have a `child`, and it's the head of the doubly linked list.
+A `child` entry will have `prev == 0`, but next potentially points on. The last sibling has `next == 0`.
+The type expresses *Null*/*True*/*False*/*Number*/*String*/*Array*/*Object*, all of which are `#defined` in
+`cJSON.h`.
 
-A Number has valueint and valuedouble. If you're expecting an int, read valueint, if not read
-valuedouble.
+A *Number* has `valueint` and `valuedouble`. If you're expecting an `int`, read `valueint`, if not read
+`valuedouble`.
 
-Any entry which is in the linked list which is the child of an object will have a "string"
-which is the "name" of the entry. When I said "name" in the above example, that's "string".
-"string" is the JSON name for the 'variable name' if you will.
+Any entry which is in the linked list which is the child of an object will have a `string`
+which is the "name" of the entry. When I said "name" in the above example, that's `string`.
+`string` is the JSON name for the 'variable name' if you will.
 
 Now you can trivially walk the lists, recursively, and parse as you please.
-You can invoke cJSON_Parse to get cJSON to parse for you, and then you can take
+You can invoke `cJSON_Parse` to get cJSON to parse for you, and then you can take
 the root object, and traverse the structure (which is, formally, an N-tree),
 and tokenise as you please. If you wanted to build a callback style parser, this is how
 you'd do it (just an example, since these things are very specific):
 
 ```c
-void parse_and_callback(cJSON *item,const char *prefix)
+void parse_and_callback(cJSON *item, const char *prefix)
 {
-  while (item)
-  {
-    char *newprefix = malloc(strlen(prefix) + strlen(item->name) + 2);
-    sprintf(newprefix,"%s/%s",prefix,item->name);
-    int dorecurse = callback(newprefix, item->type, item);
-    if (item->child && dorecurse) parse_and_callback(item->child, newprefix);
-    item = item->next;
-    free(newprefix);
-  }
+    while (item)
+    {
+        char *newprefix = malloc(strlen(prefix) + strlen(item->name) + 2);
+        sprintf(newprefix, "%s/%s", prefix, item->name);
+        int dorecurse = callback(newprefix, item->type, item);
+        if (item->child && dorecurse)
+        {
+            parse_and_callback(item->child, newprefix);
+        }
+        item = item->next;
+        free(newprefix);
+    }
 }
 ```
 
-The prefix process will build you a separated list, to simplify your callback handling.
-The 'dorecurse' flag would let the callback decide to handle sub-arrays on it's own, or
+The `prefix` process will build you a separated list, to simplify your callback handling.
+The `dorecurse` flag would let the callback decide to handle sub-arrays on it's own, or
 let you invoke it per-item. For the item above, your callback might look like this:
 
 ```c
-    int callback(const char *name,int type,cJSON *item)
+int callback(const char *name, int type, cJSON *item)
+{
+    if (!strcmp(name, "name"))
     {
-      if (!strcmp(name,"name"))  { /* populate name */ }
-      else if (!strcmp(name,"format/type")  { /* handle "rect" */ }
-      else if (!strcmp(name,"format/width")  { /* 800 */ }
-      else if (!strcmp(name,"format/height")  { /* 600 */ }
-      else if (!strcmp(name,"format/interlace")  { /* false */ }
-      else if (!strcmp(name,"format/frame rate")  { /* 24 */ }
-      return 1;
+        /* populate name */
     }
+    else if (!strcmp(name, "format/type")
+    {
+        /* handle "rect" */ }
+    else if (!strcmp(name, "format/width")
+    {
+        /* 800 */
+    }
+    else if (!strcmp(name, "format/height")
+    {
+        /* 600 */
+    }
+    else if (!strcmp(name, "format/interlace")
+    {
+        /* false */
+    }
+    else if (!strcmp(name, "format/frame rate")
+    {
+        /* 24 */
+    }
+
+    return 1;
+}
 ```
 
 Alternatively, you might like to parse iteratively.
@@ -266,28 +288,31 @@ You'd use:
 ```c
 void parse_object(cJSON *item)
 {
-  int i;
-  for (i = 0 ; i < cJSON_GetArraySize(item) ; i++)
-  {
-    cJSON * subitem = cJSON_GetArrayItem(item, i);
-    // handle subitem
-  }
+    int i;
+    for (i = 0; i < cJSON_GetArraySize(item); i++)
+    {
+        cJSON *subitem = cJSON_GetArrayItem(item, i);
+        // handle subitem
+    }
 }
 ```
 
 Or, for PROPER manual mode:
 
 ```c
-void parse_object(cJSON * item)
+void parse_object(cJSON *item)
 {
-  cJSON *subitem = item->child;
-  while (subitem)
-  {
-    // handle subitem
-    if (subitem->child) parse_object(subitem->child);
+    cJSON *subitem = item->child;
+    while (subitem)
+    {
+        // handle subitem
+        if (subitem->child)
+        {
+            parse_object(subitem->child);
+        }
 
-    subitem = subitem->next;
-  }
+        subitem = subitem->next;
+    }
 }
 ```
 
@@ -303,19 +328,29 @@ Also, if you find a use for it, you can manually build the objects.
 For instance, suppose you wanted to build an array of objects?
 
 ```c
-cJSON * objects[24];
+cJSON *objects[24];
 
-cJSON * Create_array_of_anything(cJSON ** items, int num)
+cJSON *Create_array_of_anything(cJSON **items, int num)
 {
-  int i;
-  cJSON * prev, * root = cJSON_CreateArray();
-  for (i = 0 ; i < 24 ; i++)
-  {
-    if (!i) root->child = objects[i];
-    else prev->next = objects[i], objects[i]->prev = prev;
-    prev = objects[i];
-  }
-  return root;
+    int i;
+    cJSON *prev;
+    cJSON *root = cJSON_CreateArray();
+    for (i = 0; i < 24; i++)
+    {
+        if (!i)
+        {
+            root->child = objects[i];
+        }
+        else
+        {
+            prev->next = objects[i];
+            objects[i]->prev = prev;
+        }
+
+        prev = objects[i];
+    }
+
+    return root;
 }
 ```
 
@@ -325,11 +360,11 @@ cJSON doesn't make any assumptions about what order you create things in.
 You can attach the objects, as above, and later add children to each
 of those objects.
 
-As soon as you call cJSON_Print, it renders the structure to text.
+As soon as you call `cJSON_Print`, it renders the structure to text.
 
-The test.c code shows how to handle a bunch of typical cases. If you uncomment
-the code, it'll load, parse and print a bunch of test files, also from json.org,
-which are more complex than I'd care to try and stash into a const char array[].
+The `test.c` code shows how to handle a bunch of typical cases. If you uncomment
+the code, it'll load, parse and print a bunch of test files, also from [json.org](http://json.org),
+which are more complex than I'd care to try and stash into a `const char array[]`.
 
 # Enjoy cJSON!
 
