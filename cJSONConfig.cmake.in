@@ -1,0 +1,29 @@
+# Whether the utils lib was build.
+set(CJSON_UTILS_FOUND @ENABLE_CJSON_UTILS@)
+
+# The include directories used by cJSON
+set(CJSON_INCLUDE_DIRS "@prefix@/@includedir@")
+set(CJSON_INCLUDE_DIR "@prefix@/@includedir@")
+
+get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+# The cJSON library
+set(CJSON_LIBRARY "@CJSON_LIB@")
+if(@ENABLE_TARGET_EXPORT@)
+  # Include the target
+  include("${_dir}/cjson.cmake")
+endif()
+
+if(CJSON_UTILS_FOUND)
+  # The cJSON utils library
+  set(CJSON_UTILS_LIBRARY @CJSON_UTILS_LIB@)
+  # All cJSON libraries
+  set(CJSON_LIBRARIES "@CJSON_UTILS_LIB@" "@CJSON_LIB@")
+  if(@ENABLE_TARGET_EXPORT@)
+    # Include the target
+    include("${_dir}/cjson_utils.cmake")
+  endif()
+else()
+  # All cJSON libraries
+  set(CJSON_LIBRARIES "@CJSON_LIB@")
+endif()
