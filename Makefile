@@ -1,6 +1,15 @@
-OBJ = cJSON.o
-LIBNAME = libcjson
-TESTS = test
+CJSON_OBJ = cJSON.o
+UTILS_OBJ = cJSON_Utils.o
+CJSON_LIBNAME = libcjson
+UTILS_LIBNAME = libcjson_utils
+CJSON_TEST = cJSON_test
+UTILS_TEST = cJSON_test_utils
+
+LDLIBS = -lm
+
+LIBVERSION = 1.0.0
+CJSON_SOVERSION = 1
+UTILS_SOVERSION = 1
 
 PREFIX ?= /usr/local
 INCLUDE_PATH ?= include/cjson
@@ -11,54 +20,126 @@ INSTALL_LIBRARY_PATH = $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 
 INSTALL ?= cp -a
 
-R_CFLAGS = -fpic $(CFLAGS) -Wall -Werror -Wstrict-prototypes -Wwrite-strings -D_POSIX_C_SOURCE=200112L
+R_CFLAGS = -fPIC -ansi -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings $(CFLAGS)
 
-uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo false')
+uname := $(shell sh -c 'uname -s 2>/dev/null || echo false')
 
-## shared lib
-DYLIBNAME = $(LIBNAME).so 
-DYLIBCMD = $(CC) -shared -o $(DYLIBNAME)
+#library file extensions
+SHARED = so
+STATIC = a
 
 ## create dynamic (shared) library on Darwin (base OS for MacOSX and IOS)
-ifeq (Darwin, $(uname_S))
-  DYLIBNAME = $(LIBNAME).dylib
-## create dyanmic (shared) library on SunOS
-else ifeq (SunOS, $(uname_S))
-  DYLIBCMD = $(CC) -G -o $(DYLIBNAME)
-  INSTALL = cp -r
+ifeq (Darwin, $(uname))
+	SHARED = dylib
 endif
 
-## static lib
-STLIBNAME = $(LIBNAME).a
+#cJSON library names
+CJSON_SHARED = $(CJSON_LIBNAME).$(SHARED)
+CJSON_SHARED_VERSION = $(CJSON_LIBNAME).$(SHARED).$(LIBVERSION)
+CJSON_SHARED_SO = $(CJSON_LIBNAME).$(SHARED).$(CJSON_SOVERSION)
+CJSON_STATIC = $(CJSON_LIBNAME).$(STATIC)
 
-.PHONY: all clean install
+#cJSON_Utils library names
+UTILS_SHARED = $(UTILS_LIBNAME).$(SHARED)
+UTILS_SHARED_VERSION = $(UTILS_LIBNAME).$(SHARED).$(LIBVERSION)
+UTILS_SHARED_SO = $(UTILS_LIBNAME).$(SHARED).$(UTILS_SOVERSION)
+UTILS_STATIC = $(UTILS_LIBNAME).$(STATIC)
 
-all: $(DYLIBNAME) $(STLIBNAME) $(TESTS)
+SHARED_CMD = $(CC) -shared -o
 
-$(DYLIBNAME): $(OBJ)
-		$(DYLIBCMD) $< $(LDFLAGS)
-	
-$(STLIBNAME): $(OBJ)
-		$(AR) rcs $@ $<
+.PHONY: all shared static tests clean install
 
-$(OBJ): cJSON.c cJSON.h 
+all: shared static tests
+
+shared: $(CJSON_SHARED) $(UTILS_SHARED)
+
+static: $(CJSON_STATIC) $(UTILS_STATIC)
+
+tests: $(CJSON_TEST) $(UTILS_TEST)
+
+test: tests
+	./$(CJSON_TEST)
+	./$(UTILS_TEST)
 
 .c.o:
-		$(CC) -ansi -pedantic -c $(R_CFLAGS) $<
+	$(CC) -ansi -pedantic -c $(R_CFLAGS) $<
 
-$(TESTS): cJSON.c cJSON.h test.c
-		$(CC)  cJSON.c test.c -o test -lm -I.
+#tests
+#cJSON
+$(CJSON_TEST): cJSON.c cJSON.h test.c
+	$(CC) $^ -o $@ $(LDLIBS) -I.
+#cJSON_Utils
+$(UTILS_TEST): cJSON.c cJSON.h test.c
+	$(CC) $^ -o $@ $(LDLIBS) -I.
 
-install: $(DYLIBNAME) $(STLIBNAME)
-		mkdir -p $(INSTALL_LIBRARY_PATH) $(INSTALL_INCLUDE_PATH)
-		$(INSTALL) cJSON.h $(INSTALL_INCLUDE_PATH)
-		$(INSTALL) $(DYLIBNAME) $(INSTALL_LIBRARY_PATH)
-		$(INSTALL) $(STLIBNAME) $(INSTALL_LIBRARY_PATH)
+#static libraries
+#cJSON
+$(CJSON_STATIC): $(CJSON_OBJ)
+	$(AR) rcs $@ $<
+#cJSON_Utils
+$(UTILS_STATIC): $(UTILS_OBJ)
+	$(AR) rcs $@ $<
 
-uninstall:
-		rm -rf $(INSTALL_LIBRARY_PATH)/$(DYLIBNAME)
-		rm -rf $(INSTALL_LIBRARY_PATH)/$(STLIBNAME)
-		rm -rf $(INSTALL_INCLUDE_PATH)/cJSON.h
+#shared libraries .so.1.0.0
+#cJSON
+$(CJSON_SHARED_VERSION): $(CJSON_OBJ)
+	$(CC) -shared -o $@ $< $(LDFLAGS)
+#cJSON_Utils
+$(UTILS_SHARED_VERSION): $(UTILS_OBJ)
+	$(CC) -shared -o $@ $< $(LDFLAGS)
 
-clean: 
-		rm -rf $(DYLIBNAME) $(STLIBNAME) $(TESTS) *.o
+#objects
+#cJSON
+$(CJSON_OBJ): cJSON.c cJSON.h
+#cJSON_Utils
+$(UTILS_OBJ): cJSON_Utils.c cJSON_Utils.h
+
+
+#links .so -> .so.1 -> .so.1.0.0
+#cJSON
+$(CJSON_SHARED_SO): $(CJSON_SHARED_VERSION)
+	ln -s $(CJSON_SHARED_VERSION) $(CJSON_SHARED_SO)
+$(CJSON_SHARED): $(CJSON_SHARED_SO)
+	ln -s $(CJSON_SHARED_SO) $(CJSON_SHARED)
+#cJSON_Utils
+$(UTILS_SHARED_SO): $(UTILS_SHARED_VERSION)
+	ln -s $(UTILS_SHARED_VERSION) $(UTILS_SHARED_SO)
+$(UTILS_SHARED): $(UTILS_SHARED_SO)
+	ln -s $(UTILS_SHARED_SO) $(UTILS_SHARED)
+
+#install
+#cJSON
+install-cjson:
+	mkdir -p $(INSTALL_LIBRARY_PATH) $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) cJSON.h $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) $(CJSON_SHARED) $(CJSON_SHARED_SO) $(CJSON_SHARED_VERSION) $(INSTALL_LIBRARY_PATH)
+#cJSON_Utils
+install-utils: install-cjson
+	$(INSTALL) cJSON_Utils.h $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) $(UTILS_SHARED) $(UTILS_SHARED_SO) $(UTILS_SHARED_VERSION) $(INSTALL_LIBRARY_PATH)
+
+install: install-cjson install-utils
+
+#uninstall
+#cJSON
+uninstall-cjson: uninstall-utils
+	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED)
+	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED_VERSION)
+	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED_SO)
+	rmdir $(INSTALL_LIBRARY_PATH)
+	$(RM) $(INSTALL_INCLUDE_PATH)/cJSON.h
+	rmdir $(INSTALL_INCLUDE_PATH)
+#cJSON_Utils
+uninstall-utils:
+	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED)
+	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED_VERSION)
+	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED_SO)
+	$(RM) $(INSTALL_INCLUDE_PATH)/cJSON_Utils.h
+
+uninstall: uninstall-utils uninstall-cjson
+
+clean:
+	$(RM) $(CJSON_OBJ) $(UTILS_OBJ) #delete object files
+	$(RM) $(CJSON_SHARED) $(CJSON_SHARED_VERSION) $(CJSON_SHARED_SO) $(CJSON_STATIC) #delete cJSON
+	$(RM) $(UTILS_SHARED) $(UTILS_SHARED_VERSION) $(UTILS_SHARED_SO) $(UTILS_STATIC) #delete cJSON_Utils
+	$(RM) $(CJSON_TEST) $(UTILS_TEST) #delete tests
