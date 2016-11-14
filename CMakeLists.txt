@@ -93,7 +93,7 @@ install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
   ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
 
-option(ENABLE_CJSON_TEST "Enable building cJSON test" OFF)
+option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)
     set(TEST_CJSON cJSON_test)
     add_executable("${TEST_CJSON}" test.c)
