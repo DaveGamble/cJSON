@@ -960,6 +960,13 @@ static char *print_value(const cJSON *item, int depth, int fmt, printbuffer *p)
             case cJSON_Number:
                 out = print_number(item, p);
                 break;
+            case cJSON_Raw:
+                out = ensure(p, strlen(item->valuestring));
+                if (out)
+                {
+                    strcpy(out, item->valuestring);
+                }
+                break;
             case cJSON_String:
                 out = print_string(item, p);
                 break;
@@ -986,6 +993,9 @@ static char *print_value(const cJSON *item, int depth, int fmt, printbuffer *p)
                 break;
             case cJSON_Number:
                 out = print_number(item, 0);
+                break;
+            case cJSON_Raw:
+                out = cJSON_strdup(item->valuestring);
                 break;
             case cJSON_String:
                 out = print_string(item, 0);
@@ -1945,6 +1955,23 @@ cJSON *cJSON_CreateString(const char *string)
     }
 
     return item;
+}
+
+extern cJSON *cJSON_CreateRaw(const char *raw)
+{
+	cJSON *item = cJSON_New_Item();
+	if(item)
+	{
+		item->type = cJSON_Raw;
+		item->valuestring = cJSON_strdup(raw);
+		if(!item->valuestring)
+		{
+			cJSON_Delete(item);
+			return 0;
+		}
+	}
+	
+	return item;
 }
 
 cJSON *cJSON_CreateArray(void)
