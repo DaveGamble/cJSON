@@ -534,6 +534,11 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
                 case 't':
                     *ptr2++ = '\t';
                     break;
+                case '\"':
+                case '\\':
+                case '/':
+                    *ptr2++ = *ptr;
+                    break;
                 case 'u':
                     /* transcode utf16 to utf8. See RFC2781 and RFC3629. */
                     uc = parse_hex4(ptr + 1); /* get the unicode char. */
@@ -620,8 +625,8 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
                     ptr2 += len;
                     break;
                 default:
-                    *ptr2++ = *ptr;
-                    break;
+                    *ep = str;
+                    return 0;
             }
             ptr++;
         }
