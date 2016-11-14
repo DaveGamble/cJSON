@@ -6,6 +6,7 @@ Ultralightweight JSON parser in ANSI C.
 * [License](#license)
 * [Usage](#usage)
   * [Welcome to cJSON](#welcome-to-cjson)
+  * [Building](#building)
   * [Some JSON](#some-json)
   * [Here's the structure](#heres-the-structure)
   * [Enjoy cJSON!](#enjoy-cjson)
@@ -43,15 +44,6 @@ JSON is described best here: http://www.json.org/
 It's like XML, but fat-free. You use it to move data around, store things, or just
 generally represent your program's state.
 
-First up, how do I build?
-Add cJSON.c to your project, and put cJSON.h somewhere in the header search path.
-For example, to build the test app:
-
-```
-gcc cJSON.c test.c -o test -lm
-./test
-```
-
 As a library, cJSON exists to take away as much legwork as it can, but not get in your way.
 As a point of pragmatism (i.e. ignoring the truth), I'm going to say that you can use it
 in one of two modes: Auto and Manual. Let's have a quick run-through.
@@ -59,6 +51,61 @@ in one of two modes: Auto and Manual. Let's have a quick run-through.
 I lifted some JSON from this page: http://www.json.org/fatfree.html
 That page inspired me to write cJSON, which is a parser that tries to share the same
 philosophy as JSON itself. Simple, dumb, out of the way.
+
+### Building
+
+There are several ways to incorporate cJSON into your project.
+
+#### copying the source
+Because the entire library is only one C file and one header file, you can just copy `cJSON.h` and `cJSON.c` to your projects source and start using it.
+
+cJSON is written in ANSI C (C89) in order to support as many platforms and compilers as possible.
+
+#### CMake
+With CMake, cJSON supports a full blown build system. This way you get the most features. With CMake it is recommended to do an out of tree build, meaning the compiled files are put in a directory separate from the source files. So in order to build cJSON with CMake on a Unix platform, make a `build` directory and run CMake inside it.
+
+```
+mkdir build
+cd build
+cmake ..
+```
+
+This will create a Makefile and a bunch of other files. You can then compile it:
+
+```
+make
+```
+
+And install it with `make install` if you want. By default it installs the headers `/usr/local/include/cjson` and the libraries to `/usr/local/lib`. It also installs files for pkg-config to make it easier to detect and use an existing installation of CMake. And it installs CMake config files, that can be used by other CMake based projects to discover the library.
+
+You can change the build process with a list of different options that you can pass to CMake. Turn them on with `On` and off with `Off`:
+* `-DENABLE_CJSON_TESTS=On`: Enable building the tests. (on by default)
+* `-DENABLE_CJSON_UTILS=On`: Enable building cJSON_Utils. (off by default)
+* `-DENABLE_TARGET_EXPORT=On`: Enable the export of CMake targets. Turn off if it makes problems. (on by default)
+* `-DBUILD_SHARED_LIBS=On`: Build the shared libraries. (on by default)
+* `-DCMAKE_INSTALL_PREFIX=/usr`: Set a prefix for the installation.
+
+If you are packaging cJSON for a distribution of Linux, you would probably take these steps for example:
+```
+mkdir build
+cd build
+cmake .. -DENABLE_CJSON_UTILS=On -DENABLE_CJSON_TESTS=Off -DCMAKE_INSTALL_PREFIX=/usr
+make
+make DESTDIR=$pkgdir install
+```
+
+CMake supports a lot of different platforms, not only UNIX Makefiles, but only UNIX Makefiles have been tested. It works on GNU/Linux and has been confirmed to compile on some versions of macOS, FreeBSD, Cygwin, Solaris and OpenIndiana.
+
+#### Makefile
+If you don't have CMake available, but still have make. You can use the makefile to build cJSON:
+
+Run this command in the directory with the source code and it will automatically compile static and shared libraries and a little test program.
+
+```
+make all
+```
+
+If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`.
 
 ### Some JSON:
 
