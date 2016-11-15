@@ -94,7 +94,7 @@ make
 make DESTDIR=$pkgdir install
 ```
 
-CMake supports a lot of different platforms, not only UNIX Makefiles, but only UNIX Makefiles have been tested. It works on GNU/Linux and has been confirmed to compile on some versions of macOS, Cygwin, Solaris and OpenIndiana.
+CMake supports a lot of different platforms, not only UNIX Makefiles, but only UNIX Makefiles have been tested. It works on GNU/Linux and has been confirmed to compile on some versions of macOS, Cygwin, FreeBSD, Solaris and OpenIndiana.
 
 #### Makefile
 If you don't have CMake available, but still have make. You can use the makefile to build cJSON:
