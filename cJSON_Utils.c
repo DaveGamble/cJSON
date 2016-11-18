@@ -131,7 +131,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
         char *found = cJSONUtils_FindPointerFromObjectTo(obj, target);
         if (found)
         {
-            if (type == cJSON_Array)
+            if ((type & 0xFF) == cJSON_Array)
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
                 char *ret = (char*)malloc(strlen(found) + 23);
@@ -140,7 +140,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 
                 return ret;
             }
-            else if (type == cJSON_Object)
+            else if ((type & 0xFF) == cJSON_Object)
             {
                 char *ret = (char*)malloc(strlen(found) + cJSONUtils_PointerEncodedstrlen(obj->string) + 2);
                 *ret = '/';
@@ -166,7 +166,7 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
     /* follow path of the pointer */
     while ((*pointer++ == '/') && object)
     {
-        if (object->type == cJSON_Array)
+        if ((object->type & 0xFF) == cJSON_Array)
         {
             int which = 0;
             /* parse array index */
@@ -181,7 +181,7 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
             }
             object = cJSON_GetArrayItem(object, which);
         }
-        else if (object->type == cJSON_Object)
+        else if ((object->type & 0xFF) == cJSON_Object)
         {
             object = object->child;
             /* GetObjectItem. */
@@ -243,11 +243,11 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
         /* Couldn't find object to remove child from. */
         ret = 0;
     }
-    else if (parent->type == cJSON_Array)
+    else if ((parent->type & 0xFF) == cJSON_Array)
     {
         ret = cJSON_DetachItemFromArray(parent, atoi(childptr));
     }
-    else if (parent->type == cJSON_Object)
+    else if ((parent->type & 0xFF) == cJSON_Object)
     {
         ret = cJSON_DetachItemFromObject(parent, childptr);
     }
@@ -259,12 +259,12 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
 
 static int cJSONUtils_Compare(cJSON *a, cJSON *b)
 {
-    if (a->type != b->type)
+    if ((a->type & 0xFF) != (b->type & 0xFF))
     {
         /* mismatched type. */
         return -1;
     }
-    switch (a->type)
+    switch (a->type & 0xFF)
     {
         case cJSON_Number:
             /* numeric mismatch. */
@@ -448,7 +448,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         cJSON_Delete(value);
         return 9;
     }
-    else if (parent->type == cJSON_Array)
+    else if ((parent->type & 0xFF) == cJSON_Array)
     {
         if (!strcmp(childptr, "-"))
         {
@@ -459,7 +459,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             cJSON_InsertItemInArray(parent, atoi(childptr), value);
         }
     }
-    else if (parent->type == cJSON_Object)
+    else if ((parent->type & 0xFF) == cJSON_Object)
     {
         cJSON_DeleteItemFromObject(parent, childptr);
         cJSON_AddItemToObject(parent, childptr, value);
@@ -476,7 +476,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
     int err;
-    if (patches->type != cJSON_Array)
+    if ((patches->type & 0xFF) != cJSON_Array)
     {
         /* malformed patches. */
         return 1;
@@ -526,13 +526,13 @@ void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, 
 
 static void cJSONUtils_CompareToPatch(cJSON *patches, const char *path, cJSON *from, cJSON *to)
 {
-    if (from->type != to->type)
+    if ((from->type & 0xFF) != (to->type & 0xFF))
     {
         cJSONUtils_GeneratePatch(patches, "replace", path, 0, to);
         return;
     }
 
-    switch (from->type)
+    switch ((from->type & 0xFF))
     {
         case cJSON_Number:
             if ((from->valueint != to->valueint) || (from->valuedouble != to->valuedouble))
@@ -740,14 +740,14 @@ void cJSONUtils_SortObject(cJSON *object)
 
 cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
 {
-    if (!patch || (patch->type != cJSON_Object))
+    if (!patch || ((patch->type & 0xFF) != cJSON_Object))
     {
         /* scalar value, array or NULL, just duplicate */
         cJSON_Delete(target);
         return cJSON_Duplicate(patch, 1);
     }
 
-    if (!target || (target->type != cJSON_Object))
+    if (!target || ((target->type & 0xFF) != cJSON_Object))
     {
         cJSON_Delete(target);
         target = cJSON_CreateObject();
@@ -756,7 +756,7 @@ cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
     patch = patch->child;
     while (patch)
     {
-        if (patch->type == cJSON_NULL)
+        if ((patch->type & 0xFF) == cJSON_NULL)
         {
             /* NULL is the indicator to remove a value, see RFC7396 */
             cJSON_DeleteItemFromObject(target, patch->string);
@@ -779,7 +779,7 @@ cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
         /* patch to delete everything */
         return cJSON_CreateNull();
     }
-    if ((to->type != cJSON_Object) || !from || (from->type != cJSON_Object))
+    if (((to->type & 0xFF) != cJSON_Object) || !from || ((from->type & 0xFF) != cJSON_Object))
     {
         return cJSON_Duplicate(to, 1);
     }
