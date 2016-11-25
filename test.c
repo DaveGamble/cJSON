@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cJSON.h"
 
 /* Parse text to JSON, then render back to text, and print! */
@@ -219,16 +220,60 @@ void create_objects(void)
     /* cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root, 1), "City", cJSON_CreateIntArray(ids, 4)); */
 
     out = cJSON_Print(root);
-    cJSON_Delete(root);
     printf("%s\n", out);
+
+    printf("Test cJSON_PrintPreallocated:\n");
+    /* create buffer */
+    size_t len = strlen(out) + 1;
+    char *buf = malloc(len);
+
+    /* create buffer to fail */
+    size_t len_fail = strlen(out);
+    char *buf_fail = malloc(len_fail);
+
     free(out);
+
+    /* Print to buffer */
+    if (cJSON_PrintPreallocated(root, buf, len, 1) != 0) {
+        printf("cJSON_PrintPreallocated failed (but it should not have!)\n");
+        free(buf_fail);
+        free(buf);
+        exit(EXIT_FAILURE);
+    } else {
+        printf("cJSON_PrintPreallocated:\n%s\n", buf);
+    }
+
+    /* unformatted output */
+    if (cJSON_PrintPreallocated(root, buf, len, 0) != 0) {
+        printf("cJSON_PrintPreallocated failed (but it should not have!)\n");
+        free(buf_fail);
+        free(buf);
+        exit(EXIT_FAILURE);
+    } else {
+        printf("cJSON_PrintPreallocated (unformatted):\n%s\n", buf);
+    }
+
+    free(buf);
+
+    /* force it to fail */
+    if (cJSON_PrintPreallocated(root, buf_fail, len_fail, 1) != 0) {
+        printf("cJSON_PrintPreallocated failed (as expected)\n");
+    } else {
+        printf("cJSON_PrintPreallocated worked (but it should have failed!)\n");
+        printf("cJSON_PrintPreallocated:\n%s\n", buf_fail);
+    }
+
+    free(buf_fail);
+    cJSON_Delete(root);
 
     root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "number", 1.0 / zero);
     out = cJSON_Print(root);
-    cJSON_Delete(root);
     printf("%s\n", out);
+    cJSON_Delete(root);
+
     free(out);
+
 }
 
 int main(void)

@@ -5,6 +5,9 @@ UTILS_LIBNAME = libcjson_utils
 CJSON_TEST = cJSON_test
 UTILS_TEST = cJSON_test_utils
 
+CJSON_TEST_SRC = cJSON.c test.c
+UTILS_TEST_SRC = cJSON.c cJSON_Utils.c test_utils.c
+
 LDLIBS = -lm
 
 LIBVERSION = 1.0.2
@@ -66,11 +69,11 @@ test: tests
 
 #tests
 #cJSON
-$(CJSON_TEST): cJSON.c cJSON.h test.c
-	$(CC) $^ -o $@ $(LDLIBS) -I.
+$(CJSON_TEST): $(CJSON_TEST_SRC) cJSON.h
+	$(CC) $(CJSON_TEST_SRC)  -o $@ $(LDLIBS) -I.
 #cJSON_Utils
-$(UTILS_TEST): cJSON.c cJSON.h test.c
-	$(CC) $^ -o $@ $(LDLIBS) -I.
+$(UTILS_TEST): $(UTILS_TEST_SRC) cJSON.h cJSON_Utils.h
+	$(CC) $(UTILS_TEST_SRC) -o $@ $(LDLIBS) -I.
 
 #static libraries
 #cJSON
@@ -85,8 +88,8 @@ $(UTILS_STATIC): $(UTILS_OBJ)
 $(CJSON_SHARED_VERSION): $(CJSON_OBJ)
 	$(CC) -shared -o $@ $< $(LDFLAGS)
 #cJSON_Utils
-$(UTILS_SHARED_VERSION): $(UTILS_OBJ)
-	$(CC) -shared -o $@ $< $(LDFLAGS)
+$(UTILS_SHARED_VERSION): $(UTILS_OBJ) $(CJSON_OBJ)
+	$(CC) -shared -o $@ $< $(CJSON_OBJ) $(LDFLAGS)
 
 #objects
 #cJSON
