@@ -88,8 +88,8 @@ $(UTILS_STATIC): $(UTILS_OBJ)
 $(CJSON_SHARED_VERSION): $(CJSON_OBJ)
 	$(CC) -shared -o $@ $< $(LDFLAGS)
 #cJSON_Utils
-$(UTILS_SHARED_VERSION): $(UTILS_OBJ)
-	$(CC) -shared -o $@ $< $(LDFLAGS)
+$(UTILS_SHARED_VERSION): $(UTILS_OBJ) $(CJSON_OBJ)
+	$(CC) -shared -o $@ $< $(CJSON_OBJ) $(LDFLAGS)
 
 #objects
 #cJSON
