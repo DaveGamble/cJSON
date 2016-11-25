@@ -886,6 +886,16 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
     return print_value(item, 0, fmt, &p);
 }
 
+int cJSON_PrintMallocedBuffer(cJSON *item,char *buf,const size_t len, cjbool fmt)
+{
+    char *out;
+    printbuffer p;
+    p.buffer = buf;
+    p.length = len;
+    p.offset = 0;
+    out = print_value(item,0,fmt,&p);
+    return (out != buf ? -1 : 0);
+}
 
 /* Parser core - when encountering text, process appropriately. */
 static const char *parse_value(cJSON *item, const char *value, const char **ep)
