@@ -84,9 +84,9 @@ extern char  *cJSON_PrintUnformatted(const cJSON *item);
 /* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
 extern char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, int fmt);
 /* Render a cJSON entity to text using a buffer already allocated in memory with length buf_len */
-extern int cJSON_PrintMallocedBuffer(cJSON *item,char *buf,const size_t len, int fmt);
-/* Delete a cJSON entity and all subentities. */ 
-extern void   cJSON_Delete(cJSON *c); 
+extern int cJSON_PrintPreallocated(cJSON *item, char *buf, const size_t len, const int fmt);
+/* Delete a cJSON entity and all subentities. */
+extern void   cJSON_Delete(cJSON *c);
 
 /* Returns the number of items in an array (or object). */
 extern int	  cJSON_GetArraySize(const cJSON *array);

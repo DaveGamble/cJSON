@@ -244,7 +244,9 @@ typedef struct
     char *buffer;
     int length;
     int offset;
+    int noalloc;
 } printbuffer;
+
 
 /* realloc printbuffer if necessary to have at least "needed" bytes more */
 static char* ensure(printbuffer *p, int needed)
@@ -261,12 +263,17 @@ static char* ensure(printbuffer *p, int needed)
         return p->buffer + p->offset;
     }
 
+    if (p->noalloc) {
+        return NULL;
+    }
+
     newsize = pow2gt(needed);
     newbuffer = (char*)cJSON_malloc(newsize);
     if (!newbuffer)
     {
         cJSON_free(p->buffer);
         p->length = 0;
+        p->noalloc = 0;
         p->buffer = NULL;
 
         return NULL;
@@ -882,17 +889,19 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
     }
     p.length = prebuffer;
     p.offset = 0;
+    p.noalloc = 0;
 
     return print_value(item, 0, fmt, &p);
 }
 
-int cJSON_PrintMallocedBuffer(cJSON *item,char *buf,const size_t len, cjbool fmt)
+int cJSON_PrintPreallocated(cJSON *item,char *buf, const size_t len, const cjbool fmt)
 {
     char *out;
     printbuffer p;
     p.buffer = buf;
     p.length = len;
     p.offset = 0;
+    p.noalloc = 1;
     out = print_value(item,0,fmt,&p);
     return (out != buf ? -1 : 0);
 }
@@ -1147,7 +1156,11 @@ static char *print_array(const cJSON *item, int depth, cjbool fmt, printbuffer *
         child = item->child;
         while (child && !fail)
         {
-            print_value(child, depth + 1, fmt, p);
+            ptr = print_value(child, depth + 1, fmt, p);
+            if (!ptr)
+            {
+                return NULL;
+            }
             p->offset = update(p);
             if (child->next)
             {
