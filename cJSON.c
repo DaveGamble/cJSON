@@ -47,9 +47,9 @@
 #endif
 
 /* define our own boolean type */
-typedef int bool;
-#define true ((bool)1)
-#define false ((bool)0)
+typedef int cjbool;
+#define true ((cjbool)1)
+#define false ((cjbool)0)
 
 static const char *global_ep = NULL;
 
@@ -652,7 +652,7 @@ static char *print_string_ptr(const char *str, printbuffer *p)
     char *ptr2 = NULL;
     char *out = NULL;
     int len = 0;
-    bool flag = false;
+    cjbool flag = false;
     unsigned char token = '\0';
 
     /* empty string */
@@ -798,11 +798,11 @@ static char *print_string(const cJSON *item, printbuffer *p)
 
 /* Predeclare these prototypes. */
 static const char *parse_value(cJSON *item, const char *value, const char **ep);
-static char *print_value(const cJSON *item, int depth, bool fmt, printbuffer *p);
+static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *p);
 static const char *parse_array(cJSON *item, const char *value, const char **ep);
-static char *print_array(const cJSON *item, int depth, bool fmt, printbuffer *p);
+static char *print_array(const cJSON *item, int depth, cjbool fmt, printbuffer *p);
 static const char *parse_object(cJSON *item, const char *value, const char **ep);
-static char *print_object(const cJSON *item, int depth, bool fmt, printbuffer *p);
+static char *print_object(const cJSON *item, int depth, cjbool fmt, printbuffer *p);
 
 /* Utility to jump whitespace and cr/lf */
 static const char *skip(const char *in)
@@ -816,7 +816,7 @@ static const char *skip(const char *in)
 }
 
 /* Parse an object - create a new root, and populate. */
-cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, bool require_null_terminated)
+cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cjbool require_null_terminated)
 {
     const char *end = NULL;
     /* use global error pointer if no specific one was given */
@@ -872,7 +872,7 @@ char *cJSON_PrintUnformatted(const cJSON *item)
     return print_value(item, 0, 0, 0);
 }
 
-char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, bool fmt)
+char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
 {
     printbuffer p;
     p.buffer = (char*)cJSON_malloc(prebuffer);
@@ -936,7 +936,7 @@ static const char *parse_value(cJSON *item, const char *value, const char **ep)
 }
 
 /* Render a value to text. */
-static char *print_value(const cJSON *item, int depth, bool fmt, printbuffer *p)
+static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *p)
 {
     char *out = NULL;
 
@@ -1082,7 +1082,7 @@ static const char *parse_array(cJSON *item,const char *value,const char **ep)
 }
 
 /* Render an array to text */
-static char *print_array(const cJSON *item, int depth, bool fmt, printbuffer *p)
+static char *print_array(const cJSON *item, int depth, cjbool fmt, printbuffer *p)
 {
     char **entries;
     char *out = NULL;
@@ -1092,7 +1092,7 @@ static char *print_array(const cJSON *item, int depth, bool fmt, printbuffer *p)
     cJSON *child = item->child;
     int numentries = 0;
     int i = 0;
-    bool fail = false;
+    cjbool fail = false;
     size_t tmplen = 0;
 
     /* How many entries in the array? */
@@ -1343,7 +1343,7 @@ static const char *parse_object(cJSON *item, const char *value, const char **ep)
 }
 
 /* Render an object to text. */
-static char *print_object(const cJSON *item, int depth, bool fmt, printbuffer *p)
+static char *print_object(const cJSON *item, int depth, cjbool fmt, printbuffer *p)
 {
     char **entries = NULL;
     char **names = NULL;
@@ -1356,7 +1356,7 @@ static char *print_object(const cJSON *item, int depth, bool fmt, printbuffer *p
     int j = 0;
     cJSON *child = item->child;
     int numentries = 0;
-    bool fail = false;
+    cjbool fail = false;
     size_t tmplen = 0;
 
     /* Count the number of entries. */
@@ -1652,7 +1652,7 @@ cJSON *cJSON_GetObjectItem(const cJSON *object, const char *string)
     return c;
 }
 
-bool cJSON_HasObjectItem(const cJSON *object,const char *string)
+cjbool cJSON_HasObjectItem(const cJSON *object,const char *string)
 {
     return cJSON_GetObjectItem(object, string) ? 1 : 0;
 }
@@ -1918,7 +1918,7 @@ cJSON *cJSON_CreateFalse(void)
     return item;
 }
 
-cJSON *cJSON_CreateBool(bool b)
+cJSON *cJSON_CreateBool(cjbool b)
 {
     cJSON *item = cJSON_New_Item();
     if(item)
@@ -2095,7 +2095,7 @@ cJSON *cJSON_CreateStringArray(const char **strings, int count)
 }
 
 /* Duplication */
-cJSON *cJSON_Duplicate(const cJSON *item, bool recurse)
+cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
 {
     cJSON *newitem = NULL;
     cJSON *cptr = NULL;
