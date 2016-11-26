@@ -62,15 +62,15 @@ test: tests
 	./$(UTILS_TEST)
 
 .c.o:
-	$(CC) -ansi -pedantic -c $(R_CFLAGS) $<
+	$(CC) -c $(R_CFLAGS) $<
 
 #tests
 #cJSON
 $(CJSON_TEST): cJSON.c cJSON.h test.c
-	$(CC) $^ -o $@ $(LDLIBS) -I.
+	$(CC) $(R_CFLAGS) $^ -o $@ $(LDLIBS) -I.
 #cJSON_Utils
 $(UTILS_TEST): cJSON.c cJSON.h test.c
-	$(CC) $^ -o $@ $(LDLIBS) -I.
+	$(CC) $(R_CFLAGS) $^ -o $@ $(LDLIBS) -I.
 
 #static libraries
 #cJSON
