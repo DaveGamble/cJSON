@@ -20,7 +20,7 @@ INSTALL_LIBRARY_PATH = $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 
 INSTALL ?= cp -a
 
-R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings $(CFLAGS)
+R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow $(CFLAGS)
 
 uname := $(shell sh -c 'uname -s 2>/dev/null || echo false')
 
