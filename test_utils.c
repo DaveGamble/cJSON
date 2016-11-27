@@ -96,14 +96,14 @@ int main(void)
     printf("JSON Apply Patch Tests\n");
     for (i = 0; i < 15; i++)
     {
-        cJSON *object = cJSON_Parse(patches[i][0]);
+        cJSON *object_to_be_patched = cJSON_Parse(patches[i][0]);
         cJSON *patch = cJSON_Parse(patches[i][1]);
-        int err = cJSONUtils_ApplyPatches(object, patch);
-        char *output = cJSON_Print(object);
+        int err = cJSONUtils_ApplyPatches(object_to_be_patched, patch);
+        char *output = cJSON_Print(object_to_be_patched);
         printf("Test %d (err %d):\n%s\n\n", i + 1, err, output);
 
         free(output);
-        cJSON_Delete(object);
+        cJSON_Delete(object_to_be_patched);
         cJSON_Delete(patch);
     }
 
@@ -168,19 +168,19 @@ int main(void)
     printf("JSON Merge Patch tests\n");
     for (i = 0; i < 15; i++)
     {
-        cJSON *object = cJSON_Parse(merges[i][0]);
+        cJSON *object_to_be_merged = cJSON_Parse(merges[i][0]);
         cJSON *patch = cJSON_Parse(merges[i][1]);
-        char *before = cJSON_PrintUnformatted(object);
+        char *before_merge = cJSON_PrintUnformatted(object_to_be_merged);
         patchtext = cJSON_PrintUnformatted(patch);
-        printf("Before: [%s] -> [%s] = ", before, patchtext);
-        object = cJSONUtils_MergePatch(object, patch);
-        after = cJSON_PrintUnformatted(object);
+        printf("Before: [%s] -> [%s] = ", before_merge, patchtext);
+        object_to_be_merged = cJSONUtils_MergePatch(object_to_be_merged, patch);
+        after = cJSON_PrintUnformatted(object_to_be_merged);
         printf("[%s] vs [%s] (%s)\n", after, merges[i][2], strcmp(after, merges[i][2]) ? "FAIL" : "OK");
 
-        free(before);
+        free(before_merge);
         free(patchtext);
         free(after);
-        cJSON_Delete(object);
+        cJSON_Delete(object_to_be_merged);
         cJSON_Delete(patch);
     }
 
