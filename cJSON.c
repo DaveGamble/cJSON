@@ -651,7 +651,7 @@ static char *print_string_ptr(const char *str, printbuffer *p)
     const char *ptr = NULL;
     char *ptr2 = NULL;
     char *out = NULL;
-    int len = 0;
+    unsigned int len = 0;
     cjbool flag = false;
     unsigned char token = '\0';
 
