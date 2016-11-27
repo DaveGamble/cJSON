@@ -25,7 +25,7 @@
 #include "cJSON.h"
 
 /* Parse text to JSON, then render back to text, and print! */
-void doit(char *text)
+static void doit(char *text)
 {
     char *out = NULL;
     cJSON *json = NULL;
@@ -44,8 +44,9 @@ void doit(char *text)
     }
 }
 
+#if 0
 /* Read a file, parse, render back, etc. */
-void dofile(char *filename)
+static void dofile(char *filename)
 {
     FILE *f = NULL;
     long len = 0;
@@ -67,6 +68,7 @@ void dofile(char *filename)
     doit(data);
     free(data);
 }
+#endif
 
 /* Used by some code below as an example datatype. */
 struct record
@@ -82,7 +84,7 @@ struct record
 };
 
 /* Create a bunch of objects as demonstration. */
-void create_objects(void)
+static void create_objects(void)
 {
     /* declare a few. */
     cJSON *root = NULL;
