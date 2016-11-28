@@ -15,6 +15,7 @@ Contributors
 * [IvanVoid](https://github.com/npi3pak)
 * [Jonathan Fether](https://github.com/jfether)
 * [Kevin Branigan](https://github.com/kbranigan)
+* [Kyle Chisholm](https://github.com/ChisholmKyle)
 * [Linus Wallgren](https://github.com/ecksun)
 * [Max Bruckner](https://github.com/FSMaxB)
 * Mike Pontillo
