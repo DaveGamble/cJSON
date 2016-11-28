@@ -82,6 +82,63 @@ struct record
     const char *country;
 };
 
+
+/* Create a bunch of objects as demonstration. */
+int print_preallocated(cJSON *root)
+{
+    /* declarations */
+    char *out = NULL;
+    char *buf = NULL;
+    char *buf_fail = NULL;
+    int len = 0;
+    int len_fail = 0;
+
+    /* formatted print */
+    out = cJSON_Print(root);
+
+    /* create buffer to succeed */
+    /* the extra 64 bytes are in case a floating point value is printed */
+    len = strlen(out) + 64;
+    buf = malloc(len);
+
+    /* create buffer to fail */
+    len_fail = strlen(out);
+    buf_fail = malloc(len_fail);
+
+    /* Print to buffer */
+    if (cJSON_PrintPreallocated(root, buf, len, 1) != 0) {
+        printf("cJSON_PrintPreallocated failed!\n");
+        if (strcmp(out, buf) != 0) {
+            printf("cJSON_PrintPreallocated not the same as cJSON_Print!\n");
+            printf("cJSON_Print result:\n%s\n", out);
+            printf("cJSON_PrintPreallocated result:\n%s\n", buf);
+        }
+        free(out);
+        free(buf_fail);
+        free(buf);
+        return -1;
+    }
+
+    /* success */
+    printf("%s\n", buf);
+
+    /* force it to fail */
+    if (cJSON_PrintPreallocated(root, buf_fail, len_fail, 1) == 0) {
+        printf("cJSON_PrintPreallocated failed to show error with insufficient memory!\n");
+        printf("cJSON_Print result:\n%s\n", out);
+        printf("cJSON_PrintPreallocated result:\n%s\n", buf_fail);
+        free(out);
+        free(buf_fail);
+        free(buf);
+        return -1;
+    }
+
+    free(out);
+    free(buf_fail);
+    free(buf);
+    return 0;
+}
+
 /* Create a bunch of objects as demonstration. */
 void create_objects(void)
 {
