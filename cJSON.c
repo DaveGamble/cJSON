@@ -1452,7 +1452,10 @@ static char *print_object(const cJSON *item, int depth, cjbool fmt, printbuffer 
             }
 
             /* print key */
-            print_string_ptr(child->string, p);
+            if (!print_string_ptr(child->string, p))
+            {
+                return NULL;
+            }
             p->offset = update(p);
 
             len = fmt ? 2 : 1;
