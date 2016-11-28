@@ -244,9 +244,8 @@ typedef struct
     char *buffer;
     int length;
     int offset;
-    int noalloc;
+    cjbool noalloc;
 } printbuffer;
-
 
 /* realloc printbuffer if necessary to have at least "needed" bytes more */
 static char* ensure(printbuffer *p, int needed)
@@ -273,7 +272,7 @@ static char* ensure(printbuffer *p, int needed)
     {
         cJSON_free(p->buffer);
         p->length = 0;
-        p->noalloc = 0;
+        p->noalloc = false;
         p->buffer = NULL;
 
         return NULL;
@@ -889,7 +888,7 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
     }
     p.length = prebuffer;
     p.offset = 0;
-    p.noalloc = 0;
+    p.noalloc = false;
 
     return print_value(item, 0, fmt, &p);
 }
@@ -901,7 +900,7 @@ int cJSON_PrintPreallocated(cJSON *item,char *buf, const size_t len, const cjboo
     p.buffer = buf;
     p.length = len;
     p.offset = 0;
-    p.noalloc = 1;
+    p.noalloc = true;
     out = print_value(item,0,fmt,&p);
     return (out != buf ? -1 : 0);
 }
