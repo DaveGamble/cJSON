@@ -900,7 +900,7 @@ int cJSON_PrintPreallocated(cJSON *item,char *buf, const int len, const cjbool f
     p.length = len;
     p.offset = 0;
     p.noalloc = true;
-    return print_value(item,0,fmt,&p) != NULL;
+    return (print_value(item,0,fmt,&p) != NULL ? 0 : -1);
 }
 
 /* Parser core - when encountering text, process appropriately. */
