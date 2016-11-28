@@ -5,6 +5,9 @@ UTILS_LIBNAME = libcjson_utils
 CJSON_TEST = cJSON_test
 UTILS_TEST = cJSON_test_utils
 
+CJSON_TEST_SRC = cJSON.c test.c
+UTILS_TEST_SRC = cJSON.c cJSON_Utils.c test_utils.c
+
 LDLIBS = -lm
 
 LIBVERSION = 1.0.2
@@ -27,7 +30,7 @@ uname := $(shell sh -c 'uname -s 2>/dev/null || echo false')
 #library file extensions
 SHARED = so
 STATIC = a
- 
+
 ## create dynamic (shared) library on Darwin (base OS for MacOSX and IOS)
 ifeq (Darwin, $(uname))
 	SHARED = dylib
@@ -66,11 +69,11 @@ test: tests
 
 #tests
 #cJSON
-$(CJSON_TEST): cJSON.c cJSON.h test.c
-	$(CC) $(R_CFLAGS) $^ -o $@ $(LDLIBS) -I.
+$(CJSON_TEST): $(CJSON_TEST_SRC) cJSON.h
+	$(CC) $(R_CFLAGS) $(CJSON_TEST_SRC)  -o $@ $(LDLIBS) -I.
 #cJSON_Utils
-$(UTILS_TEST): cJSON.c cJSON.h test.c
-	$(CC) $(R_CFLAGS) $^ -o $@ $(LDLIBS) -I.
+$(UTILS_TEST): $(UTILS_TEST_SRC) cJSON.h cJSON_Utils.h
+	$(CC) $(R_CFLAGS) $(UTILS_TEST_SRC) -o $@ $(LDLIBS) -I.
 
 #static libraries
 #cJSON
