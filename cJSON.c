@@ -1154,8 +1154,7 @@ static char *print_array(const cJSON *item, int depth, cjbool fmt, printbuffer *
         child = item->child;
         while (child && !fail)
         {
-            ptr = print_value(child, depth + 1, fmt, p);
-            if (!ptr)
+            if (!print_value(child, depth + 1, fmt, p))
             {
                 return NULL;
             }
@@ -1472,7 +1471,10 @@ static char *print_object(const cJSON *item, int depth, cjbool fmt, printbuffer 
             p->offset+=len;
 
             /* print value */
-            print_value(child, depth, fmt, p);
+            if (!print_value(child, depth, fmt, p))
+            {
+                return NULL;
+            };
             p->offset = update(p);
 
             /* print comma if not last */
