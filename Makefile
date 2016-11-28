@@ -23,7 +23,7 @@ INSTALL_LIBRARY_PATH = $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 
 INSTALL ?= cp -a
 
-R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings $(CFLAGS)
+R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes $(CFLAGS)
 
 uname := $(shell sh -c 'uname -s 2>/dev/null || echo false')
 
@@ -48,8 +48,6 @@ UTILS_SHARED_VERSION = $(UTILS_LIBNAME).$(SHARED).$(LIBVERSION)
 UTILS_SHARED_SO = $(UTILS_LIBNAME).$(SHARED).$(UTILS_SOVERSION)
 UTILS_STATIC = $(UTILS_LIBNAME).$(STATIC)
 
-SHARED_CMD = $(CC) -shared -o
-
 .PHONY: all shared static tests clean install
 
 all: shared static tests
@@ -65,15 +63,15 @@ test: tests
 	./$(UTILS_TEST)
 
 .c.o:
-	$(CC) -ansi -pedantic -c $(R_CFLAGS) $<
+	$(CC) -c $(R_CFLAGS) $<
 
 #tests
 #cJSON
 $(CJSON_TEST): $(CJSON_TEST_SRC) cJSON.h
-	$(CC) $(CJSON_TEST_SRC)  -o $@ $(LDLIBS) -I.
+	$(CC) $(R_CFLAGS) $(CJSON_TEST_SRC) -o $@ $(LDLIBS) -I.
 #cJSON_Utils
 $(UTILS_TEST): $(UTILS_TEST_SRC) cJSON.h cJSON_Utils.h
-	$(CC) $(UTILS_TEST_SRC) -o $@ $(LDLIBS) -I.
+	$(CC) $(R_CFLAGS) $(UTILS_TEST_SRC) -o $@ $(LDLIBS) -I.
 
 #static libraries
 #cJSON
@@ -86,10 +84,10 @@ $(UTILS_STATIC): $(UTILS_OBJ)
 #shared libraries .so.1.0.0
 #cJSON
 $(CJSON_SHARED_VERSION): $(CJSON_OBJ)
-	$(CC) -shared -o $@ $< $(LDFLAGS)
+	$(CC) $(R_CFLAGS) -shared -o $@ $< $(LDFLAGS)
 #cJSON_Utils
 $(UTILS_SHARED_VERSION): $(UTILS_OBJ) $(CJSON_OBJ)
-	$(CC) -shared -o $@ $< $(CJSON_OBJ) $(LDFLAGS)
+	$(CC) $(R_CFLAGS) -shared -o $@ $< $(CJSON_OBJ) $(LDFLAGS)
 
 #objects
 #cJSON
