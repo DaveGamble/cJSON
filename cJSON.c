@@ -893,7 +893,7 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
     return print_value(item, 0, fmt, &p);
 }
 
-int cJSON_PrintPreallocated(cJSON *item,char *buf, const size_t len, const cjbool fmt)
+int cJSON_PrintPreallocated(cJSON *item,char *buf, const int len, const cjbool fmt)
 {
     char *out;
     printbuffer p;
