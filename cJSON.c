@@ -712,8 +712,9 @@ static char *print_string_ptr(const char *str, printbuffer *p)
 
     ptr = str;
     /* calculate additional space that is needed for escaping */
-    while ((token = *ptr) && ++len)
+    while ((token = *ptr))
     {
+        ++len;
         if (strchr("\"\\\b\f\n\r\t", token))
         {
             len++; /* +1 for the backslash */
