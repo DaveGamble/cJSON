@@ -148,7 +148,6 @@ void create_objects(void)
     cJSON *img = NULL;
     cJSON *thm = NULL;
     cJSON *fld = NULL;
-    char *out = NULL;
     int i = 0;
 
     /* Our "days of the week" array: */
@@ -210,21 +209,20 @@ void create_objects(void)
     cJSON_AddNumberToObject(fmt, "frame rate", 24);
 
     /* Print to text */
-    out = cJSON_Print(root);
-    /* Delete the cJSON */
+    if (print_preallocated(root) != 0) {
+        cJSON_Delete(root);
+        exit(EXIT_FAILURE);
+    }
     cJSON_Delete(root);
-    /* print it */
-    printf("%s\n",out);
-    /* release the string */
-    free(out);
 
     /* Our "days of the week" array: */
     root = cJSON_CreateStringArray(strings, 7);
 
-    out = cJSON_Print(root);
+    if (print_preallocated(root) != 0) {
+        cJSON_Delete(root);
+        exit(EXIT_FAILURE);
+    }
     cJSON_Delete(root);
-    printf("%s\n", out);
-    free(out);
 
     /* Our matrix: */
     root = cJSON_CreateArray();
@@ -235,11 +233,11 @@ void create_objects(void)
 
     /* cJSON_ReplaceItemInArray(root, 1, cJSON_CreateString("Replacement")); */
 
-    out = cJSON_Print(root);
+    if (print_preallocated(root) != 0) {
+        cJSON_Delete(root);
+        exit(EXIT_FAILURE);
+    }
     cJSON_Delete(root);
-    printf("%s\n", out);
-    free(out);
-
 
     /* Our "gallery" item: */
     root = cJSON_CreateObject();
@@ -253,13 +251,13 @@ void create_objects(void)
     cJSON_AddStringToObject(thm, "Width", "100");
     cJSON_AddItemToObject(img, "IDs", cJSON_CreateIntArray(ids, 4));
 
-    out = cJSON_Print(root);
+    if (print_preallocated(root) != 0) {
+        cJSON_Delete(root);
+        exit(EXIT_FAILURE);
+    }
     cJSON_Delete(root);
-    printf("%s\n", out);
-    free(out);
 
     /* Our array of "records": */
-
     root = cJSON_CreateArray();
     for (i = 0; i < 2; i++)
     {
@@ -276,61 +274,20 @@ void create_objects(void)
 
     /* cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root, 1), "City", cJSON_CreateIntArray(ids, 4)); */
 
-    out = cJSON_Print(root);
-    printf("%s\n", out);
-
-    printf("Test cJSON_PrintPreallocated:\n");
-    /* create buffer */
-    size_t len = strlen(out) + 1;
-    char *buf = malloc(len);
-
-    /* create buffer to fail */
-    size_t len_fail = strlen(out);
-    char *buf_fail = malloc(len_fail);
-
-    free(out);
-
-    /* Print to buffer */
-    if (cJSON_PrintPreallocated(root, buf, len, 1) != 0) {
-        printf("cJSON_PrintPreallocated failed (but it should not have!)\n");
-        free(buf_fail);
-        free(buf);
+    if (print_preallocated(root) != 0) {
+        cJSON_Delete(root);
         exit(EXIT_FAILURE);
-    } else {
-        printf("cJSON_PrintPreallocated:\n%s\n", buf);
     }
-
-    /* unformatted output */
-    if (cJSON_PrintPreallocated(root, buf, len, 0) != 0) {
-        printf("cJSON_PrintPreallocated failed (but it should not have!)\n");
-        free(buf_fail);
-        free(buf);
-        exit(EXIT_FAILURE);
-    } else {
-        printf("cJSON_PrintPreallocated (unformatted):\n%s\n", buf);
-    }
-
-    free(buf);
-
-    /* force it to fail */
-    if (cJSON_PrintPreallocated(root, buf_fail, len_fail, 1) != 0) {
-        printf("cJSON_PrintPreallocated failed (as expected)\n");
-    } else {
-        printf("cJSON_PrintPreallocated worked (but it should have failed!)\n");
-        printf("cJSON_PrintPreallocated:\n%s\n", buf_fail);
-    }
-
-    free(buf_fail);
     cJSON_Delete(root);
 
     root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "number", 1.0 / zero);
-    out = cJSON_Print(root);
-    printf("%s\n", out);
+
+    if (print_preallocated(root) != 0) {
+        cJSON_Delete(root);
+        exit(EXIT_FAILURE);
+    }
     cJSON_Delete(root);
-
-    free(out);
-
 }
 
 int main(void)
