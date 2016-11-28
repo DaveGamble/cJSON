@@ -895,14 +895,12 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
 
 int cJSON_PrintPreallocated(cJSON *item,char *buf, const int len, const cjbool fmt)
 {
-    char *out;
     printbuffer p;
     p.buffer = buf;
     p.length = len;
     p.offset = 0;
     p.noalloc = true;
-    out = print_value(item,0,fmt,&p);
-    return (out != buf ? -1 : 0);
+    return print_value(item,0,fmt,&p) != NULL;
 }
 
 /* Parser core - when encountering text, process appropriately. */
