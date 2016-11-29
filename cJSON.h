@@ -62,7 +62,7 @@ typedef struct cJSON
     double valuedouble;
 
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
-    char *string;
+    const char *string;
 } cJSON;
 
 typedef struct cJSON_Hooks

@@ -81,7 +81,10 @@ static int cJSON_strcasecmp(const char *s1, const char *s2)
 }
 
 static void *(*cJSON_malloc)(size_t sz) = malloc;
-static void (*cJSON_free)(void *ptr) = free;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+static void (*cJSON_free)(const void *ptr) = free;
+#pragma GCC diagnostic pop
 
 static char* cJSON_strdup(const char* str)
 {
@@ -104,12 +107,18 @@ void cJSON_InitHooks(cJSON_Hooks* hooks)
     {
         /* Reset hooks */
         cJSON_malloc = malloc;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
         cJSON_free = free;
+#pragma GCC diagnostic pop
         return;
     }
 
     cJSON_malloc = (hooks->malloc_fn) ? hooks->malloc_fn : malloc;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
     cJSON_free = (hooks->free_fn) ? hooks->free_fn : free;
+#pragma GCC diagnostic pop
 }
 
 /* Internal constructor. */
@@ -1756,7 +1765,7 @@ void   cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
     {
         cJSON_free(item->string);
     }
-    item->string = (char*)string;
+    item->string = string;
     item->type |= cJSON_StringIsConst;
     cJSON_AddItemToArray(object, item);
 }
