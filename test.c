@@ -86,7 +86,7 @@ struct record
 
 
 /* Create a bunch of objects as demonstration. */
-int print_preallocated(cJSON *root)
+static int print_preallocated(cJSON *root)
 {
     /* declarations */
     char *out = NULL;
