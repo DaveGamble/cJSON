@@ -2153,7 +2153,7 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
     }
     if (item->string)
     {
-        newitem->string = cJSON_strdup(item->string);
+        newitem->string = (item->type&cJSON_StringIsConst) ? item->string : cJSON_strdup(item->string);
         if (!newitem->string)
         {
             cJSON_Delete(newitem);
