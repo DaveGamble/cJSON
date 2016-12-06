@@ -61,6 +61,11 @@ static void dofile(char *filename)
     fseek(f, 0, SEEK_SET);
 
     data = (char*)malloc(len + 1);
+    if (data == NULL)
+    {
+        printf("Failed to allocate memory.\n");
+        exit(1);
+    }
 
     fread(data, 1, len, f);
     data[len] = '\0';
@@ -102,10 +107,20 @@ static int print_preallocated(cJSON *root)
     /* the extra 64 bytes are in case a floating point value is printed */
     len = strlen(out) + 64;
     buf = malloc(len);
+    if (buf == NULL)
+    {
+        printf("Failed to allocate memory.\n");
+        exit(1);
+    }
 
     /* create buffer to fail */
     len_fail = strlen(out);
     buf_fail = malloc(len_fail);
+    if (buf_fail == NULL)
+    {
+        printf("Failed to allocate memory.\n");
+        exit(1);
+    }
 
     /* Print to buffer */
     if (cJSON_PrintPreallocated(root, buf, len, 1) != 0) {
