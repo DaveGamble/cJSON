@@ -2,6 +2,7 @@ Contributors
 ============
 
 * [Ajay Bhargav](https://github.com/ajaybhargav)
+* [Alper Akcan](https://github.com/alperakcan)
 * [Anton Sergeev](https://github.com/anton-sergeev)
 * [Christian Schulze](https://github.com/ChristianSch)
 * [Dave Gamble](https://github.com/DaveGamble)
