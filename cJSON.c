@@ -1756,7 +1756,9 @@ void   cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
     {
         cJSON_free(item->string);
     }
+#pragma GCC diagnostic ignored "-Wcast-qual"
     item->string = (char*)string;
+#pragma GCC diagnostic error "-Wcast-qual"
     item->type |= cJSON_StringIsConst;
     cJSON_AddItemToArray(object, item);
 }
