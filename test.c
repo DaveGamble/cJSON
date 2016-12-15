@@ -106,7 +106,7 @@ static int print_preallocated(cJSON *root)
     /* create buffer to succeed */
     /* the extra 64 bytes are in case a floating point value is printed */
     len = strlen(out) + 64;
-    buf = malloc(len);
+    buf = (char*)malloc(len);
     if (buf == NULL)
     {
         printf("Failed to allocate memory.\n");
@@ -115,7 +115,7 @@ static int print_preallocated(cJSON *root)
 
     /* create buffer to fail */
     len_fail = strlen(out);
-    buf_fail = malloc(len_fail);
+    buf_fail = (char*)malloc(len_fail);
     if (buf_fail == NULL)
     {
         printf("Failed to allocate memory.\n");
