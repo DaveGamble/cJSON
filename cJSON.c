@@ -491,7 +491,7 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
         return NULL;
     }
 
-    while ((*end_ptr != '\"') && *end_ptr && ++len)
+    while ((*end_ptr != '\"') && *end_ptr)
     {
         if (*end_ptr++ == '\\')
         {
@@ -503,6 +503,7 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
             /* Skip escaped quotes. */
             end_ptr++;
         }
+        len++;
     }
 
     /* This is at most how long we need for the string, roughly. */
