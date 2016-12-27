@@ -79,7 +79,7 @@ make
 And install it with `make install` if you want. By default it installs the headers `/usr/local/include/cjson` and the libraries to `/usr/local/lib`. It also installs files for pkg-config to make it easier to detect and use an existing installation of CMake. And it installs CMake config files, that can be used by other CMake based projects to discover the library.
 
 You can change the build process with a list of different options that you can pass to CMake. Turn them on with `On` and off with `Off`:
-* `-DENABLE_CJSON_TESTS=On`: Enable building the tests. (on by default)
+* `-DENABLE_CJSON_TEST=On`: Enable building the tests. (on by default)
 * `-DENABLE_CJSON_UTILS=On`: Enable building cJSON_Utils. (off by default)
 * `-DENABLE_TARGET_EXPORT=On`: Enable the export of CMake targets. Turn off if it makes problems. (on by default)
 * `-DENABLE_CUSTOM_COMPILER_FLAGS=On`: Enable custom compiler flags (currently for Clang and GCC). Turn off if it makes problems. (on by default)
@@ -90,7 +90,7 @@ If you are packaging cJSON for a distribution of Linux, you would probably take 
 ```
 mkdir build
 cd build
-cmake .. -DENABLE_CJSON_UTILS=On -DENABLE_CJSON_TESTS=Off -DCMAKE_INSTALL_PREFIX=/usr
+cmake .. -DENABLE_CJSON_UTILS=On -DENABLE_CJSON_TEST=Off -DCMAKE_INSTALL_PREFIX=/usr
 make
 make DESTDIR=$pkgdir install
 ```
