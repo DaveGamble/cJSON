@@ -24,6 +24,7 @@ Contributors
 * [Rafael Leal Dias](https://github.com/rafaeldias)
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)
+* [Romain Porte](https://github.com/MicroJoe)
 * [Stephan Gatzka](https://github.com/gatzka)
 * [Weston Schmidt](https://github.com/schmidtw)
 
