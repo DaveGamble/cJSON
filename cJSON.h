@@ -65,6 +65,20 @@ typedef struct cJSON
     char *string;
 } cJSON;
 
+typedef int (*cjson_callback)(const char *ptr, size_t length, void *cb_data);
+
+typedef struct cJSON_Stream
+{
+	cjson_callback cb;
+	void *cb_data;
+
+	int fmt;
+} cJSON_Stream;
+
+void cJSON_StreamInit(cJSON_Stream *stream);
+int cJSON_PrintStream(const cJSON_Stream *stream, const cJSON *item);
+void cJSON_StreamDeInit(cJSON_Stream *stream);
+
 typedef struct cJSON_Hooks
 {
       void *(*malloc_fn)(size_t sz);

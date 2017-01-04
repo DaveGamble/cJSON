@@ -904,6 +904,146 @@ int cJSON_PrintPreallocated(cJSON *item,char *buf, const int len, const cjbool f
     return print_value(item,0,fmt,&p) != NULL;
 }
 
+void cJSON_StreamInit(cJSON_Stream *stream)
+{
+    memset(stream, 0, sizeof(cJSON_Stream));
+}
+
+void cJSON_StreamDeInit(cJSON_Stream *stream)
+{
+    /* Do nothing, reserved for later */
+    (void)stream;
+}
+
+typedef struct Stream_Data
+{
+    char buffer[256];
+} Stream_Data;
+
+static int stream_number(const cJSON_Stream *stream, const cJSON *item, Stream_Data *data)
+{
+    double d;
+
+    (void)stream;
+    (void)item;
+    (void)data;
+
+    d = item->valuedouble;
+
+    if (d == 0)
+    {
+        strcpy(data->buffer, "0");
+    }
+    else if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
+    {
+        sprintf(data->buffer, "%d", item->valueint);
+    }
+    else
+    {
+        if ((d * 0) != 0)
+        {
+            sprintf(data->buffer, "null");
+        }
+        else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
+        {
+            sprintf(data->buffer, "%.0f", d);
+        }
+        else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
+        {
+            sprintf(data->buffer, "%e", d);
+        }
+        else
+        {
+            sprintf(data->buffer, "%f", d);
+        }
+    }
+
+    stream->cb(data->buffer, strlen(data->buffer), stream->cb_data);
+
+    return 0;
+}
+
+static int stream_string(const cJSON_Stream *stream, const char *str, Stream_Data *data)
+{
+    (void)stream;
+    (void)str;
+    (void)data;
+
+    return 0;
+}
+
+static int stream_array(const cJSON_Stream *stream, const cJSON *item, Stream_Data *data)
+{
+    (void)stream;
+    (void)item;
+    (void)data;
+
+    return 0;
+}
+
+static int stream_object(const cJSON_Stream *stream, const cJSON *item, Stream_Data *data)
+{
+    int numentries;
+
+    (void)stream;
+    (void)item;
+    (void)data;
+
+    numentries = cJSON_GetArraySize(item);
+
+    if (!numentries)
+    {
+        return 0;
+    }
+
+    return 0;
+}
+
+static int stream_value(const cJSON_Stream *stream, const cJSON *item, Stream_Data *data)
+{
+    int count = 0;
+
+    if (!stream || !item)
+    {
+        return -1;
+    }
+
+    switch ((item->type) & 0xFF)
+    {
+    case cJSON_NULL:
+        strcpy(data->buffer, "null");
+        break;
+    case cJSON_False:
+        strcpy(data->buffer, "false");
+        break;
+    case cJSON_True:
+        strcpy(data->buffer, "true");
+        break;
+    case cJSON_Number:
+        count += stream_number(stream, item, data);
+        break;
+    case cJSON_String:
+        count += stream_string(stream, item->valuestring, data);
+        break;
+    case cJSON_Array:
+        count += stream_array(stream, item, data);
+        break;
+    case cJSON_Object:
+        count += stream_object(stream, item, data);
+        break;
+    }
+
+    return count;
+}
+
+int cJSON_PrintStream(const cJSON_Stream *stream, const cJSON *item)
+{
+    Stream_Data data;
+
+    return stream_value(stream, item, &data);
+}
+
+
 /* Parser core - when encountering text, process appropriately. */
 static const char *parse_value(cJSON *item, const char *value, const char **ep)
 {
