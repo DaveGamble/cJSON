@@ -2019,19 +2019,19 @@ cJSON *cJSON_CreateString(const char *string)
 
 extern cJSON *cJSON_CreateRaw(const char *raw)
 {
-	cJSON *item = cJSON_New_Item();
-	if(item)
-	{
-		item->type = cJSON_Raw;
-		item->valuestring = cJSON_strdup(raw);
-		if(!item->valuestring)
-		{
-			cJSON_Delete(item);
-			return 0;
-		}
-	}
-	
-	return item;
+    cJSON *item = cJSON_New_Item();
+    if(item)
+    {
+        item->type = cJSON_Raw;
+        item->valuestring = cJSON_strdup(raw);
+        if(!item->valuestring)
+        {
+            cJSON_Delete(item);
+            return NULL;
+        }
+    }
+
+    return item;
 }
 
 cJSON *cJSON_CreateArray(void)
