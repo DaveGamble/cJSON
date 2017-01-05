@@ -2267,231 +2267,348 @@ void cJSON_Minify(char *json)
 
 struct StreamData
 {
-	char buffer[STREAM_SIZE];
-	size_t offset;
+    char buffer[STREAM_SIZE];
+    size_t offset;
 };
 
 static void StreamData_Init(StreamData *data);
 static int stream_value(cJSON_Stream *stream, const cJSON *item, int depth);
-static int stream_string(cJSON_Stream *stream, const char *str);
 static int stream_number(cJSON_Stream *stream, const cJSON *item);
+static int stream_string(cJSON_Stream *stream, const char *str);
 static int stream_array(cJSON_Stream *stream, const cJSON *item, int depth);
 static int stream_object(cJSON_Stream *stream, const cJSON *item, int depth);
+static int stream_puts(cJSON_Stream *stream, const char *str);
+static int stream_putc(cJSON_Stream *stream, char c);
+static int stream_flush(cJSON_Stream *stream);
 
 void cJSON_StreamInit(cJSON_Stream *stream)
 {
-	memset(stream, 0, sizeof(cJSON_Stream));
+    memset(stream, 0, sizeof(cJSON_Stream));
 }
 
 void cJSON_StreamDeInit(cJSON_Stream *stream)
 {
-	/* Do nothing, reserved for later */
-	(void)stream;
+    /* Do nothing, reserved for later */
+    (void)stream;
 }
 
 int cJSON_PrintStream(cJSON_Stream *stream, const cJSON *item)
 {
-	int out;
-	StreamData data;
+    int out;
+    StreamData data;
 
-	StreamData_Init(&data);
+    StreamData_Init(&data);
 
-	stream->data = &data;
+    stream->data = &data;
 
-	out = stream_value(stream, item, 0);
+    out = stream_value(stream, item, 0);
 
-	return out;
+    out += stream_flush(stream);
+
+    return out;
 }
 
 static void StreamData_Init(StreamData *data)
 {
-	memset(data, 0, sizeof(StreamData));
+    memset(data, 0, sizeof(StreamData));
 }
 
 static int stream_value(cJSON_Stream *stream, const cJSON *item, int depth)
 {
-	int out = 0;
+    int out = 0;
 
-	if (!stream || !item)
-	{
-		return -1;
-	}
+    if (!stream || !item)
+    {
+        return -1;
+    }
 
-	switch ((item->type) & 0xFF)
-	{
-	case cJSON_NULL:
-		out += stream_string(stream, "null");
-		break;
-	case cJSON_False:
-		out += stream_string(stream, "false");
-		break;
-	case cJSON_True:
-		out += stream_string(stream, "true");
-		break;
-	case cJSON_Number:
-		out += stream_number(stream, item);
-		break;
-	case cJSON_String:
-		out += stream_string(stream, item->valuestring);
-		break;
-	case cJSON_Array:
-		out += stream_array(stream, item, depth);
-		break;
-	case cJSON_Object:
-		out += stream_object(stream, item, depth);
-		break;
-	}
+    switch ((item->type) & 0xFF)
+    {
+    case cJSON_NULL:
+        out += stream_puts(stream, "null");
+        break;
+    case cJSON_False:
+        out += stream_puts(stream, "false");
+        break;
+    case cJSON_True:
+        out += stream_puts(stream, "true");
+        break;
+    case cJSON_Number:
+        out += stream_number(stream, item);
+        break;
+    case cJSON_String:
+        out += stream_string(stream, item->valuestring);
+        break;
+    case cJSON_Array:
+        out += stream_array(stream, item, depth);
+        break;
+    case cJSON_Object:
+        out += stream_object(stream, item, depth);
+        break;
+    }
 
-	return out;
-}
-
-static int stream_string(cJSON_Stream *stream, const char *str)
-{
-	size_t length = strlen(str);
-
-	/* TODO Need to handle if length of string is larger than the buffer */
-
-	/* If the data being appended is larger than our buffer flush and reset */
-	if (stream->data->offset + length + 1 > sizeof(stream->data->buffer))
-	{
-		stream->cb(stream->data->buffer, stream->data->offset, stream->cb_data);
-
-		StreamData_Init(stream->data);
-	}
-
-	strcpy(stream->data->buffer + stream->data->offset, str);
-	stream->data->offset += length;
-
-	return length;
+    return out;
 }
 
 static int stream_number(cJSON_Stream *stream, const cJSON *item)
 {
-	double d;
-	char buffer[64];
+    double d;
+    char buffer[64];
 
-	d = item->valuedouble;
+    d = item->valuedouble;
 
-	if (d == 0)
-	{
-		sprintf(buffer, "0");
-	}
-	else if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
-	{
-		sprintf(buffer, "%d", item->valueint);
-	}
-	else
-	{
-		if ((d * 0) != 0)
-		{
-			sprintf(buffer, "null");
-		}
-		else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
-		{
-			sprintf(buffer, "%.0f", d);
-		}
-		else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
-		{
-			sprintf(buffer, "%e", d);
-		}
-		else
-		{
-			sprintf(buffer, "%f", d);
-		}
-	}
+    if (d == 0)
+    {
+        sprintf(buffer, "0");
+    }
+    else if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
+    {
+        sprintf(buffer, "%d", item->valueint);
+    }
+    else
+    {
+        if ((d * 0) != 0)
+        {
+            sprintf(buffer, "null");
+        }
+        else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
+        {
+            sprintf(buffer, "%.0f", d);
+        }
+        else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
+        {
+            sprintf(buffer, "%e", d);
+        }
+        else
+        {
+            sprintf(buffer, "%f", d);
+        }
+    }
 
-	return stream_string(stream, buffer);
+    return stream_puts(stream, buffer);
+}
+
+static cjbool escaped_str(const char *str)
+{
+    for (; *str; str++)
+    {
+        if (0 < *str && *str < 32)
+            return true;
+
+        if (*str == '\"')
+            return true;
+
+        if (*str == '\\')
+            return true;
+    }
+
+    return false;
+}
+
+static int stream_string(cJSON_Stream *stream, const char *str)
+{
+    int out = 0;
+    char buffer[8];
+
+    out += stream_putc(stream, '"');
+
+    if (escaped_str(str))
+    {
+        for (; *str; str++)
+        {
+            if (*str < 32 || *str == '\"' || *str == '\\')
+            {
+                stream_putc(stream, '\\');
+
+                switch (*str)
+                {
+                    case '\\':
+                    case '\"':
+                        stream_putc(stream, *str);
+                        break;
+                    case '\b':
+                        stream_putc(stream, 'b');
+                        break;
+                    case '\f':
+                        stream_putc(stream, 'f');
+                        break;
+                    case '\n':
+                        stream_putc(stream, 'n');
+                        break;
+                    case '\r':
+                        stream_putc(stream, 'r');
+                        break;
+                    case '\t':
+                        stream_putc(stream, 't');
+                        break;
+                    default:
+                        /* Escape and print as unicode codepoint */
+                        sprintf(buffer, "u%04x", *str);
+                        stream_puts(stream, buffer);
+
+                        str += 4;
+                        break;
+                }
+            }
+            else
+            {
+                stream_putc(stream, *str);
+            }
+        }
+    }
+    else
+    {
+        out += stream_puts(stream, str);
+    }
+
+    out += stream_putc(stream, '"');
+
+    return out;
 }
 
 static int stream_array(cJSON_Stream *stream, const cJSON *item, int depth)
 {
-	int out = 0;
+    int out = 0;
 
-	/* Place the opening brace */
-	out += stream_string(stream, "[");
+    /* Place the opening brace */
+    out += stream_putc(stream, '[');
 
-	/* Iterate through all children */
-	for (item = item->child; item != NULL; item = item->next)
-	{
-		/* Print the item value */
-		out += stream_value(stream, item, depth + 1);
+    /* Iterate through all children */
+    for (item = item->child; item != NULL; item = item->next)
+    {
+        /* Print the item value */
+        out += stream_value(stream, item, depth + 1);
 
-		if (item->next)
-		{
-			/* Add coma for next item */
-			out += stream_string(stream, ",");
-		}
+        if (item->next)
+        {
+            /* Add coma for next item */
+            out += stream_putc(stream, ',');
+        }
 
-		if (stream->fmt)
-		{
-			/* Format spacing */
-			out += stream_string(stream, " ");
-		}
-	}
+        if (stream->fmt)
+        {
+            /* Format spacing */
+            out += stream_putc(stream, ' ');
+        }
+    }
 
-	/* Place the closing brace */
-	out += stream_string(stream, "]");
+    /* Place the closing brace */
+    out += stream_putc(stream, ']');
 
-	return out;
+    return out;
 }
 
 static int stream_object(cJSON_Stream *stream, const cJSON *item, int depth)
 {
-	int i;
-	int out = 0;
+    int i;
+    int out = 0;
 
-	out += stream_string(stream, "{");
+    out += stream_putc(stream, '{');
 
-	if (stream->fmt)
-	{
-		/* Format newline */
-		out += stream_string(stream, "\n");
+    /* Iterate through all children */
+    for (item = item->child; item != NULL; item = item->next)
+    {
+        if (stream->fmt)
+        {
+            /* Format newline */
+            out += stream_putc(stream, '\n');
 
-		/* Format indent */
-		for (i = 0; i < depth; i++)
-		{
-			out += stream_string(stream, "\t");
-		}
-	}
+            /* Format indent */
+            for (i = 0; i < depth + 1; i++)
+            {
+                out += stream_putc(stream, '\t');
+            }
+        }
 
-	/* Iterate through all children */
-	for (item = item->child; item != NULL; item = item->next)
-	{
-		/* Print the item key */
-		out += stream_string(stream, item->string);
+        /* Print the item key */
+        out += stream_string(stream, item->string);
 
-		/* Separate key and value with colon */
-		out += stream_string(stream, ":");
+        /* Separate key and value with colon */
+        out += stream_putc(stream, ':');
 
-		if (stream->fmt)
-		{
-			out += stream_string(stream, "\t");
-		}
+        if (stream->fmt)
+        {
+            out += stream_putc(stream, '\t');
+        }
 
-		/* Print the item value */
-		out += stream_value(stream, item, depth);
+        /* Print the item value */
+        out += stream_value(stream, item, depth + 1);
 
-		if (item->next)
-		{
-			/* Add coma for next item */
-			out += stream_string(stream, ",");
-		}
+        if (item->next)
+        {
+            /* Add comma for next item */
+            out += stream_putc(stream, ',');
+        }
+    }
 
-		if (stream->fmt)
-		{
-			/* Format newline */
-			out += stream_string(stream, "\n");
+    if (stream->fmt)
+    {
+        /* Format newline */
+        out += stream_putc(stream, '\n');
 
-			/* Format indent */
-			for (i = 0; i < depth; i++)
-			{
-				out += stream_string(stream, "\t");
-			}
-		}
-	}
+        /* Format indent */
+        for (i = 0; i < depth; i++)
+        {
+            out += stream_putc(stream, '\t');
+        }
+    }
 
-	/* Place the closing brace */
-	out += stream_string(stream, "}");
+    /* Place the closing brace */
+    out += stream_putc(stream, '}');
 
-	return out;
+    return out;
+}
+
+static int stream_puts(cJSON_Stream *stream, const char *str)
+{
+    int out = 0;
+    size_t d;
+    size_t str_length = strlen(str);
+
+    while (sizeof(stream->data->buffer) - stream->data->offset <= str_length)
+    {
+        /* Fill the remaining stream buffer */
+        d = sizeof(stream->data->buffer) - stream->data->offset - 1;
+
+        strncpy(stream->data->buffer + stream->data->offset, str, d);
+        stream->data->offset += d;
+
+        out += stream_flush(stream);
+
+        str += d;
+        str_length -= d;
+    }
+
+    strcpy(stream->data->buffer + stream->data->offset, str);
+    stream->data->offset += str_length;
+
+    return out;
+}
+
+static int stream_putc(cJSON_Stream *stream, char c)
+{
+    int out = 0;
+
+    if (stream->data->offset == sizeof(stream->data->buffer) - 1)
+    {
+        out = stream_flush(stream);
+    }
+
+    stream->data->buffer[stream->data->offset++] = c;
+
+    return out;
+}
+
+static int stream_flush(cJSON_Stream *stream)
+{
+    int out = stream->data->offset;
+
+    if (stream->cb(stream->data->buffer, stream->data->offset, stream->cb_data))
+    {
+        /* TODO Need to handle an error here */
+    }
+
+    StreamData_Init(stream->data);
+
+    return out;
 }
