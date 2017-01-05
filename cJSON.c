@@ -990,12 +990,26 @@ static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *
                 out = print_number(item, p);
                 break;
             case cJSON_Raw:
-                out = ensure(p, strlen(item->valuestring));
+            {
+                size_t raw_length = 0;
+                if (item->valuestring == NULL)
+                {
+                    if (!p->noalloc)
+                    {
+                        cJSON_free(p->buffer);
+                    }
+                    out = NULL;
+                    break;
+                }
+
+                raw_length = strlen(item->valuestring) + sizeof('\0');
+                out = ensure(p, raw_length);
                 if (out)
                 {
-                    strcpy(out, item->valuestring);
+                    memcpy(out, item->valuestring, raw_length);
                 }
                 break;
+            }
             case cJSON_String:
                 out = print_string(item, p);
                 break;
