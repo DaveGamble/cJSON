@@ -65,23 +65,38 @@ typedef struct cJSON
     char *string;
 } cJSON;
 
-typedef int (*cjson_callback)(const char *ptr, size_t length, void *cb_data);
+/*
+ * Callback should return non zero if there is an error.
+ */
+typedef int (*cJSON_Callback)(const char *ptr, size_t length, void *cb_data);
 
+/* Forward declare StreamData */
 typedef struct StreamData StreamData;
 
 typedef struct cJSON_Stream
 {
+	/* Stream private data */
 	StreamData *data;
 
-	cjson_callback cb;
+	/* User defined callback function */
+	cJSON_Callback cb;
+	/* User defined data for callback function */
 	void *cb_data;
 
+	/* Whether or not to format the JSON output */
 	int fmt;
+
+	/* Non zero if error */
+	int error;
 } cJSON_Stream;
 
+/* Initializaes a cJSON_Stream */
 void cJSON_StreamInit(cJSON_Stream *stream);
-int cJSON_PrintStream(cJSON_Stream *stream, const cJSON *item);
+
+/* Deinitializes a cJSON_Stream */
 void cJSON_StreamDeInit(cJSON_Stream *stream);
+
+int cJSON_PrintStream(cJSON_Stream *stream, const cJSON *item);
 
 typedef struct cJSON_Hooks
 {

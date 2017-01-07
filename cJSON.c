@@ -2271,7 +2271,6 @@ struct StreamData
     size_t offset;
 };
 
-static void StreamData_Init(StreamData *data);
 static int stream_value(cJSON_Stream *stream, const cJSON *item, int depth);
 static int stream_number(cJSON_Stream *stream, const cJSON *item);
 static int stream_string(cJSON_Stream *stream, const char *str);
@@ -2297,57 +2296,55 @@ int cJSON_PrintStream(cJSON_Stream *stream, const cJSON *item)
     int out;
     StreamData data;
 
-    StreamData_Init(&data);
+    if (!stream || !item || !stream->cb)
+    {
+        return -1;
+    }
 
+    /* Initialize and assign the stream data */
+    memset(&data, 0, sizeof(StreamData));
     stream->data = &data;
+    stream->error = 0;
 
     out = stream_value(stream, item, 0);
 
-    out += stream_flush(stream);
+    if (!stream->error)
+    {
+        /* Flush the stream buffer */
+        out += stream_flush(stream);
+    }
 
     return out;
 }
 
-static void StreamData_Init(StreamData *data)
-{
-    memset(data, 0, sizeof(StreamData));
-}
-
 static int stream_value(cJSON_Stream *stream, const cJSON *item, int depth)
 {
-    int out = 0;
-
-    if (!stream || !item)
+    /* Bail ASAP if error */
+    if (stream->error)
     {
-        return -1;
+        return 0;
     }
 
     switch ((item->type) & 0xFF)
     {
     case cJSON_NULL:
-        out += stream_puts(stream, "null");
-        break;
+        return stream_puts(stream, "null");
     case cJSON_False:
-        out += stream_puts(stream, "false");
-        break;
+        return stream_puts(stream, "false");
     case cJSON_True:
-        out += stream_puts(stream, "true");
-        break;
+        return stream_puts(stream, "true");
     case cJSON_Number:
-        out += stream_number(stream, item);
-        break;
+        return stream_number(stream, item);
     case cJSON_String:
-        out += stream_string(stream, item->valuestring);
-        break;
+        return stream_string(stream, item->valuestring);
     case cJSON_Array:
-        out += stream_array(stream, item, depth);
-        break;
+        return stream_array(stream, item, depth);
     case cJSON_Object:
-        out += stream_object(stream, item, depth);
-        break;
+        return stream_object(stream, item, depth);
+    default:
+        stream->error = 1;
+        return 0;
     }
-
-    return out;
 }
 
 static int stream_number(cJSON_Stream *stream, const cJSON *item)
@@ -2355,11 +2352,17 @@ static int stream_number(cJSON_Stream *stream, const cJSON *item)
     double d;
     char buffer[64];
 
+    /* Bail ASAP if error */
+    if (stream->error)
+    {
+        return 0;
+    }
+
     d = item->valuedouble;
 
     if (d == 0)
     {
-        sprintf(buffer, "0");
+        strcpy(buffer, "0");
     }
     else if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
     {
@@ -2369,7 +2372,7 @@ static int stream_number(cJSON_Stream *stream, const cJSON *item)
     {
         if ((d * 0) != 0)
         {
-            sprintf(buffer, "null");
+            strcpy(buffer, "null");
         }
         else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
         {
@@ -2409,6 +2412,12 @@ static int stream_string(cJSON_Stream *stream, const char *str)
 {
     int out = 0;
     char buffer[8];
+
+    /* Bail ASAP if error */
+    if (stream->error)
+    {
+        return 0;
+    }
 
     out += stream_putc(stream, '"');
 
@@ -2470,6 +2479,12 @@ static int stream_array(cJSON_Stream *stream, const cJSON *item, int depth)
 {
     int out = 0;
 
+    /* Bail ASAP if error */
+    if (stream->error)
+    {
+        return 0;
+    }
+
     /* Place the opening brace */
     out += stream_putc(stream, '[');
 
@@ -2503,6 +2518,13 @@ static int stream_object(cJSON_Stream *stream, const cJSON *item, int depth)
     int i;
     int out = 0;
 
+    /* Bail ASAP if error */
+    if (stream->error)
+    {
+        return 0;
+    }
+
+    /* Place the opening brace */
     out += stream_putc(stream, '{');
 
     /* Iterate through all children */
@@ -2565,14 +2587,22 @@ static int stream_puts(cJSON_Stream *stream, const char *str)
     size_t d;
     size_t str_length = strlen(str);
 
-    while (sizeof(stream->data->buffer) - stream->data->offset <= str_length)
+    /* Bail ASAP if error */
+    if (stream->error)
     {
-        /* Fill the remaining stream buffer */
+        return 0;
+    }
+
+    /* If there is not enough room in the buffer, flush it out */
+    while ((sizeof(stream->data->buffer) - stream->data->offset) <= str_length)
+    {
+        /* Fill the remaining stream buffer if possible */
         d = sizeof(stream->data->buffer) - stream->data->offset - 1;
 
         strncpy(stream->data->buffer + stream->data->offset, str, d);
         stream->data->offset += d;
 
+        /* Flush stream and increment str */
         out += stream_flush(stream);
 
         str += d;
@@ -2589,11 +2619,19 @@ static int stream_putc(cJSON_Stream *stream, char c)
 {
     int out = 0;
 
-    if (stream->data->offset == sizeof(stream->data->buffer) - 1)
+    /* Bail ASAP if error */
+    if (stream->error)
+    {
+        return 0;
+    }
+
+    /* If the buffer is full, flush it out */
+    if (stream->data->offset == (sizeof(stream->data->buffer) - 1))
     {
         out = stream_flush(stream);
     }
 
+    /* Append the character and increment the stream offset */
     stream->data->buffer[stream->data->offset++] = c;
 
     return out;
@@ -2601,14 +2639,29 @@ static int stream_putc(cJSON_Stream *stream, char c)
 
 static int stream_flush(cJSON_Stream *stream)
 {
-    int out = stream->data->offset;
+    int ret = 0;
 
-    if (stream->cb(stream->data->buffer, stream->data->offset, stream->cb_data))
+    /* Bail ASAP if error */
+    if (stream->error)
     {
-        /* TODO Need to handle an error here */
+        return 0;
     }
 
-    StreamData_Init(stream->data);
+    /* Only call the callback if there is data */
+    if (stream->data->offset)
+    {
+        ret = stream->cb(stream->data->buffer,
+                stream->data->offset,
+                stream->cb_data);
 
-    return out;
+        if (ret)
+        {
+            stream->error = ret;
+        }
+
+        ret = stream->data->offset;
+        memset(stream->data, 0, sizeof(StreamData));
+    }
+
+    return ret;
 }
