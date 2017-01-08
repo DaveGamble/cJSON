@@ -2427,33 +2427,33 @@ static int stream_string(cJSON_Stream *stream, const char *str)
         {
             if (*str < 32 || *str == '\"' || *str == '\\')
             {
-                stream_putc(stream, '\\');
+                out += stream_putc(stream, '\\');
 
                 switch (*str)
                 {
                     case '\\':
                     case '\"':
-                        stream_putc(stream, *str);
+                        out += stream_putc(stream, *str);
                         break;
                     case '\b':
-                        stream_putc(stream, 'b');
+                        out += stream_putc(stream, 'b');
                         break;
                     case '\f':
-                        stream_putc(stream, 'f');
+                        out += stream_putc(stream, 'f');
                         break;
                     case '\n':
-                        stream_putc(stream, 'n');
+                        out += stream_putc(stream, 'n');
                         break;
                     case '\r':
-                        stream_putc(stream, 'r');
+                        out += stream_putc(stream, 'r');
                         break;
                     case '\t':
-                        stream_putc(stream, 't');
+                        out += stream_putc(stream, 't');
                         break;
                     default:
                         /* Escape and print as unicode codepoint */
                         sprintf(buffer, "u%04x", *str);
-                        stream_puts(stream, buffer);
+                        out += stream_puts(stream, buffer);
 
                         str += 4;
                         break;
@@ -2461,7 +2461,7 @@ static int stream_string(cJSON_Stream *stream, const char *str)
             }
             else
             {
-                stream_putc(stream, *str);
+                out += stream_putc(stream, *str);
             }
         }
     }
