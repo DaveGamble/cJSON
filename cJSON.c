@@ -88,6 +88,11 @@ static char* cJSON_strdup(const char* str)
     size_t len = 0;
     char *copy = NULL;
 
+    if (str == NULL)
+    {
+        return NULL;
+    }
+
     len = strlen(str) + 1;
     if (!(copy = (char*)cJSON_malloc(len)))
     {
@@ -989,6 +994,27 @@ static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *
             case cJSON_Number:
                 out = print_number(item, p);
                 break;
+            case cJSON_Raw:
+            {
+                size_t raw_length = 0;
+                if (item->valuestring == NULL)
+                {
+                    if (!p->noalloc)
+                    {
+                        cJSON_free(p->buffer);
+                    }
+                    out = NULL;
+                    break;
+                }
+
+                raw_length = strlen(item->valuestring) + sizeof('\0');
+                out = ensure(p, raw_length);
+                if (out)
+                {
+                    memcpy(out, item->valuestring, raw_length);
+                }
+                break;
+            }
             case cJSON_String:
                 out = print_string(item, p);
                 break;
@@ -1015,6 +1041,9 @@ static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *
                 break;
             case cJSON_Number:
                 out = print_number(item, 0);
+                break;
+            case cJSON_Raw:
+                out = cJSON_strdup(item->valuestring);
                 break;
             case cJSON_String:
                 out = print_string(item, 0);
@@ -1978,6 +2007,23 @@ cJSON *cJSON_CreateString(const char *string)
     {
         item->type = cJSON_String;
         item->valuestring = cJSON_strdup(string);
+        if(!item->valuestring)
+        {
+            cJSON_Delete(item);
+            return NULL;
+        }
+    }
+
+    return item;
+}
+
+extern cJSON *cJSON_CreateRaw(const char *raw)
+{
+    cJSON *item = cJSON_New_Item();
+    if(item)
+    {
+        item->type = cJSON_Raw;
+        item->valuestring = cJSON_strdup(raw);
         if(!item->valuestring)
         {
             cJSON_Delete(item);
