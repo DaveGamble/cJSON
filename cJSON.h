@@ -47,7 +47,8 @@ extern "C"
 	cJSON_Number =  (1 << 3),
 	cJSON_String =  (1 << 4),
 	cJSON_Array =   (1 << 5),
-	cJSON_Object =  (1 << 6)
+	cJSON_Object =  (1 << 6),
+	cJSON_Raw =  	(1 << 7)
 }cJSON_Types;
 
 #define cJSON_IsReference 256
