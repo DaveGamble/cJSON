@@ -382,6 +382,9 @@ int main(void)
         "</body>\n"
         "</html>\n";
 
+    /* print the version */
+    printf("Version: %s\n", cJSON_Version());
+
     /* Process each json textblock by parsing, then rebuilding: */
     doit(text1);
     doit(text2);
