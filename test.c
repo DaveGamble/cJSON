@@ -45,37 +45,6 @@ static void doit(char *text)
     }
 }
 
-#if 0
-/* Read a file, parse, render back, etc. */
-static void dofile(char *filename)
-{
-    FILE *f = NULL;
-    long len = 0;
-    char *data = NULL;
-
-    /* open in read binary mode */
-    f = fopen(filename,"rb");
-    /* get the length */
-    fseek(f, 0, SEEK_END);
-    len = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    data = (char*)malloc(len + 1);
-    if (data == NULL)
-    {
-        printf("Failed to allocate memory.\n");
-        exit(1);
-    }
-
-    fread(data, 1, len, f);
-    data[len] = '\0';
-    fclose(f);
-
-    doit(data);
-    free(data);
-}
-#endif
-
 /* Used by some code below as an example datatype. */
 struct record
 {
@@ -392,14 +361,6 @@ int main(void)
     doit(text4);
     doit(text5);
     doit(text6);
-
-    /* Parse standard testfiles: */
-    /* dofile("../../tests/test1"); */
-    /* dofile("../../tests/test2"); */
-    /* dofile("../../tests/test3"); */
-    /* dofile("../../tests/test4"); */
-    /* dofile("../../tests/test5"); */
-    /* dofile("../../tests/test6"); */
 
     /* Now some samplecode for building objects concisely: */
     create_objects();
