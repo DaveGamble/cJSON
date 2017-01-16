@@ -210,6 +210,31 @@ static void file_test6_should_not_be_parsed(void)
     }
 }
 
+static void file_test7_should_be_parsed_and_printed(void)
+{
+    do_test("test7");
+}
+
+static void file_test8_should_be_parsed_and_printed(void)
+{
+    do_test("test8");
+}
+
+static void file_test9_should_be_parsed_and_printed(void)
+{
+    do_test("test9");
+}
+
+static void file_test10_should_be_parsed_and_printed(void)
+{
+    do_test("test10");
+}
+
+static void file_test11_should_be_parsed_and_printed(void)
+{
+    do_test("test11");
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -219,5 +244,10 @@ int main(void)
     RUN_TEST(file_test4_should_be_parsed_and_printed);
     RUN_TEST(file_test5_should_be_parsed_and_printed);
     RUN_TEST(file_test6_should_not_be_parsed);
+    RUN_TEST(file_test7_should_be_parsed_and_printed);
+    RUN_TEST(file_test8_should_be_parsed_and_printed);
+    RUN_TEST(file_test9_should_be_parsed_and_printed);
+    RUN_TEST(file_test10_should_be_parsed_and_printed);
+    RUN_TEST(file_test11_should_be_parsed_and_printed);
     return UNITY_END();
 }
