@@ -8,6 +8,7 @@ if(ENABLE_CJSON_TEST)
 
     set(unity_tests
         parse_examples
+        parse_number
     )
 
     foreach(unity_test ${unity_tests})

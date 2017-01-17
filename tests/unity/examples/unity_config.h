@@ -121,7 +121,7 @@
   * or both, as suits your needs.
   */
 /* #define UNITY_EXCLUDE_FLOAT  */
-/* #define UNITY_INCLUDE_DOUBLE */
+#define UNITY_INCLUDE_DOUBLE
 /* #define UNITY_EXCLUDE_DOUBLE */
 
 /* For features that are enabled, the following floating point options also
