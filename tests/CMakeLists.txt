@@ -16,9 +16,26 @@ if(ENABLE_CJSON_TEST)
         parse_value
     )
 
+    option(ENABLE_VALGRIND OFF "Enable the valgrind memory checker for the tests.")
+    if (ENABLE_VALGRIND)
+        find_program(MEMORYCHECK_COMMAND valgrind)
+        if ("${MEMORYCHECK_COMMAND}" MATCHES "MEMORYCHECK_COMMAND-NOTFOUND")
+            message(WARNING "Valgrind couldn't be found.")
+            unset(MEMORYCHECK_COMMAND)
+        else()
+            set(MEMORYCHECK_COMMAND_OPTIONS --trace-children=yes --leak-check=full --error-exitcode=1)
+        endif()
+    endif()
+
     foreach(unity_test ${unity_tests})
         add_executable("${unity_test}" "${unity_test}.c")
         target_link_libraries("${unity_test}" "${CJSON_LIB}" unity)
-        add_test("${unity_test}" "${unity_test}")
+        if(MEMORYCHECK_COMMAND)
+            add_test(NAME "${unity_test}"
+                COMMAND "${MEMORYCHECK_COMMAND}" ${MEMORYCHECK_COMMAND_OPTIONS} "./${unity_test}")
+        else()
+            add_test(NAME "${unity_test}"
+                COMMAND "./${unity_test}")
+        endif()
     endforeach()
 endif()
