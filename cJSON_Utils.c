@@ -208,6 +208,11 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 static void cJSONUtils_InplaceDecodePointerString(char *string)
 {
     char *s2 = string;
+
+    if (string == NULL) {
+        return;
+    }
+
     for (; *string; s2++, string++)
     {
         *s2 = (*string != '~')
