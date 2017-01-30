@@ -208,6 +208,11 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 static void cJSONUtils_InplaceDecodePointerString(char *string)
 {
     char *s2 = string;
+
+    if (string == NULL) {
+        return;
+    }
+
     for (; *string; s2++, string++)
     {
         *s2 = (*string != '~')
@@ -229,12 +234,19 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const char *path)
 
     /* copy path and split it in parent and child */
     parentptr = cJSONUtils_strdup(path);
-    childptr = strrchr(parentptr, '/'); /* last '/' */
-    if (childptr)
-    {
-        /* split strings */
-        *childptr++ = '\0';
+    if (parentptr == NULL) {
+        return NULL;
     }
+
+    childptr = strrchr(parentptr, '/'); /* last '/' */
+    if (childptr == NULL)
+    {
+        free(parentptr);
+        return NULL;
+    }
+    /* split strings */
+    *childptr++ = '\0';
+
     parent = cJSONUtils_GetPointer(object, parentptr);
     cJSONUtils_InplaceDecodePointerString(childptr);
 
