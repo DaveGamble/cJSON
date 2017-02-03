@@ -921,7 +921,7 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
 
     if (prebuffer < 0)
     {
-        return false;
+        return NULL;
     }
 
     p.buffer = (unsigned char*)cJSON_malloc((size_t)prebuffer);
