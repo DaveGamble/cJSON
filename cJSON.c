@@ -645,6 +645,9 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
                             /* depending on the length in bytes this determines the
                              * encoding ofthe first UTF8 byte */
                             *--ptr2 = (uc | firstByteMark[len]);
+                        default:
+                            *ep = str;
+                            return NULL;
                     }
                     ptr2 += len;
                     break;
@@ -1032,6 +1035,9 @@ static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *
             case cJSON_Object:
                 out = print_object(item, depth, fmt, p);
                 break;
+            default:
+                out = NULL;
+                break;
         }
     }
     else
@@ -1061,6 +1067,9 @@ static char *print_value(const cJSON *item, int depth, cjbool fmt, printbuffer *
                 break;
             case cJSON_Object:
                 out = print_object(item, depth, fmt, 0);
+                break;
+            default:
+                out = NULL;
                 break;
         }
     }
