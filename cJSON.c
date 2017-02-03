@@ -245,7 +245,7 @@ static int pow2gt (int x)
 #if INTEGER_SIZE & 0x1100 /* at least 32 bit */
     x |= x >> 16;
 #endif
-#if INT_SIZE & 0x1000 /* 64 bit */
+#if INTEGER_SIZE & 0x1000 /* 64 bit */
     x |= x >> 32;
 #endif
 
