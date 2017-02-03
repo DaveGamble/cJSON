@@ -322,14 +322,14 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
 /* calculate the new length of the string in a printbuffer */
 static size_t update(const printbuffer *p)
 {
-    unsigned char *str = NULL;
+    const unsigned char *str = NULL;
     if (!p || !p->buffer)
     {
         return 0;
     }
     str = p->buffer + p->offset;
 
-    return p->offset + strlen((char*)str);
+    return p->offset + strlen((const char*)str);
 }
 
 /* Render the number nicely from the given item into a string. */
@@ -510,7 +510,7 @@ static const unsigned char firstByteMark[7] =
 static const unsigned char *parse_string(cJSON *item, const unsigned char *str, const unsigned char **ep)
 {
     const unsigned char *ptr = str + 1;
-    const unsigned char *end_ptr =str + 1;
+    const unsigned char *end_ptr = str + 1;
     unsigned char *ptr2 = NULL;
     unsigned char *out = NULL;
     size_t len = 0;
