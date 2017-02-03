@@ -493,7 +493,7 @@ static const char *parse_string(cJSON *item, const char *str, const char **ep)
     const char *end_ptr =str + 1;
     char *ptr2 = NULL;
     char *out = NULL;
-    int len = 0;
+    unsigned len = 0;
     unsigned uc = 0;
     unsigned uc2 = 0;
 
