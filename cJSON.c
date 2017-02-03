@@ -1681,7 +1681,7 @@ static char *print_object(const cJSON *item, int depth, cjbool fmt, printbuffer 
 }
 
 /* Get Array size/item / object item. */
-int    cJSON_GetArraySize(const cJSON *array)
+size_t cJSON_GetArraySize(const cJSON *array)
 {
     cJSON *c = array->child;
     int i = 0;
@@ -1693,7 +1693,7 @@ int    cJSON_GetArraySize(const cJSON *array)
     return i;
 }
 
-cJSON *cJSON_GetArrayItem(const cJSON *array, int item)
+cJSON *cJSON_GetArrayItem(const cJSON *array, size_t item)
 {
     cJSON *c = array ? array->child : NULL;
     while (c && item > 0)
@@ -1812,7 +1812,7 @@ void cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *it
     cJSON_AddItemToObject(object, string, create_reference(item));
 }
 
-cJSON *cJSON_DetachItemFromArray(cJSON *array, int which)
+cJSON *cJSON_DetachItemFromArray(cJSON *array, size_t which)
 {
     cJSON *c = array->child;
     while (c && (which > 0))
@@ -1844,7 +1844,7 @@ cJSON *cJSON_DetachItemFromArray(cJSON *array, int which)
     return c;
 }
 
-void cJSON_DeleteItemFromArray(cJSON *array, int which)
+void cJSON_DeleteItemFromArray(cJSON *array, size_t which)
 {
     cJSON_Delete(cJSON_DetachItemFromArray(array, which));
 }
@@ -1872,7 +1872,7 @@ void cJSON_DeleteItemFromObject(cJSON *object, const char *string)
 }
 
 /* Replace array/object items with new ones. */
-void cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)
+void cJSON_InsertItemInArray(cJSON *array, size_t which, cJSON *newitem)
 {
     cJSON *c = array->child;
     while (c && (which > 0))
@@ -1898,7 +1898,7 @@ void cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)
     }
 }
 
-void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
+void cJSON_ReplaceItemInArray(cJSON *array, size_t which, cJSON *newitem)
 {
     cJSON *c = array->child;
     while (c && (which > 0))
@@ -2065,7 +2065,7 @@ cJSON *cJSON_CreateObject(void)
 }
 
 /* Create Arrays: */
-cJSON *cJSON_CreateIntArray(const int *numbers, int count)
+cJSON *cJSON_CreateIntArray(const int *numbers, size_t count)
 {
     int i = 0;
     cJSON *n = NULL;
@@ -2093,7 +2093,7 @@ cJSON *cJSON_CreateIntArray(const int *numbers, int count)
     return a;
 }
 
-cJSON *cJSON_CreateFloatArray(const float *numbers, int count)
+cJSON *cJSON_CreateFloatArray(const float *numbers, size_t count)
 {
     int i = 0;
     cJSON *n = NULL;
@@ -2121,7 +2121,7 @@ cJSON *cJSON_CreateFloatArray(const float *numbers, int count)
     return a;
 }
 
-cJSON *cJSON_CreateDoubleArray(const double *numbers, int count)
+cJSON *cJSON_CreateDoubleArray(const double *numbers, size_t count)
 {
     int i = 0;
     cJSON *n = NULL;
@@ -2149,7 +2149,7 @@ cJSON *cJSON_CreateDoubleArray(const double *numbers, int count)
     return a;
 }
 
-cJSON *cJSON_CreateStringArray(const char **strings, int count)
+cJSON *cJSON_CreateStringArray(const char **strings, size_t count)
 {
     int i = 0;
     cJSON *n = NULL;
