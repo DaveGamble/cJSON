@@ -225,7 +225,19 @@ static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
     n = sign * n * pow(10.0, (scale + subscale * signsubscale));
 
     item->valuedouble = n;
-    item->valueint = (int)n;
+    /* use saturation in case of overflow */
+    if (n >= INT_MAX)
+    {
+        item->valueint = INT_MAX;
+    }
+    else if (n <= INT_MIN)
+    {
+        item->valueint = INT_MIN;
+    }
+    else
+    {
+        item->valueint = (int)n;
+    }
     item->type = cJSON_Number;
 
     return num;
@@ -2021,7 +2033,20 @@ cJSON *cJSON_CreateNumber(double num)
     {
         item->type = cJSON_Number;
         item->valuedouble = num;
-        item->valueint = (int)num;
+
+        /* use saturation in case of overflow */
+        if (num >= INT_MAX)
+        {
+            item->valueint = INT_MAX;
+        }
+        else if (num <= INT_MIN)
+        {
+            item->valueint = INT_MIN;
+        }
+        else
+        {
+            item->valueint = (int)num;
+        }
     }
 
     return item;
