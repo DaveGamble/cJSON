@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
+
 #include "cJSON_Utils.h"
 
 static unsigned char* cJSONUtils_strdup(const unsigned char* str)
@@ -172,14 +174,18 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
             /* parse array index */
             while ((*pointer >= '0') && (*pointer <= '9'))
             {
-                which = (10 * which) + (*pointer++ - '0');
+                which = (10 * which) + (size_t)(*pointer++ - '0');
             }
             if (*pointer && (*pointer != '/'))
             {
                 /* not end of string or new path token */
                 return NULL;
             }
-            object = cJSON_GetArrayItem(object, which);
+            if (which > INT_MAX)
+            {
+                return NULL;
+            }
+            object = cJSON_GetArrayItem(object, (int)which);
         }
         else if ((object->type & 0xFF) == cJSON_Object)
         {

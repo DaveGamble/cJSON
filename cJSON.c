@@ -298,7 +298,7 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
         return NULL;
     }
 
-    newsize = pow2gt(needed);
+    newsize = (size_t) pow2gt((int)needed);
     newbuffer = (unsigned char*)cJSON_malloc(newsize);
     if (!newbuffer)
     {
@@ -410,19 +410,20 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 /* parse 4 digit hexadecimal number */
 static unsigned parse_hex4(const unsigned char *str)
 {
-    unsigned h = 0;
+    unsigned int h = 0;
+
     /* first digit */
     if ((*str >= '0') && (*str <= '9'))
     {
-        h += (*str) - '0';
+        h += (unsigned int) (*str) - '0';
     }
     else if ((*str >= 'A') && (*str <= 'F'))
     {
-        h += 10 + (*str) - 'A';
+        h += (unsigned int) 10 + (*str) - 'A';
     }
     else if ((*str >= 'a') && (*str <= 'f'))
     {
-        h += 10 + (*str) - 'a';
+        h += (unsigned int) 10 + (*str) - 'a';
     }
     else /* invalid */
     {
@@ -435,15 +436,15 @@ static unsigned parse_hex4(const unsigned char *str)
     str++;
     if ((*str >= '0') && (*str <= '9'))
     {
-        h += (*str) - '0';
+        h += (unsigned int) (*str) - '0';
     }
     else if ((*str >= 'A') && (*str <= 'F'))
     {
-        h += 10 + (*str) - 'A';
+        h += (unsigned int) 10 + (*str) - 'A';
     }
     else if ((*str >= 'a') && (*str <= 'f'))
     {
-        h += 10 + (*str) - 'a';
+        h += (unsigned int) 10 + (*str) - 'a';
     }
     else /* invalid */
     {
@@ -455,15 +456,15 @@ static unsigned parse_hex4(const unsigned char *str)
     str++;
     if ((*str >= '0') && (*str <= '9'))
     {
-        h += (*str) - '0';
+        h += (unsigned int) (*str) - '0';
     }
     else if ((*str >= 'A') && (*str <= 'F'))
     {
-        h += 10 + (*str) - 'A';
+        h += (unsigned int) 10 + (*str) - 'A';
     }
     else if ((*str >= 'a') && (*str <= 'f'))
     {
-        h += 10 + (*str) - 'a';
+        h += (unsigned int) 10 + (*str) - 'a';
     }
     else /* invalid */
     {
@@ -475,15 +476,15 @@ static unsigned parse_hex4(const unsigned char *str)
     str++;
     if ((*str >= '0') && (*str <= '9'))
     {
-        h += (*str) - '0';
+        h += (unsigned int) (*str) - '0';
     }
     else if ((*str >= 'A') && (*str <= 'F'))
     {
-        h += 10 + (*str) - 'A';
+        h += (unsigned int) 10 + (*str) - 'A';
     }
     else if ((*str >= 'a') && (*str <= 'f'))
     {
-        h += 10 + (*str) - 'a';
+        h += (unsigned int) 10 + (*str) - 'a';
     }
     else /* invalid */
     {
@@ -650,20 +651,20 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                     switch (len) {
                         case 4:
                             /* 10xxxxxx */
-                            *--ptr2 = ((uc | 0x80) & 0xBF);
+                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
                             uc >>= 6;
                         case 3:
                             /* 10xxxxxx */
-                            *--ptr2 = ((uc | 0x80) & 0xBF);
+                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
                             uc >>= 6;
                         case 2:
                             /* 10xxxxxx */
-                            *--ptr2 = ((uc | 0x80) & 0xBF);
+                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
                             uc >>= 6;
                         case 1:
                             /* depending on the length in bytes this determines the
                              * encoding ofthe first UTF8 byte */
-                            *--ptr2 = (uc | firstByteMark[len]);
+                            *--ptr2 = (unsigned char)((uc | firstByteMark[len]) & 0xFF);
                         default:
                             *ep = str;
                             return NULL;
@@ -728,7 +729,7 @@ static unsigned char *print_string_ptr(const unsigned char *str, printbuffer *p)
     /* no characters have to be escaped */
     if (!flag)
     {
-        len = ptr - str;
+        len = (size_t)(ptr - str);
         if (p)
         {
             out = ensure(p, len + 3);
@@ -917,12 +918,19 @@ char *cJSON_PrintUnformatted(const cJSON *item)
 char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
 {
     printbuffer p;
-    p.buffer = (unsigned char*)cJSON_malloc(prebuffer);
+
+    if (prebuffer < 0)
+    {
+        return false;
+    }
+
+    p.buffer = (unsigned char*)cJSON_malloc((size_t)prebuffer);
     if (!p.buffer)
     {
         return NULL;
     }
-    p.length = prebuffer;
+
+    p.length = (size_t)prebuffer;
     p.offset = 0;
     p.noalloc = false;
 
@@ -932,11 +940,17 @@ char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
 int cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const cjbool fmt)
 {
     printbuffer p;
+
+    if (len < 0)
+    {
+        return false;
+    }
+
     p.buffer = (unsigned char*)buf;
-    p.length = len;
+    p.length = (size_t)len;
     p.offset = 0;
     p.noalloc = true;
-    return print_value(item,0,fmt,&p) != NULL;
+    return print_value(item, 0, fmt, &p) != NULL;
 }
 
 /* Parser core - when encountering text, process appropriately. */
@@ -1546,7 +1560,7 @@ static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, 
             p->offset = update(p);
 
             /* print comma if not last */
-            len = (fmt ? 1 : 0) + (child->next ? 1 : 0);
+            len = (size_t) (fmt ? 1 : 0) + (child->next ? 1 : 0);
             ptr = ensure(p, len + 1);
             if (!ptr)
             {
@@ -1709,7 +1723,7 @@ static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, 
 }
 
 /* Get Array size/item / object item. */
-int    cJSON_GetArraySize(const cJSON *array)
+int cJSON_GetArraySize(const cJSON *array)
 {
     cJSON *c = array->child;
     size_t i = 0;
@@ -1721,7 +1735,7 @@ int    cJSON_GetArraySize(const cJSON *array)
 
     /* FIXME: Can overflow here. Cannot be fixed without breaking the API */
 
-    return i;
+    return (int)i;
 }
 
 cJSON *cJSON_GetArrayItem(const cJSON *array, int item)
@@ -1843,7 +1857,7 @@ void cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *it
     cJSON_AddItemToObject(object, string, create_reference(item));
 }
 
-cJSON *cJSON_DetachItemFromArray(cJSON *array, int which)
+static cJSON *DetachItemFromArray(cJSON *array, size_t which)
 {
     cJSON *c = array->child;
     while (c && (which > 0))
@@ -1874,6 +1888,15 @@ cJSON *cJSON_DetachItemFromArray(cJSON *array, int which)
 
     return c;
 }
+cJSON *cJSON_DetachItemFromArray(cJSON *array, int which)
+{
+    if (which < 0)
+    {
+        return NULL;
+    }
+
+    return DetachItemFromArray(array, (size_t)which);
+}
 
 void cJSON_DeleteItemFromArray(cJSON *array, int which)
 {
@@ -1891,7 +1914,7 @@ cJSON *cJSON_DetachItemFromObject(cJSON *object, const char *string)
     }
     if (c)
     {
-        return cJSON_DetachItemFromArray(object, i);
+        return DetachItemFromArray(object, i);
     }
 
     return NULL;
@@ -1929,7 +1952,7 @@ void cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)
     }
 }
 
-void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
+static void ReplaceItemInArray(cJSON *array, size_t which, cJSON *newitem)
 {
     cJSON *c = array->child;
     while (c && (which > 0))
@@ -1958,6 +1981,15 @@ void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
     c->next = c->prev = NULL;
     cJSON_Delete(c);
 }
+void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
+{
+    if (which < 0)
+    {
+        return;
+    }
+
+    ReplaceItemInArray(array, (size_t)which, newitem);
+}
 
 void cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
 {
@@ -1977,7 +2009,7 @@ void cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem
         }
 
         newitem->string = (char*)cJSON_strdup((const unsigned char*)string);
-        cJSON_ReplaceItemInArray(object, i, newitem);
+        ReplaceItemInArray(object, i, newitem);
     }
 }
 
@@ -2368,21 +2400,21 @@ void cJSON_Minify(char *json)
         else if (*json == '\"')
         {
             /* string literals, which are \" sensitive. */
-            *into++ = *json++;
+            *into++ = (unsigned char)*json++;
             while (*json && (*json != '\"'))
             {
                 if (*json == '\\')
                 {
-                    *into++=*json++;
+                    *into++ = (unsigned char)*json++;
                 }
-                *into++ = *json++;
+                *into++ = (unsigned char)*json++;
             }
-            *into++ = *json++;
+            *into++ = (unsigned char)*json++;
         }
         else
         {
             /* All other characters. */
-            *into++ = *json++;
+            *into++ = (unsigned char)*json++;
         }
     }
 
