@@ -665,6 +665,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                             /* depending on the length in bytes this determines the
                              * encoding ofthe first UTF8 byte */
                             *--ptr2 = (unsigned char)((uc | firstByteMark[len]) & 0xFF);
+                            break;
                         default:
                             *ep = str;
                             return NULL;
