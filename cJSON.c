@@ -1370,7 +1370,7 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     {
         /* not an object! */
         *ep = value;
-        return NULL;
+        goto fail;
     }
 
     item->type = cJSON_Object;
@@ -1385,13 +1385,13 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     item->child = child;
     if (!item->child)
     {
-        return NULL;
+        goto fail;
     }
     /* parse first key */
     value = skip(parse_string(child, skip(value), ep));
     if (!value)
     {
-        return NULL;
+        goto fail;
     }
     /* use string as key, not value */
     child->string = child->valuestring;
@@ -1401,13 +1401,13 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     {
         /* invalid object. */
         *ep = value;
-        return NULL;
+        goto fail;
     }
     /* skip any spacing, get the value. */
     value = skip(parse_value(child, skip(value + 1), ep));
     if (!value)
     {
-        return NULL;
+        goto fail;
     }
 
     while (*value == ',')
@@ -1416,7 +1416,7 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         if (!(new_item = cJSON_New_Item()))
         {
             /* memory fail */
-            return NULL;
+            goto fail;
         }
         /* add to linked list */
         child->next = new_item;
@@ -1426,7 +1426,7 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         value = skip(parse_string(child, skip(value + 1), ep));
         if (!value)
         {
-            return NULL;
+            goto fail;
         }
 
         /* use string as key, not value */
@@ -1437,13 +1437,13 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         {
             /* invalid object. */
             *ep = value;
-            return NULL;
+            goto fail;
         }
         /* skip any spacing, get the value. */
         value = skip(parse_value(child, skip(value + 1), ep));
         if (!value)
         {
-            return NULL;
+            goto fail;
         }
     }
     /* end of object */
@@ -1454,6 +1454,14 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
 
     /* malformed */
     *ep = value;
+
+fail:
+    if (item->child != NULL)
+    {
+        cJSON_Delete(child);
+        item->child = NULL;
+    }
+
     return NULL;
 }
 
