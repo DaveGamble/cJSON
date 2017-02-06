@@ -2316,20 +2316,20 @@ cJSON *cJSON_CreateStringArray(const char **strings, int count)
 cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
 {
     cJSON *newitem = NULL;
-    cJSON *cptr = NULL;
-    cJSON *nptr = NULL;
+    cJSON *child = NULL;
+    cJSON *next = NULL;
     cJSON *newchild = NULL;
 
     /* Bail on bad ptr */
     if (!item)
     {
-        return NULL;
+        goto fail;
     }
     /* Create new item */
     newitem = cJSON_New_Item();
     if (!newitem)
     {
-        return NULL;
+        goto fail;
     }
     /* Copy over all vars */
     newitem->type = item->type & (~cJSON_IsReference);
@@ -2340,8 +2340,7 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
         newitem->valuestring = (char*)cJSON_strdup((unsigned char*)item->valuestring);
         if (!newitem->valuestring)
         {
-            cJSON_Delete(newitem);
-            return NULL;
+            goto fail;
         }
     }
     if (item->string)
@@ -2349,8 +2348,7 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
         newitem->string = (item->type&cJSON_StringIsConst) ? item->string : (char*)cJSON_strdup((unsigned char*)item->string);
         if (!newitem->string)
         {
-            cJSON_Delete(newitem);
-            return NULL;
+            goto fail;
         }
     }
     /* If non-recursive, then we're done! */
@@ -2359,31 +2357,39 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
         return newitem;
     }
     /* Walk the ->next chain for the child. */
-    cptr = item->child;
-    while (cptr)
+    child = item->child;
+    while (child != NULL)
     {
-        newchild = cJSON_Duplicate(cptr, 1); /* Duplicate (with recurse) each item in the ->next chain */
+        newchild = cJSON_Duplicate(child, true); /* Duplicate (with recurse) each item in the ->next chain */
         if (!newchild)
         {
-            cJSON_Delete(newitem);
-            return NULL;
+            goto fail;
         }
-        if (nptr)
+        if (next != NULL)
         {
             /* If newitem->child already set, then crosswire ->prev and ->next and move on */
-            nptr->next = newchild;
-            newchild->prev = nptr;
-            nptr = newchild;
+            next->next = newchild;
+            newchild->prev = next;
+            next = newchild;
         }
         else
         {
             /* Set newitem->child and move to it */
-            newitem->child = newchild; nptr = newchild;
+            newitem->child = newchild;
+            next = newchild;
         }
-        cptr = cptr->next;
+        child = child->next;
     }
 
     return newitem;
+
+fail:
+    if (newitem != NULL)
+    {
+        cJSON_Delete(newitem);
+    }
+
+    return NULL;
 }
 
 void cJSON_Minify(char *json)
