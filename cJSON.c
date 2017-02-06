@@ -521,7 +521,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     if (*str != '\"')
     {
         *ep = str;
-        return NULL;
+        goto fail;
     }
 
     while ((*end_ptr != '\"') && *end_ptr)
@@ -531,7 +531,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
             if (*end_ptr == '\0')
             {
                 /* prevent buffer overflow when last input character is a backslash */
-                return NULL;
+                goto fail;
             }
             /* Skip escaped quotes. */
             end_ptr++;
@@ -543,7 +543,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     out = (unsigned char*)cJSON_malloc(len + 1);
     if (!out)
     {
-        return NULL;
+        goto fail;
     }
     item->valuestring = (char*)out; /* assign here so out will be deleted during cJSON_Delete() later */
     item->type = cJSON_String;
@@ -591,13 +591,13 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                     {
                         /* invalid */
                         *ep = str;
-                        return NULL;
+                        goto fail;
                     }
                     /* check for invalid. */
                     if (((uc >= 0xDC00) && (uc <= 0xDFFF)) || (uc == 0))
                     {
                         *ep = str;
-                        return NULL;
+                        goto fail;
                     }
 
                     /* UTF16 surrogate pairs. */
@@ -607,13 +607,13 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                         {
                             /* invalid */
                             *ep = str;
-                            return NULL;
+                            goto fail;
                         }
                         if ((ptr[1] != '\\') || (ptr[2] != 'u'))
                         {
                             /* missing second-half of surrogate. */
                             *ep = str;
-                            return NULL;
+                            goto fail;
                         }
                         uc2 = parse_hex4(ptr + 3);
                         ptr += 6; /* \uXXXX */
@@ -621,7 +621,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                         {
                             /* invalid second-half of surrogate. */
                             *ep = str;
-                            return NULL;
+                            goto fail;
                         }
                         /* calculate unicode codepoint from the surrogate pair */
                         uc = 0x10000 + (((uc & 0x3FF) << 10) | (uc2 & 0x3FF));
@@ -668,13 +668,13 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                             break;
                         default:
                             *ep = str;
-                            return NULL;
+                            goto fail;
                     }
                     ptr2 += len;
                     break;
                 default:
                     *ep = str;
-                    return NULL;
+                    goto fail;
             }
             ptr++;
         }
@@ -686,6 +686,14 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     }
 
     return ptr;
+
+fail:
+    if (out != NULL)
+    {
+        cJSON_free(out);
+    }
+
+    return NULL;
 }
 
 /* Render the cstring provided to an escaped version that can be printed. */
