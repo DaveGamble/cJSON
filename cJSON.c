@@ -396,15 +396,13 @@ static unsigned parse_hex4(const unsigned char *str)
 }
 
 /* first bytes of UTF8 encoding for a given length in bytes */
-static const unsigned char firstByteMark[7] =
+static const unsigned char firstByteMark[5] =
 {
     0x00, /* should never happen */
     0x00, /* 0xxxxxxx */
     0xC0, /* 110xxxxx */
     0xE0, /* 1110xxxx */
-    0xF0, /* 11110xxx */
-    0xF8,
-    0xFC
+    0xF0 /* 11110xxx */
 };
 
 /* Parse the input text into an unescaped cstring, and populate item. */
