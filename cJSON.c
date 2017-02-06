@@ -362,84 +362,34 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 static unsigned parse_hex4(const unsigned char *str)
 {
     unsigned int h = 0;
+    size_t i = 0;
 
-    /* first digit */
-    if ((*str >= '0') && (*str <= '9'))
+    for (i = 0; i < 4; i++)
     {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
-    }
+        /* parse digit */
+        if ((*str >= '0') && (*str <= '9'))
+        {
+            h += (unsigned int) (*str) - '0';
+        }
+        else if ((*str >= 'A') && (*str <= 'F'))
+        {
+            h += (unsigned int) 10 + (*str) - 'A';
+        }
+        else if ((*str >= 'a') && (*str <= 'f'))
+        {
+            h += (unsigned int) 10 + (*str) - 'a';
+        }
+        else /* invalid */
+        {
+            return 0;
+        }
 
-
-    /* second digit */
-    h = h << 4;
-    str++;
-    if ((*str >= '0') && (*str <= '9'))
-    {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
-    }
-
-    /* third digit */
-    h = h << 4;
-    str++;
-    if ((*str >= '0') && (*str <= '9'))
-    {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
-    }
-
-    /* fourth digit */
-    h = h << 4;
-    str++;
-    if ((*str >= '0') && (*str <= '9'))
-    {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
+        if (i < 3)
+        {
+            /* shift left to make place for the next nibble */
+            h = h << 4;
+            str++;
+        }
     }
 
     return h;
