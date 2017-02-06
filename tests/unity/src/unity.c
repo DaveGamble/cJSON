@@ -194,7 +194,7 @@ void UnityPrintNumberHex(const UNITY_UINT number, const char nibbles_to_print)
     while (nibbles > 0)
     {
         nibbles--;
-        nibble = (number >> (nibbles * 4)) & 0x0F;
+        nibble = (int)(number >> (nibbles * 4)) & 0x0F;
         if (nibble <= 9)
         {
             UNITY_OUTPUT_CHAR((char)('0' + nibble));
