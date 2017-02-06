@@ -11,6 +11,7 @@ if(ENABLE_CJSON_TEST)
         parse_number
         parse_hex4
         parse_string
+        parse_array
     )
 
     foreach(unity_test ${unity_tests})
