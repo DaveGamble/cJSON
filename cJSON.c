@@ -1127,7 +1127,7 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
     {
         /* not an array! */
         *ep = value;
-        return NULL;
+        goto fail;
     }
 
     item->type = cJSON_Array;
@@ -1142,13 +1142,13 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
     if (!item->child)
     {
         /* memory fail */
-        return NULL;
+        goto fail;
     }
     /* skip any spacing, get the value. */
     value = skip(parse_value(child, skip(value), ep));
     if (!value)
     {
-        return NULL;
+        goto fail;
     }
 
     /* loop through the comma separated array elements */
@@ -1158,7 +1158,7 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         if (!(new_item = cJSON_New_Item()))
         {
             /* memory fail */
-            return NULL;
+            goto fail;
         }
         /* add new item to end of the linked list */
         child->next = new_item;
@@ -1170,7 +1170,7 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         if (!value)
         {
             /* memory fail */
-            return NULL;
+            goto fail;
         }
     }
 
@@ -1182,6 +1182,13 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
 
     /* malformed. */
     *ep = value;
+
+fail:
+    if (item->child != NULL)
+    {
+        cJSON_Delete(item->child);
+        item->child = NULL;
+    }
 
     return NULL;
 }
