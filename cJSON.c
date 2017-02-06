@@ -194,6 +194,25 @@ static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
     return endpointer;
 }
 
+/* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
+double cJSON_SetNumberHelper(cJSON *object, double number)
+{
+    if (number >= INT_MAX)
+    {
+        object->valueint = INT_MAX;
+    }
+    else if (number <= INT_MIN)
+    {
+        object->valueint = INT_MIN;
+    }
+    else
+    {
+        object->valueint = cJSON_Number;
+    }
+
+    return object->valuedouble = number;
+}
+
 /* calculate the next largest power of 2 */
 static int pow2gt (int x)
 {
