@@ -36,22 +36,18 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wundef
         -Wswitch-default
         -Wconversion
+        -Wc++-compat
         -fstack-protector-strong
         )
 endif()
 
-# "I am starting to hate CMake" - FSMaxB
-# In older versions of CMake, testing for -Wc++-compat
-# fails because it cannot compile a regular expression
-# This seems to be a bug in the CheckCSourceCompiles module
-if (NOT (CMAKE_MAJOR_VERSION EQUAL 2))
-    list(APPEND custom_compiler_flags "-Wc++-compat")
-endif()
-
 # apply custom compiler flags
 foreach(compiler_flag ${custom_compiler_flags})
-    CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED-${compiler_flag}")
-    if (FLAG_SUPPORTED${compiler_flag})
+    #remove problematic characters
+    string(REGEX REPLACE "[^a-zA-Z0-9]" "" current_variable ${compiler_flag})
+
+    CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED_${current_variable}")
+    if (FLAG_SUPPORTED_${current_variable})
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${compiler_flag}")
     endif()
 endforeach()
