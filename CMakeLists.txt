@@ -12,12 +12,42 @@ set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
+
+set(custom_compiler_flags)
+
+include(CheckCCompilerFlag)
 option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags for Clang and GCC" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
-    if(("${CMAKE_C_COMPILER_ID}" MATCHES "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89 -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes -Wstrict-overflow=2 -Wcast-qual -Wc++-compat -Wundef -Wswitch-default -Wconversion -fstack-protector-strong")
-    endif()
+    list(APPEND custom_compiler_flags
+        -std=c89
+        -pedantic
+        -Wall
+        -Wextra
+        -Werror
+        -Wstrict-prototypes
+        -Wwrite-strings
+        -Wshadow
+        -Winit-self
+        -Wcast-align
+        -Wformat=2
+        -Wmissing-prototypes
+        -Wstrict-overflow=2
+        -Wcast-qual
+        -Wc++-compat
+        -Wundef
+        -Wswitch-default
+        -Wconversion
+        -fstack-protector-strong
+        )
 endif()
+
+# apply custom compiler flags
+foreach(compiler_flag ${custom_compiler_flags})
+    CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED-${compiler_flag}")
+    if (FLAG_SUPPORTED${compiler_flag})
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${compiler_flag}")
+    endif()
+endforeach()
 
 #variables for pkg-config
 set(prefix "${CMAKE_INSTALL_PREFIX}")
