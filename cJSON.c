@@ -521,7 +521,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     if (*str != '\"')
     {
         *ep = str;
-        return NULL;
+        goto fail;
     }
 
     while ((*end_ptr != '\"') && *end_ptr)
@@ -531,7 +531,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
             if (*end_ptr == '\0')
             {
                 /* prevent buffer overflow when last input character is a backslash */
-                return NULL;
+                goto fail;
             }
             /* Skip escaped quotes. */
             end_ptr++;
@@ -543,7 +543,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     out = (unsigned char*)cJSON_malloc(len + 1);
     if (!out)
     {
-        return NULL;
+        goto fail;
     }
     item->valuestring = (char*)out; /* assign here so out will be deleted during cJSON_Delete() later */
     item->type = cJSON_String;
@@ -591,13 +591,13 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                     {
                         /* invalid */
                         *ep = str;
-                        return NULL;
+                        goto fail;
                     }
                     /* check for invalid. */
                     if (((uc >= 0xDC00) && (uc <= 0xDFFF)) || (uc == 0))
                     {
                         *ep = str;
-                        return NULL;
+                        goto fail;
                     }
 
                     /* UTF16 surrogate pairs. */
@@ -607,13 +607,13 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                         {
                             /* invalid */
                             *ep = str;
-                            return NULL;
+                            goto fail;
                         }
                         if ((ptr[1] != '\\') || (ptr[2] != 'u'))
                         {
                             /* missing second-half of surrogate. */
                             *ep = str;
-                            return NULL;
+                            goto fail;
                         }
                         uc2 = parse_hex4(ptr + 3);
                         ptr += 6; /* \uXXXX */
@@ -621,7 +621,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                         {
                             /* invalid second-half of surrogate. */
                             *ep = str;
-                            return NULL;
+                            goto fail;
                         }
                         /* calculate unicode codepoint from the surrogate pair */
                         uc = 0x10000 + (((uc & 0x3FF) << 10) | (uc2 & 0x3FF));
@@ -668,13 +668,13 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
                             break;
                         default:
                             *ep = str;
-                            return NULL;
+                            goto fail;
                     }
                     ptr2 += len;
                     break;
                 default:
                     *ep = str;
-                    return NULL;
+                    goto fail;
             }
             ptr++;
         }
@@ -686,6 +686,14 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     }
 
     return ptr;
+
+fail:
+    if (out != NULL)
+    {
+        cJSON_free(out);
+    }
+
+    return NULL;
 }
 
 /* Render the cstring provided to an escaped version that can be printed. */
@@ -1119,7 +1127,7 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
     {
         /* not an array! */
         *ep = value;
-        return NULL;
+        goto fail;
     }
 
     item->type = cJSON_Array;
@@ -1134,13 +1142,13 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
     if (!item->child)
     {
         /* memory fail */
-        return NULL;
+        goto fail;
     }
     /* skip any spacing, get the value. */
     value = skip(parse_value(child, skip(value), ep));
     if (!value)
     {
-        return NULL;
+        goto fail;
     }
 
     /* loop through the comma separated array elements */
@@ -1150,7 +1158,7 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         if (!(new_item = cJSON_New_Item()))
         {
             /* memory fail */
-            return NULL;
+            goto fail;
         }
         /* add new item to end of the linked list */
         child->next = new_item;
@@ -1162,7 +1170,7 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         if (!value)
         {
             /* memory fail */
-            return NULL;
+            goto fail;
         }
     }
 
@@ -1174,6 +1182,13 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
 
     /* malformed. */
     *ep = value;
+
+fail:
+    if (item->child != NULL)
+    {
+        cJSON_Delete(item->child);
+        item->child = NULL;
+    }
 
     return NULL;
 }
@@ -1355,7 +1370,7 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     {
         /* not an object! */
         *ep = value;
-        return NULL;
+        goto fail;
     }
 
     item->type = cJSON_Object;
@@ -1370,13 +1385,13 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     item->child = child;
     if (!item->child)
     {
-        return NULL;
+        goto fail;
     }
     /* parse first key */
     value = skip(parse_string(child, skip(value), ep));
     if (!value)
     {
-        return NULL;
+        goto fail;
     }
     /* use string as key, not value */
     child->string = child->valuestring;
@@ -1386,13 +1401,13 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     {
         /* invalid object. */
         *ep = value;
-        return NULL;
+        goto fail;
     }
     /* skip any spacing, get the value. */
     value = skip(parse_value(child, skip(value + 1), ep));
     if (!value)
     {
-        return NULL;
+        goto fail;
     }
 
     while (*value == ',')
@@ -1401,7 +1416,7 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         if (!(new_item = cJSON_New_Item()))
         {
             /* memory fail */
-            return NULL;
+            goto fail;
         }
         /* add to linked list */
         child->next = new_item;
@@ -1411,7 +1426,7 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         value = skip(parse_string(child, skip(value + 1), ep));
         if (!value)
         {
-            return NULL;
+            goto fail;
         }
 
         /* use string as key, not value */
@@ -1422,13 +1437,13 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         {
             /* invalid object. */
             *ep = value;
-            return NULL;
+            goto fail;
         }
         /* skip any spacing, get the value. */
         value = skip(parse_value(child, skip(value + 1), ep));
         if (!value)
         {
-            return NULL;
+            goto fail;
         }
     }
     /* end of object */
@@ -1439,6 +1454,14 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
 
     /* malformed */
     *ep = value;
+
+fail:
+    if (item->child != NULL)
+    {
+        cJSON_Delete(child);
+        item->child = NULL;
+    }
+
     return NULL;
 }
 
@@ -2293,20 +2316,20 @@ cJSON *cJSON_CreateStringArray(const char **strings, int count)
 cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
 {
     cJSON *newitem = NULL;
-    cJSON *cptr = NULL;
-    cJSON *nptr = NULL;
+    cJSON *child = NULL;
+    cJSON *next = NULL;
     cJSON *newchild = NULL;
 
     /* Bail on bad ptr */
     if (!item)
     {
-        return NULL;
+        goto fail;
     }
     /* Create new item */
     newitem = cJSON_New_Item();
     if (!newitem)
     {
-        return NULL;
+        goto fail;
     }
     /* Copy over all vars */
     newitem->type = item->type & (~cJSON_IsReference);
@@ -2317,8 +2340,7 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
         newitem->valuestring = (char*)cJSON_strdup((unsigned char*)item->valuestring);
         if (!newitem->valuestring)
         {
-            cJSON_Delete(newitem);
-            return NULL;
+            goto fail;
         }
     }
     if (item->string)
@@ -2326,8 +2348,7 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
         newitem->string = (item->type&cJSON_StringIsConst) ? item->string : (char*)cJSON_strdup((unsigned char*)item->string);
         if (!newitem->string)
         {
-            cJSON_Delete(newitem);
-            return NULL;
+            goto fail;
         }
     }
     /* If non-recursive, then we're done! */
@@ -2336,31 +2357,39 @@ cJSON *cJSON_Duplicate(const cJSON *item, cjbool recurse)
         return newitem;
     }
     /* Walk the ->next chain for the child. */
-    cptr = item->child;
-    while (cptr)
+    child = item->child;
+    while (child != NULL)
     {
-        newchild = cJSON_Duplicate(cptr, 1); /* Duplicate (with recurse) each item in the ->next chain */
+        newchild = cJSON_Duplicate(child, true); /* Duplicate (with recurse) each item in the ->next chain */
         if (!newchild)
         {
-            cJSON_Delete(newitem);
-            return NULL;
+            goto fail;
         }
-        if (nptr)
+        if (next != NULL)
         {
             /* If newitem->child already set, then crosswire ->prev and ->next and move on */
-            nptr->next = newchild;
-            newchild->prev = nptr;
-            nptr = newchild;
+            next->next = newchild;
+            newchild->prev = next;
+            next = newchild;
         }
         else
         {
             /* Set newitem->child and move to it */
-            newitem->child = newchild; nptr = newchild;
+            newitem->child = newchild;
+            next = newchild;
         }
-        cptr = cptr->next;
+        child = child->next;
     }
 
     return newitem;
+
+fail:
+    if (newitem != NULL)
+    {
+        cJSON_Delete(newitem);
+    }
+
+    return NULL;
 }
 
 void cJSON_Minify(char *json)
