@@ -1,6 +1,8 @@
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 2.8)
 
+subdirs(tests)
+
 include(GNUInstallDirs)
 
 project(cJSON C)
@@ -38,6 +40,21 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wconversion
         -Wc++-compat
         -fstack-protector-strong
+        )
+endif()
+
+option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
+if (ENABLE_SANITIZERS)
+    list(APPEND custom_compiler_flags
+        -fno-omit-frame-pointer
+        -fsanitize=address
+        -fsanitize=undefined
+        -fsanitize=float-divide-by-zero
+        -fsanitize=float-cast-overflow
+        -fsanitize-address-use-after-scope
+        -fsanitize=integer
+        -01
+        -fno-sanitize-recover
         )
 endif()
 
@@ -131,6 +148,8 @@ install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)
+    enable_testing()
+
     set(TEST_CJSON cJSON_test)
     add_executable("${TEST_CJSON}" test.c)
     target_link_libraries("${TEST_CJSON}" "${CJSON_LIB}")
