@@ -114,7 +114,7 @@ static int print_preallocated(cJSON *root)
     }
 
     /* create buffer to fail */
-    len_fail = strlen(out);
+    len_fail = strlen(out) + sizeof('\0');
     buf_fail = (char*)malloc(len_fail);
     if (buf_fail == NULL)
     {
