@@ -1789,14 +1789,18 @@ static cJSON *create_reference(const cJSON *item)
 }
 
 /* Add item to array/object. */
-void   cJSON_AddItemToArray(cJSON *array, cJSON *item)
+void cJSON_AddItemToArray(cJSON *array, cJSON *item)
 {
-    cJSON *c = array->child;
-    if (!item)
+    cJSON *child = NULL;
+
+    if ((item == NULL) || (array == NULL))
     {
         return;
     }
-    if (!c)
+
+    child = array->child;
+
+    if (child == NULL)
     {
         /* list is empty, start new one */
         array->child = item;
@@ -1804,11 +1808,11 @@ void   cJSON_AddItemToArray(cJSON *array, cJSON *item)
     else
     {
         /* append to the end */
-        while (c->next)
+        while (child->next)
         {
-            c = c->next;
+            child = child->next;
         }
-        suffix_object(c, item);
+        suffix_object(child, item);
     }
 }
 

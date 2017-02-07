@@ -494,6 +494,12 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
     int err = 0;
+
+    if (patches == NULL)
+    {
+        return 1;
+    }
+
     if ((patches->type & 0xFF) != cJSON_Array)
     {
         /* malformed patches. */
@@ -544,6 +550,11 @@ void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, 
 
 static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path, cJSON *from, cJSON *to)
 {
+    if ((from == NULL) || (to == NULL))
+    {
+        return;
+    }
+
     if ((from->type & 0xFF) != (to->type & 0xFF))
     {
         cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, 0, to);
