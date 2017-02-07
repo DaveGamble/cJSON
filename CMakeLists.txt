@@ -43,6 +43,21 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         )
 endif()
 
+option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
+if (ENABLE_SANITIZERS)
+    list(APPEND custom_compiler_flags
+        -fno-omit-frame-pointer
+        -fsanitize=address
+        -fsanitize=undefined
+        -fsanitize=float-divide-by-zero
+        -fsanitize=float-cast-overflow
+        -fsanitize-address-use-after-scope
+        -fsanitize=integer
+        -01
+        -fno-sanitize-recover
+        )
+endif()
+
 # apply custom compiler flags
 foreach(compiler_flag ${custom_compiler_flags})
     #remove problematic characters
