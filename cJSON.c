@@ -164,83 +164,53 @@ void cJSON_Delete(cJSON *c)
 /* Parse the input text to generate a number, and populate the result into item. */
 static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
 {
-    double n = 0;
-    double sign = 1;
-    double scale = 0;
-    int subscale = 0;
-    int signsubscale = 1;
+    double number = 0;
+    unsigned char *endpointer = NULL;
 
-    /* Has sign? */
-    if (*num == '-')
+    number = strtod((const char*)num, (char**)&endpointer);
+    if ((num == endpointer) || (num == NULL))
     {
-        sign = -1;
-        num++;
-    }
-    /* is zero */
-    if (*num == '0')
-    {
-        num++;
-    }
-    /* Number? */
-    if ((*num >= '1') && (*num <= '9'))
-    {
-        do
-        {
-            n = (n * 10.0) + (*num++ - '0');
-        }
-        while ((*num >= '0') && (*num<='9'));
-    }
-    /* Fractional part? */
-    if ((*num == '.') && (num[1] >= '0') && (num[1] <= '9'))
-    {
-        num++;
-        do
-        {
-            n = (n  *10.0) + (*num++ - '0');
-            scale--;
-        } while ((*num >= '0') && (*num <= '9'));
-    }
-    /* Exponent? */
-    if ((*num == 'e') || (*num == 'E'))
-    {
-        num++;
-        /* With sign? */
-        if (*num == '+')
-        {
-            num++;
-        }
-        else if (*num == '-')
-        {
-            signsubscale = -1;
-            num++;
-        }
-        /* Number? */
-        while ((*num>='0') && (*num<='9'))
-        {
-            subscale = (subscale * 10) + (*num++ - '0');
-        }
+        /* parse_error */
+        return NULL;
     }
 
-    /* number = +/- number.fraction * 10^+/- exponent */
-    n = sign * n * pow(10.0, (scale + subscale * signsubscale));
+    item->valuedouble = number;
 
-    item->valuedouble = n;
     /* use saturation in case of overflow */
-    if (n >= INT_MAX)
+    if (number >= INT_MAX)
     {
         item->valueint = INT_MAX;
     }
-    else if (n <= INT_MIN)
+    else if (number <= INT_MIN)
     {
         item->valueint = INT_MIN;
     }
     else
     {
-        item->valueint = (int)n;
+        item->valueint = (int)number;
     }
     item->type = cJSON_Number;
 
-    return num;
+    return endpointer;
+}
+
+/* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
+double cJSON_SetNumberHelper(cJSON *object, double number)
+{
+    if (number >= INT_MAX)
+    {
+        object->valueint = INT_MAX;
+    }
+    else if (number <= INT_MIN)
+    {
+        object->valueint = INT_MIN;
+    }
+    else
+    {
+        object->valueint = cJSON_Number;
+    }
+
+    return object->valuedouble = number;
 }
 
 /* calculate the next largest power of 2 */
@@ -411,99 +381,47 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 static unsigned parse_hex4(const unsigned char *str)
 {
     unsigned int h = 0;
+    size_t i = 0;
 
-    /* first digit */
-    if ((*str >= '0') && (*str <= '9'))
+    for (i = 0; i < 4; i++)
     {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
-    }
+        /* parse digit */
+        if ((*str >= '0') && (*str <= '9'))
+        {
+            h += (unsigned int) (*str) - '0';
+        }
+        else if ((*str >= 'A') && (*str <= 'F'))
+        {
+            h += (unsigned int) 10 + (*str) - 'A';
+        }
+        else if ((*str >= 'a') && (*str <= 'f'))
+        {
+            h += (unsigned int) 10 + (*str) - 'a';
+        }
+        else /* invalid */
+        {
+            return 0;
+        }
 
-
-    /* second digit */
-    h = h << 4;
-    str++;
-    if ((*str >= '0') && (*str <= '9'))
-    {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
-    }
-
-    /* third digit */
-    h = h << 4;
-    str++;
-    if ((*str >= '0') && (*str <= '9'))
-    {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
-    }
-
-    /* fourth digit */
-    h = h << 4;
-    str++;
-    if ((*str >= '0') && (*str <= '9'))
-    {
-        h += (unsigned int) (*str) - '0';
-    }
-    else if ((*str >= 'A') && (*str <= 'F'))
-    {
-        h += (unsigned int) 10 + (*str) - 'A';
-    }
-    else if ((*str >= 'a') && (*str <= 'f'))
-    {
-        h += (unsigned int) 10 + (*str) - 'a';
-    }
-    else /* invalid */
-    {
-        return 0;
+        if (i < 3)
+        {
+            /* shift left to make place for the next nibble */
+            h = h << 4;
+            str++;
+        }
     }
 
     return h;
 }
 
 /* first bytes of UTF8 encoding for a given length in bytes */
-static const unsigned char firstByteMark[7] =
+static const unsigned char firstByteMark[5] =
 {
     0x00, /* should never happen */
     0x00, /* 0xxxxxxx */
     0xC0, /* 110xxxxx */
     0xE0, /* 1110xxxx */
-    0xF0, /* 11110xxx */
-    0xF8,
-    0xFC
+    0xF0 /* 11110xxx */
 };
 
 /* Parse the input text into an unescaped cstring, and populate item. */
