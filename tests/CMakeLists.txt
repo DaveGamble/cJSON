@@ -13,6 +13,7 @@ if(ENABLE_CJSON_TEST)
         parse_string
         parse_array
         parse_object
+        parse_value
     )
 
     foreach(unity_test ${unity_tests})
