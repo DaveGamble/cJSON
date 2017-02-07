@@ -33,12 +33,19 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wmissing-prototypes
         -Wstrict-overflow=2
         -Wcast-qual
-        -Wc++-compat
         -Wundef
         -Wswitch-default
         -Wconversion
         -fstack-protector-strong
         )
+endif()
+
+# "I am starting to hate CMake" - FSMaxB
+# In older versions of CMake, testing for -Wc++-compat
+# fails because it cannot compile a regular expression
+# This seems to be a bug in the CheckCSourceCompiles module
+if (NOT (CMAKE_MAJOR_VERSION EQUAL 2))
+    list(APPEND custom_compiler_flags "-Wc++-compat")
 endif()
 
 # apply custom compiler flags
