@@ -277,7 +277,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
 
 static int cJSONUtils_Compare(cJSON *a, cJSON *b)
 {
-    if ((a->type & 0xFF) != (b->type & 0xFF))
+    if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
     {
         /* mismatched type. */
         return -1;

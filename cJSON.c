@@ -167,6 +167,11 @@ static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
     double number = 0;
     unsigned char *endpointer = NULL;
 
+    if (num == NULL)
+    {
+        return NULL;
+    }
+
     number = strtod((const char*)num, (char**)&endpointer);
     if ((num == endpointer) || (num == NULL))
     {
