@@ -39,14 +39,25 @@ extern const char* cJSON_Version(void);
 #include <stddef.h>
 
 /* cJSON Types: */
-#define cJSON_False  (1 << 0)
-#define cJSON_True   (1 << 1)
-#define cJSON_NULL   (1 << 2)
-#define cJSON_Number (1 << 3)
-#define cJSON_String (1 << 4)
-#define cJSON_Array  (1 << 5)
-#define cJSON_Object (1 << 6)
-#define cJSON_Raw    (1 << 7) /* raw json */
+//#define cJSON_False  (1 << 0)
+//#define cJSON_True   (1 << 1)
+//#define cJSON_NULL   (1 << 2)
+//#define cJSON_Number (1 << 3)
+//#define cJSON_String (1 << 4)
+//#define cJSON_Array  (1 << 5)
+//#define cJSON_Object (1 << 6)
+//#define cJSON_Raw    (1 << 7) /* raw json */
+  
+  typedef enum {
+	cJSON_False =   (1 << 0),
+	cJSON_True =    (1 << 1),
+	cJSON_NULL =    (1 << 2),
+	cJSON_Number =  (1 << 3),
+	cJSON_String =  (1 << 4),
+	cJSON_Array =   (1 << 5),
+	cJSON_Object =  (1 << 6),
+	cJSON_Raw =  	(1 << 7)
+}cJSON_Types;
 
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
@@ -61,7 +72,7 @@ typedef struct cJSON
     struct cJSON *child;
 
     /* The type of the item, as above. */
-    int type;
+    cJSON_Types type;
 
     /* The item's string, if type==cJSON_String  and type == cJSON_Raw */
     char *valuestring;
