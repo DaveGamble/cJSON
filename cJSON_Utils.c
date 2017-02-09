@@ -137,7 +137,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
                 unsigned char *ret = (unsigned char*)malloc(strlen((char*)found) + 23);
-                sprintf((char*)ret, "/%lu%s", c, found); /* /<array_index><path> */
+                sprintf((char*)ret, "/%lu%s", (unsigned long)c, found); /* /<array_index><path> */
                 free(found);
 
                 return (char*)ret;
@@ -584,13 +584,13 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
             /* generate patches for all array elements that exist in "from" and "to" */
             for (c = 0, from = from->child, to = to->child; from && to; from = from->next, to = to->next, c++)
             {
-                sprintf((char*)newpath, "%s/%lu", path, c); /* path of the current array element */
+                sprintf((char*)newpath, "%s/%lu", path, (unsigned long)c); /* path of the current array element */
                 cJSONUtils_CompareToPatch(patches, newpath, from, to);
             }
             /* remove leftover elements from 'from' that are not in 'to' */
             for (; from; from = from->next, c++)
             {
-                sprintf((char*)newpath, "%lu", c);
+                sprintf((char*)newpath, "%lu", (unsigned long)c);
                 cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, newpath, 0);
             }
             /* add new elements in 'to' that were not in 'from' */
