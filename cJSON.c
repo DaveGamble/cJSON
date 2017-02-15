@@ -58,6 +58,11 @@ const char *cJSON_GetErrorPtr(void)
     return (const char*) global_ep;
 }
 
+/* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 2) || (CJSON_VERSION_PATCH != 1)
+    #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
+#endif
+
 extern const char* cJSON_Version(void)
 {
     static char version[15];
