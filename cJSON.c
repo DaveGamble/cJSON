@@ -1771,7 +1771,7 @@ void   cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
     }
 
     /* free old key and set new one */
-    if (item->string)
+    if (!(item->type & cJSON_StringIsConst) && item->string)
     {
         cJSON_free(item->string);
     }
