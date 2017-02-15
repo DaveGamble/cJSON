@@ -26,28 +26,28 @@
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
-#include "../cJSON.c"
+#include "common.h"
 
 static cJSON item[1];
 
 static const unsigned char *error_pointer = NULL;
 
-static void assert_is_array(cJSON *string_item)
+static void assert_is_array(cJSON *array_item)
 {
-    TEST_ASSERT_NOT_NULL_MESSAGE(string_item, "Item is NULL.");
+    TEST_ASSERT_NOT_NULL_MESSAGE(array_item, "Item is NULL.");
 
-    TEST_ASSERT_NULL_MESSAGE(string_item->next, "Linked list next pointer is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(string_item->prev, "Linked list previous pointer is not NULL");
-    TEST_ASSERT_BITS_MESSAGE(0xFF, cJSON_Array, string_item->type, "Item type is not array.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_IsReference, 0, string_item->type, "Item should not have a string as reference.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_StringIsConst, 0, string_item->type, "Item should not have a const string.");
-    TEST_ASSERT_NULL_MESSAGE(string_item->valuestring, "Valuestring is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(string_item->string, "String is not NULL.");
+    assert_not_in_list(array_item);
+    assert_has_type(array_item, cJSON_Array);
+    assert_has_no_reference(array_item);
+    assert_has_no_const_string(array_item);
+    assert_has_no_valuestring(array_item);
+    assert_has_no_string(array_item);
 }
 
 static void assert_not_array(const char *json)
 {
     TEST_ASSERT_NULL(parse_array(item, (const unsigned char*)json, &error_pointer));
+    assert_is_invalid(item);
 }
 
 static void assert_parse_array(const char *json)
@@ -56,21 +56,13 @@ static void assert_parse_array(const char *json)
     assert_is_array(item);
 }
 
-static void reset(void)
-{
-    if (item->child != NULL)
-    {
-        cJSON_Delete(item->child);
-    }
-    memset(item, 0, sizeof(cJSON));
-}
-
 static void parse_array_should_parse_empty_arrays(void)
 {
     assert_parse_array("[]");
-    TEST_ASSERT_NULL(item->child);
+    assert_has_no_child(item);
+
     assert_parse_array("[\n\t]");
-    TEST_ASSERT_NULL(item->child);
+    assert_has_no_child(item);
 }
 
 
@@ -78,39 +70,39 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 {
 
     assert_parse_array("[1]");
-    TEST_ASSERT_NOT_NULL(item->child);
-    TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->type);
-    reset();
+    assert_has_child(item);
+    assert_has_type(item->child, cJSON_Number);
+    reset(item);
 
     assert_parse_array("[\"hello!\"]");
-    TEST_ASSERT_NOT_NULL(item->child);
-    TEST_ASSERT_BITS(0xFF, cJSON_String, item->child->type);
+    assert_has_child(item);
+    assert_has_type(item->child, cJSON_String);
     TEST_ASSERT_EQUAL_STRING("hello!", item->child->valuestring);
-    reset();
+    reset(item);
 
     assert_parse_array("[[]]");
-    TEST_ASSERT_NOT_NULL(item->child);
+    assert_has_child(item);
     assert_is_array(item->child);
-    TEST_ASSERT_NULL(item->child->child);
-    reset();
+    assert_has_no_child(item->child);
+    reset(item);
 
     assert_parse_array("[null]");
-    TEST_ASSERT_NOT_NULL(item->child);
-    TEST_ASSERT_BITS(0xFF, cJSON_NULL, item->child->type);
-    reset();
+    assert_has_child(item);
+    assert_has_type(item->child, cJSON_NULL);
+    reset(item);
 }
 
 static void parse_array_should_parse_arrays_with_multiple_elements(void)
 {
     assert_parse_array("[1\t,\n2, 3]");
-    TEST_ASSERT_NOT_NULL(item->child);
+    assert_has_child(item);
     TEST_ASSERT_NOT_NULL(item->child->next);
     TEST_ASSERT_NOT_NULL(item->child->next->next);
     TEST_ASSERT_NULL(item->child->next->next->next);
-    TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->type);
-    TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->next->type);
-    TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->next->next->type);
-    reset();
+    assert_has_type(item->child, cJSON_Number);
+    assert_has_type(item->child->next, cJSON_Number);
+    assert_has_type(item->child->next->next, cJSON_Number);
+    reset(item);
 
     {
         size_t i = 0;
@@ -137,7 +129,7 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
             TEST_ASSERT_BITS(0xFF, expected_types[i], node->type);
         }
         TEST_ASSERT_EQUAL_INT(i, 7);
-        reset();
+        reset(item);
     }
 }
 

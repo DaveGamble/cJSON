@@ -468,7 +468,6 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     {
         goto fail;
     }
-    item->type = cJSON_String;
 
     ptr = str + 1;
     ptr2 = out;
@@ -607,6 +606,7 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
         ptr++;
     }
 
+    item->type = cJSON_String;
     item->valuestring = (char*)out;
 
     return ptr;
@@ -1054,12 +1054,11 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         goto fail;
     }
 
-    item->type = cJSON_Array;
     value = skip(value + 1);
     if (*value == ']')
     {
         /* empty array. */
-        return value + 1;
+        goto success;
     }
 
     item->child = child = cJSON_New_Item();
@@ -1101,11 +1100,17 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
     if (*value == ']')
     {
         /* end of array */
-        return value + 1;
+        goto success;
     }
 
     /* malformed. */
     *ep = value;
+    goto fail;
+
+success:
+    item->type = cJSON_Array;
+
+    return value + 1;
 
 fail:
     if (item->child != NULL)
@@ -1297,12 +1302,11 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         goto fail;
     }
 
-    item->type = cJSON_Object;
     value = skip(value + 1);
     if (*value == '}')
     {
         /* empty object. */
-        return value + 1;
+        goto success;
     }
 
     child = cJSON_New_Item();
@@ -1373,11 +1377,17 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
     /* end of object */
     if (*value == '}')
     {
-        return value + 1;
+        goto success;
     }
 
     /* malformed */
     *ep = value;
+    goto fail;
+
+success:
+    item->type = cJSON_Object;
+
+    return value + 1;
 
 fail:
     if (item->child != NULL)

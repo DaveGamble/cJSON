@@ -26,7 +26,7 @@
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
-#include "../cJSON.c"
+#include "common.h"
 
 static cJSON item[1];
 
@@ -36,13 +36,12 @@ static void assert_is_object(cJSON *object_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(object_item, "Item is NULL.");
 
-    TEST_ASSERT_NULL_MESSAGE(object_item->next, "Linked list next pointer is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(object_item->prev, "Linked list previous pointer is not NULL");
-    TEST_ASSERT_BITS_MESSAGE(0xFF, cJSON_Object, object_item->type, "Item type is not object.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_IsReference, 0, object_item->type, "Item should not have a string as reference.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_StringIsConst, 0, object_item->type, "Item should not have a const string.");
-    TEST_ASSERT_NULL_MESSAGE(object_item->valuestring, "Valuestring is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(object_item->string, "String is not NULL.");
+    assert_not_in_list(object_item);
+    assert_has_type(object_item, cJSON_Object);
+    assert_has_no_reference(object_item);
+    assert_has_no_const_string(object_item);
+    assert_has_no_valuestring(object_item);
+    assert_has_no_string(object_item);
 }
 
 static void assert_is_child(cJSON *child_item, const char *name, int type)
@@ -56,6 +55,8 @@ static void assert_is_child(cJSON *child_item, const char *name, int type)
 static void assert_not_object(const char *json)
 {
     TEST_ASSERT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer));
+    assert_is_invalid(item);
+    reset(item);
 }
 
 static void assert_parse_object(const char *json)
@@ -64,21 +65,15 @@ static void assert_parse_object(const char *json)
     assert_is_object(item);
 }
 
-static void reset(void)
-{
-    if (item->child != NULL)
-    {
-        cJSON_Delete(item->child);
-    }
-    memset(item, 0, sizeof(cJSON));
-}
-
 static void parse_object_should_parse_empty_objects(void)
 {
     assert_parse_object("{}");
-    TEST_ASSERT_NULL(item->child);
+    assert_has_no_child(item);
+    reset(item);
+
     assert_parse_object("{\n\t}");
-    TEST_ASSERT_NULL(item->child);
+    assert_has_no_child(item);
+    reset(item);
 }
 
 static void parse_array_should_parse_arrays_with_one_element(void)
@@ -86,19 +81,19 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 
     assert_parse_object("{\"one\":1}");
     assert_is_child(item->child, "one", cJSON_Number);
-    reset();
+    reset(item);
 
     assert_parse_object("{\"hello\":\"world!\"}");
     assert_is_child(item->child, "hello", cJSON_String);
-    reset();
+    reset(item);
 
     assert_parse_object("{\"array\":[]}");
     assert_is_child(item->child, "array", cJSON_Array);
-    reset();
+    reset(item);
 
     assert_parse_object("{\"null\":null}");
     assert_is_child(item->child, "null", cJSON_NULL);
-    reset();
+    reset(item);
 }
 
 static void parse_object_should_parse_objects_with_multiple_elements(void)
@@ -107,7 +102,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
     assert_is_child(item->child, "one", cJSON_Number);
     assert_is_child(item->child->next, "two", cJSON_Number);
     assert_is_child(item->child->next->next, "three", cJSON_Number);
-    reset();
+    reset(item);
 
     {
         size_t i = 0;
@@ -144,7 +139,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
             assert_is_child(node, expected_names[i], expected_types[i]);
         }
         TEST_ASSERT_EQUAL_INT(i, 7);
-        reset();
+        reset(item);
     }
 }
 

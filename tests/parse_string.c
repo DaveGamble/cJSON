@@ -26,7 +26,7 @@
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
-#include "../cJSON.c"
+#include "common.h"
 
 static cJSON item[1];
 
@@ -36,14 +36,13 @@ static void assert_is_string(cJSON *string_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(string_item, "Item is NULL.");
 
-    TEST_ASSERT_NULL_MESSAGE(string_item->next, "Linked list next pointer is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(string_item->prev, "Linked list previous pointer is not NULL");
-    TEST_ASSERT_NULL_MESSAGE(string_item->child, "Child pointer is not NULL.");
-    TEST_ASSERT_BITS_MESSAGE(0xFF, cJSON_String, string_item->type, "Item type is not string.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_IsReference, 1, string_item->type, "Item should have a string as reference.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_StringIsConst, 0, string_item->type, "Item should not have a const string.");
-    TEST_ASSERT_NOT_NULL_MESSAGE(string_item->valuestring, "Valuestring is NULL.");
-    TEST_ASSERT_NULL_MESSAGE(string_item->string, "String is not NULL.");
+    assert_not_in_list(string_item);
+    assert_has_no_child(string_item);
+    assert_has_type(string_item, cJSON_String);
+    assert_has_no_reference(string_item);
+    assert_has_no_const_string(string_item);
+    assert_has_valuestring(string_item);
+    assert_has_no_string(string_item);
 }
 
 static void assert_parse_string(const char *string, const char *expected)
@@ -55,6 +54,12 @@ static void assert_parse_string(const char *string, const char *expected)
     item->valuestring = NULL;
 }
 
+#define assert_not_parse_string(string) \
+    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer), "Malformed string should not be accepted");\
+    assert_is_invalid(item)
+
+
+
 static void parse_string_should_parse_strings(void)
 {
     assert_parse_string("\"\"", "");
@@ -64,35 +69,44 @@ static void parse_string_should_parse_strings(void)
     assert_parse_string(
         "\"\\\"\\\\\\/\\b\\f\\n\\r\\t\\u20AC\\u732b\"",
         "\"\\/\b\f\n\r\t€猫");
+    reset(item);
     assert_parse_string("\"\b\f\n\r\t\"", "\b\f\n\r\t");
+    reset(item);
 }
 
 static void parse_string_should_parse_utf16_surrogate_pairs(void)
 {
     assert_parse_string("\"\\uD83D\\udc31\"", "🐱");
+    reset(item);
 }
 
 static void parse_string_should_not_parse_non_strings(void)
 {
-    TEST_ASSERT_NULL(parse_string(item, (const unsigned char*)"this\" is not a string\"", &error_pointer));
-    TEST_ASSERT_NULL(parse_string(item, (const unsigned char*) "", &error_pointer));
+    assert_not_parse_string("this\" is not a string\"");
+    reset(item);
+    assert_not_parse_string("");
+    reset(item);
 }
 
 static void parse_string_should_not_parse_invalid_backslash(void)
 {
-    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)"Abcdef\\123", &error_pointer), "Invalid backshlash should not be accepted.");
-    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)"Abcdef\\e23", &error_pointer), "Invalid backshlash should not be accepted.");
+    assert_not_parse_string("Abcdef\\123");
+    reset(item);
+    assert_not_parse_string("Abcdef\\e23");
+    reset(item);
 }
 
 static void parse_string_should_not_overflow_with_closing_backslash(void)
 {
-    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)"\"000000000000000000\\", &error_pointer), "Malformed string should not be accepted.");
+    assert_not_parse_string("\"000000000000000000\\");
+    reset(item);
 }
 
 static void parse_string_should_parse_bug_94(void)
 {
     const char string[] = "\"~!@\\\\#$%^&*()\\\\\\\\-\\\\+{}[]:\\\\;\\\\\\\"\\\\<\\\\>?/.,DC=ad,DC=com\"";
     assert_parse_string(string, "~!@\\#$%^&*()\\\\-\\+{}[]:\\;\\\"\\<\\>?/.,DC=ad,DC=com");
+    reset(item);
 }
 
 int main(void)
