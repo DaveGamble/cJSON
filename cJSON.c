@@ -453,7 +453,6 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
         goto fail;
     }
 
-    ptr = str + 1;
     ptr2 = out;
     /* loop through the string literal */
     while (ptr < end_ptr)
