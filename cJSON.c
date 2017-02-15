@@ -32,20 +32,6 @@
 #include <ctype.h>
 #include "cJSON.h"
 
-/* Determine the number of bits that an integer has using the preprocessor */
-#if INT_MAX == 32767
-    /* 16 bits */
-    #define INTEGER_SIZE 0x0010
-#elif INT_MAX == 2147483647
-    /* 32 bits */
-    #define INTEGER_SIZE 0x0100
-#elif INT_MAX == 9223372036854775807
-    /* 64 bits */
-    #define INTEGER_SIZE 0x1000
-#else
-    #error "Failed to determine the size of an integer"
-#endif
-
 /* define our own boolean type */
 typedef int cjbool;
 #define true ((cjbool)1)
@@ -223,27 +209,6 @@ double cJSON_SetNumberHelper(cJSON *object, double number)
     return object->valuedouble = number;
 }
 
-/* calculate the next largest power of 2 */
-static int pow2gt (int x)
-{
-    --x;
-
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-#if INTEGER_SIZE & 0x1110 /* at least 16 bit */
-    x |= x >> 8;
-#endif
-#if INTEGER_SIZE & 0x1100 /* at least 32 bit */
-    x |= x >> 16;
-#endif
-#if INTEGER_SIZE & 0x1000 /* 64 bit */
-    x |= x >> 32;
-#endif
-
-    return x + 1;
-}
-
 typedef struct
 {
     unsigned char *buffer;
@@ -278,7 +243,21 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
         return NULL;
     }
 
-    newsize = (size_t) pow2gt((int)needed);
+    /* calculate new buffer size */
+    newsize = needed * 2;
+    if (newsize > INT_MAX)
+    {
+        /* overflow of int, use INT_MAX if possible */
+        if (needed <= INT_MAX)
+        {
+            newsize = INT_MAX;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
     newbuffer = (unsigned char*)cJSON_malloc(newsize);
     if (!newbuffer)
     {
