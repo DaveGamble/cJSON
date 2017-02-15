@@ -1775,19 +1775,10 @@ void cJSON_AddItemToArray(cJSON *array, cJSON *item)
 
 void   cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
 {
-    if (!item)
-    {
-        return;
-    }
-
-    /* free old key and set new one */
-    if (!(item->type & cJSON_StringIsConst) && item->string)
-    {
-        cJSON_free(item->string);
-    }
-    item->string = (char*)cJSON_strdup((const unsigned char*)string);
-
-    cJSON_AddItemToArray(object,item);
+    /* call cJSON_AddItemToObjectCS for code reuse */
+    cJSON_AddItemToObjectCS(object, (char*)cJSON_strdup((const unsigned char*)string), item);
+    /* remove cJSON_StringIsConst flag */
+    item->type &= ~cJSON_StringIsConst;
 }
 
 /* Add an item to an object with constant string as key */
