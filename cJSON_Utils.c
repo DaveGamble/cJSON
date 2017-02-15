@@ -137,6 +137,14 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
                 unsigned char *ret = (unsigned char*)malloc(strlen((char*)found) + 23);
+                /* check if conversion to unsigned long is valid
+                 * This should be eliminated at compile time by dead code elimination
+                 * if size_t is an alias of unsigned long, or if it is bigger */
+                if (c > ULONG_MAX)
+                {
+                    free(found);
+                    return NULL;
+                }
                 sprintf((char*)ret, "/%lu%s", (unsigned long)c, found); /* /<array_index><path> */
                 free(found);
 
@@ -584,12 +592,28 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
             /* generate patches for all array elements that exist in "from" and "to" */
             for (c = 0, from = from->child, to = to->child; from && to; from = from->next, to = to->next, c++)
             {
+                /* check if conversion to unsigned long is valid
+                 * This should be eliminated at compile time by dead code elimination
+                 * if size_t is an alias of unsigned long, or if it is bigger */
+                if (c > ULONG_MAX)
+                {
+                    free(newpath);
+                    return;
+                }
                 sprintf((char*)newpath, "%s/%lu", path, (unsigned long)c); /* path of the current array element */
                 cJSONUtils_CompareToPatch(patches, newpath, from, to);
             }
             /* remove leftover elements from 'from' that are not in 'to' */
             for (; from; from = from->next, c++)
             {
+                /* check if conversion to unsigned long is valid
+                 * This should be eliminated at compile time by dead code elimination
+                 * if size_t is an alias of unsigned long, or if it is bigger */
+                if (c > ULONG_MAX)
+                {
+                    free(newpath);
+                    return;
+                }
                 sprintf((char*)newpath, "%lu", (unsigned long)c);
                 cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, newpath, 0);
             }
