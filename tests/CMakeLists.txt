@@ -16,6 +16,8 @@ if(ENABLE_CJSON_TEST)
         parse_value
     )
 
+    add_library(test-common common.c)
+
     option(ENABLE_VALGRIND OFF "Enable the valgrind memory checker for the tests.")
     if (ENABLE_VALGRIND)
         find_program(MEMORYCHECK_COMMAND valgrind)
@@ -29,7 +31,7 @@ if(ENABLE_CJSON_TEST)
 
     foreach(unity_test ${unity_tests})
         add_executable("${unity_test}" "${unity_test}.c")
-        target_link_libraries("${unity_test}" "${CJSON_LIB}" unity)
+        target_link_libraries("${unity_test}" "${CJSON_LIB}" unity test-common)
         if(MEMORYCHECK_COMMAND)
             add_test(NAME "${unity_test}"
                 COMMAND "${MEMORYCHECK_COMMAND}" ${MEMORYCHECK_COMMAND_OPTIONS} "./${unity_test}")

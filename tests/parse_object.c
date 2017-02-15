@@ -26,7 +26,7 @@
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
-#include "../cJSON.c"
+#include "common.h"
 
 static cJSON item[1];
 
@@ -64,15 +64,6 @@ static void assert_parse_object(const char *json)
     assert_is_object(item);
 }
 
-static void reset(void)
-{
-    if (item->child != NULL)
-    {
-        cJSON_Delete(item->child);
-    }
-    memset(item, 0, sizeof(cJSON));
-}
-
 static void parse_object_should_parse_empty_objects(void)
 {
     assert_parse_object("{}");
@@ -86,19 +77,19 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 
     assert_parse_object("{\"one\":1}");
     assert_is_child(item->child, "one", cJSON_Number);
-    reset();
+    reset(item);
 
     assert_parse_object("{\"hello\":\"world!\"}");
     assert_is_child(item->child, "hello", cJSON_String);
-    reset();
+    reset(item);
 
     assert_parse_object("{\"array\":[]}");
     assert_is_child(item->child, "array", cJSON_Array);
-    reset();
+    reset(item);
 
     assert_parse_object("{\"null\":null}");
     assert_is_child(item->child, "null", cJSON_NULL);
-    reset();
+    reset(item);
 }
 
 static void parse_object_should_parse_objects_with_multiple_elements(void)
@@ -107,7 +98,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
     assert_is_child(item->child, "one", cJSON_Number);
     assert_is_child(item->child->next, "two", cJSON_Number);
     assert_is_child(item->child->next->next, "three", cJSON_Number);
-    reset();
+    reset(item);
 
     {
         size_t i = 0;
@@ -144,7 +135,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
             assert_is_child(node, expected_names[i], expected_types[i]);
         }
         TEST_ASSERT_EQUAL_INT(i, 7);
-        reset();
+        reset(item);
     }
 }
 

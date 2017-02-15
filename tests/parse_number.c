@@ -26,7 +26,7 @@
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
-#include "../cJSON.c"
+#include "common.h"
 
 static cJSON item[1];
 

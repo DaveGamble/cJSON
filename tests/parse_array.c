@@ -26,7 +26,7 @@
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
-#include "../cJSON.c"
+#include "common.h"
 
 static cJSON item[1];
 
@@ -56,15 +56,6 @@ static void assert_parse_array(const char *json)
     assert_is_array(item);
 }
 
-static void reset(void)
-{
-    if (item->child != NULL)
-    {
-        cJSON_Delete(item->child);
-    }
-    memset(item, 0, sizeof(cJSON));
-}
-
 static void parse_array_should_parse_empty_arrays(void)
 {
     assert_parse_array("[]");
@@ -80,24 +71,24 @@ static void parse_array_should_parse_arrays_with_one_element(void)
     assert_parse_array("[1]");
     TEST_ASSERT_NOT_NULL(item->child);
     TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->type);
-    reset();
+    reset(item);
 
     assert_parse_array("[\"hello!\"]");
     TEST_ASSERT_NOT_NULL(item->child);
     TEST_ASSERT_BITS(0xFF, cJSON_String, item->child->type);
     TEST_ASSERT_EQUAL_STRING("hello!", item->child->valuestring);
-    reset();
+    reset(item);
 
     assert_parse_array("[[]]");
     TEST_ASSERT_NOT_NULL(item->child);
     assert_is_array(item->child);
     TEST_ASSERT_NULL(item->child->child);
-    reset();
+    reset(item);
 
     assert_parse_array("[null]");
     TEST_ASSERT_NOT_NULL(item->child);
     TEST_ASSERT_BITS(0xFF, cJSON_NULL, item->child->type);
-    reset();
+    reset(item);
 }
 
 static void parse_array_should_parse_arrays_with_multiple_elements(void)
@@ -110,7 +101,7 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
     TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->type);
     TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->next->type);
     TEST_ASSERT_BITS(0xFF, cJSON_Number, item->child->next->next->type);
-    reset();
+    reset(item);
 
     {
         size_t i = 0;
@@ -137,7 +128,7 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
             TEST_ASSERT_BITS(0xFF, expected_types[i], node->type);
         }
         TEST_ASSERT_EQUAL_INT(i, 7);
-        reset();
+        reset(item);
     }
 }
 
