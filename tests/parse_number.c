@@ -34,14 +34,13 @@ static void assert_is_number(cJSON *number_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(number_item, "Item is NULL.");
 
-    TEST_ASSERT_NULL_MESSAGE(number_item->next, "Linked list next pointer is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(number_item->prev, "Linked list previous pointer is not NULL");
-    TEST_ASSERT_NULL_MESSAGE(number_item->child, "Child pointer is not NULL.");
-    TEST_ASSERT_BITS_MESSAGE(0xFF, cJSON_Number, number_item->type, "Message type is not number.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_IsReference, 0, number_item->type, "Item should not have a string as reference.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_StringIsConst, 0, number_item->type, "Item should not have a const string.");
-    TEST_ASSERT_NULL_MESSAGE(number_item->valuestring, "Valuestring is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(number_item->string, "String is not NULL.");
+    assert_not_in_list(number_item);
+    assert_has_no_child(number_item);
+    assert_has_type(number_item, cJSON_Number);
+    assert_has_no_reference(number_item);
+    assert_has_no_const_string(number_item);
+    assert_has_no_valuestring(number_item);
+    assert_has_no_string(number_item);
 }
 
 static void assert_parse_number(const char *string, int integer, double real)

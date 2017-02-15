@@ -35,12 +35,11 @@ static void assert_is_value(cJSON *value_item, int type)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(value_item, "Item is NULL.");
 
-    TEST_ASSERT_NULL_MESSAGE(value_item->next, "Linked list next pointer is not NULL.");
-    TEST_ASSERT_NULL_MESSAGE(value_item->prev, "Linked list previous pointer is not NULL");
-    TEST_ASSERT_BITS_MESSAGE(0xFF, type, value_item->type, "Message type is not number.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_IsReference, 0, value_item->type, "Item should not have a string as reference.");
-    TEST_ASSERT_BITS_MESSAGE(cJSON_StringIsConst, 0, value_item->type, "Item should not have a const string.");
-    TEST_ASSERT_NULL_MESSAGE(value_item->string, "String is not NULL.");
+    assert_not_in_list(value_item);
+    assert_has_type(value_item, type);
+    assert_has_no_reference(value_item);
+    assert_has_no_const_string(value_item);
+    assert_has_no_string(value_item);
 }
 
 static void assert_parse_value(const char *string, int type)
