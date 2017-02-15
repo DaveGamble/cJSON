@@ -55,6 +55,8 @@ static void assert_is_child(cJSON *child_item, const char *name, int type)
 static void assert_not_object(const char *json)
 {
     TEST_ASSERT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer));
+    assert_is_invalid(item);
+    reset(item);
 }
 
 static void assert_parse_object(const char *json)
@@ -66,9 +68,12 @@ static void assert_parse_object(const char *json)
 static void parse_object_should_parse_empty_objects(void)
 {
     assert_parse_object("{}");
-    TEST_ASSERT_NULL(item->child);
+    assert_has_no_child(item);
+    reset(item);
+
     assert_parse_object("{\n\t}");
-    TEST_ASSERT_NULL(item->child);
+    assert_has_no_child(item);
+    reset(item);
 }
 
 static void parse_array_should_parse_arrays_with_one_element(void)

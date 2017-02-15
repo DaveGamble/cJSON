@@ -54,7 +54,11 @@ static void assert_parse_string(const char *string, const char *expected)
     item->valuestring = NULL;
 }
 
-#define assert_not_parse_string(string) TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer), "Malformed string should not be accepted")
+#define assert_not_parse_string(string) \
+    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer), "Malformed string should not be accepted");\
+    assert_is_invalid(item)
+
+
 
 static void parse_string_should_parse_strings(void)
 {
@@ -65,35 +69,44 @@ static void parse_string_should_parse_strings(void)
     assert_parse_string(
         "\"\\\"\\\\\\/\\b\\f\\n\\r\\t\\u20AC\\u732b\"",
         "\"\\/\b\f\n\r\t€猫");
+    reset(item);
     assert_parse_string("\"\b\f\n\r\t\"", "\b\f\n\r\t");
+    reset(item);
 }
 
 static void parse_string_should_parse_utf16_surrogate_pairs(void)
 {
     assert_parse_string("\"\\uD83D\\udc31\"", "🐱");
+    reset(item);
 }
 
 static void parse_string_should_not_parse_non_strings(void)
 {
     assert_not_parse_string("this\" is not a string\"");
+    reset(item);
     assert_not_parse_string("");
+    reset(item);
 }
 
 static void parse_string_should_not_parse_invalid_backslash(void)
 {
     assert_not_parse_string("Abcdef\\123");
+    reset(item);
     assert_not_parse_string("Abcdef\\e23");
+    reset(item);
 }
 
 static void parse_string_should_not_overflow_with_closing_backslash(void)
 {
     assert_not_parse_string("\"000000000000000000\\");
+    reset(item);
 }
 
 static void parse_string_should_parse_bug_94(void)
 {
     const char string[] = "\"~!@\\\\#$%^&*()\\\\\\\\-\\\\+{}[]:\\\\;\\\\\\\"\\\\<\\\\>?/.,DC=ad,DC=com\"";
     assert_parse_string(string, "~!@\\#$%^&*()\\\\-\\+{}[]:\\;\\\"\\<\\>?/.,DC=ad,DC=com");
+    reset(item);
 }
 
 int main(void)

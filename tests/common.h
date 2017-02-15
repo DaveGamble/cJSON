@@ -27,6 +27,7 @@
 
 extern void reset(cJSON *item);
 extern char *read_file(const char *filename);
+extern cjbool assert_is_invalid(cJSON *item);
 
 /* assertion helper macros */
 #define assert_has_type(item, item_type) TEST_ASSERT_BITS_MESSAGE(0xFF, item_type, item->type, "Item doesn't have expected type.")
@@ -41,5 +42,11 @@ extern char *read_file(const char *filename);
 	TEST_ASSERT_NULL_MESSAGE(item->prev, "Linked list previous pointer is not NULL.")
 #define assert_has_child(item) TEST_ASSERT_NOT_NULL_MESSAGE(item->child, "Item doesn't have a child.")
 #define assert_has_no_child(item) TEST_ASSERT_NULL_MESSAGE(item->child, "Item has a child.")
+#define assert_is_invalid(item) \
+	assert_has_type(item, cJSON_Invalid);\
+	assert_not_in_list(item);\
+	assert_has_no_child(item);\
+	assert_has_no_string(item);\
+	assert_has_no_valuestring(item)
 
 #endif
