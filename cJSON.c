@@ -468,7 +468,6 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     {
         goto fail;
     }
-    item->valuestring = (char*)out; /* assign here so out will be deleted during cJSON_Delete() later */
     item->type = cJSON_String;
 
     ptr = str + 1;
@@ -607,6 +606,8 @@ static const unsigned char *parse_string(cJSON *item, const unsigned char *str, 
     {
         ptr++;
     }
+
+    item->valuestring = (char*)out;
 
     return ptr;
 
