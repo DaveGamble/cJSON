@@ -1027,68 +1027,69 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
 }
 
 /* Build an array from input text. */
-static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **ep)
+static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **error_pointer)
 {
     cJSON *head = NULL; /* head of the linked list */
-    cJSON *child = NULL;
+    cJSON *current_item = NULL;
+
     if (*value != '[')
     {
-        /* not an array! */
-        *ep = value;
+        /* not an array */
+        *error_pointer = value;
         goto fail;
     }
 
-    value = skip(value + 1);
+    value = skip(value + 1); /* skip whitespace */
     if (*value == ']')
     {
-        /* empty array. */
+        /* empty array */
         goto success;
     }
 
-    head = child = cJSON_New_Item();
-    if (!child)
-    {
-        /* memory fail */
-        goto fail;
-    }
-    /* skip any spacing, get the value. */
-    value = skip(parse_value(child, skip(value), ep));
-    if (!value)
-    {
-        goto fail;
-    }
-
+    /* step back to character in front of the first element */
+    value--;
     /* loop through the comma separated array elements */
-    while (*value == ',')
+    do
     {
-        cJSON *new_item = NULL;
-        if (!(new_item = cJSON_New_Item()))
+        /* allocate next item */
+        cJSON *new_item = cJSON_New_Item();
+        if (new_item == NULL)
         {
-            /* memory fail */
-            goto fail;
+            goto fail; /* allocation failure */
         }
-        /* add new item to end of the linked list */
-        child->next = new_item;
-        new_item->prev = child;
-        child = new_item;
 
-        /* go to the next comma */
-        value = skip(parse_value(child, skip(value + 1), ep));
-        if (!value)
+        /* attach next item to list */
+        if (head == NULL)
         {
-            /* memory fail */
-            goto fail;
+            /* start the linked list */
+            current_item = head = new_item;
+        }
+        else
+        {
+            /* add to the end and advance */
+            current_item->next = new_item;
+            new_item->prev = current_item;
+            current_item = new_item;
+        }
+
+        /* parse next value */
+        value = skip(value + 1); /* skip whitespace before value */
+        value = parse_value(current_item, value, error_pointer);
+        value = skip(value); /* skip whitespace after value */
+        if (value == NULL)
+        {
+            goto fail; /* failed to parse value */
         }
     }
+    while (*value == ',');
 
     if (*value == ']')
     {
-        /* end of array */
-        goto success;
+        goto success; /* end of array */
     }
 
-    /* malformed. */
-    *ep = value;
+    /* malformed array */
+    *error_pointer = value;
     goto fail;
 
 success:
@@ -1098,9 +1099,9 @@ success:
     return value + 1;
 
 fail:
-    if (child != NULL)
+    if (head != NULL)
     {
-        cJSON_Delete(child);
+        cJSON_Delete(head);
     }
 
     return NULL;
