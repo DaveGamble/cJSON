@@ -153,21 +153,20 @@ void cJSON_Delete(cJSON *c)
 }
 
 /* Parse the input text to generate a number, and populate the result into item. */
-static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
+static const unsigned char *parse_number(cJSON * const item, const unsigned char * const input)
 {
     double number = 0;
-    unsigned char *endpointer = NULL;
+    unsigned char *after_end = NULL;
 
-    if (num == NULL)
+    if (input == NULL)
     {
         return NULL;
     }
 
-    number = strtod((const char*)num, (char**)&endpointer);
-    if ((num == endpointer) || (num == NULL))
+    number = strtod((const char*)input, (char**)&after_end);
+    if (input == after_end)
     {
-        /* parse_error */
-        return NULL;
+        return NULL; /* parse_error */
     }
 
     item->valuedouble = number;
@@ -185,9 +184,10 @@ static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
     {
         item->valueint = (int)number;
     }
+
     item->type = cJSON_Number;
 
-    return endpointer;
+    return after_end;
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
@@ -367,7 +367,7 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 }
 
 /* parse 4 digit hexadecimal number */
-static unsigned parse_hex4(const unsigned char *str)
+static unsigned parse_hex4(const unsigned char * const input)
 {
     unsigned int h = 0;
     size_t i = 0;
@@ -375,17 +375,17 @@ static unsigned parse_hex4(const unsigned char *str)
     for (i = 0; i < 4; i++)
     {
         /* parse digit */
-        if ((*str >= '0') && (*str <= '9'))
+        if ((input[i] >= '0') && (input[i] <= '9'))
         {
-            h += (unsigned int) (*str) - '0';
+            h += (unsigned int) input[i] - '0';
         }
-        else if ((*str >= 'A') && (*str <= 'F'))
+        else if ((input[i] >= 'A') && (input[i] <= 'F'))
         {
-            h += (unsigned int) 10 + (*str) - 'A';
+            h += (unsigned int) 10 + input[i] - 'A';
         }
-        else if ((*str >= 'a') && (*str <= 'f'))
+        else if ((input[i] >= 'a') && (input[i] <= 'f'))
         {
-            h += (unsigned int) 10 + (*str) - 'a';
+            h += (unsigned int) 10 + input[i] - 'a';
         }
         else /* invalid */
         {
@@ -396,208 +396,263 @@ static unsigned parse_hex4(const unsigned char *str)
         {
             /* shift left to make place for the next nibble */
             h = h << 4;
-            str++;
         }
     }
 
     return h;
 }
 
-/* first bytes of UTF8 encoding for a given length in bytes */
-static const unsigned char firstByteMark[5] =
+/* converts a UTF-16 literal to UTF-8
+ * A literal can be one or two sequences of the form \uXXXX */
+static unsigned char utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer, const unsigned char **error_pointer)
 {
-    0x00, /* should never happen */
-    0x00, /* 0xxxxxxx */
-    0xC0, /* 110xxxxx */
-    0xE0, /* 1110xxxx */
-    0xF0 /* 11110xxx */
-};
-
-/* Parse the input text into an unescaped cstring, and populate item. */
-static const unsigned char *parse_string(cJSON *item, const unsigned char *str, const unsigned char **ep)
-{
-    const unsigned char *ptr = str + 1;
-    const unsigned char *end_ptr = str + 1;
-    unsigned char *ptr2 = NULL;
-    unsigned char *out = NULL;
-    size_t len = 0;
-    unsigned uc = 0;
-    unsigned uc2 = 0;
-
-    /* not a string! */
-    if (*str != '\"')
+    /* first bytes of UTF8 encoding for a given length in bytes */
+    static const unsigned char firstByteMark[5] =
     {
-        *ep = str;
+        0x00, /* should never happen */
+        0x00, /* 0xxxxxxx */
+        0xC0, /* 110xxxxx */
+        0xE0, /* 1110xxxx */
+        0xF0 /* 11110xxx */
+    };
+
+    long unsigned int codepoint = 0;
+    unsigned int first_code = 0;
+    const unsigned char *first_sequence = input_pointer;
+    unsigned char utf8_length = 0;
+    unsigned char sequence_length = 0;
+
+    /* get the first utf16 sequence */
+    first_code = parse_hex4(first_sequence + 2);
+    if ((input_end - first_sequence) < 6)
+    {
+        /* input ends unexpectedly */
+        *error_pointer = first_sequence;
         goto fail;
     }
 
-    while ((*end_ptr != '\"') && *end_ptr)
+    /* check that the code is valid */
+    if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)) || (first_code == 0))
     {
-        if (*end_ptr++ == '\\')
+        *error_pointer = first_sequence;
+        goto fail;
+    }
+
+    /* UTF16 surrogate pair */
+    if ((first_code >= 0xD800) && (first_code <= 0xDBFF))
+    {
+        const unsigned char *second_sequence = first_sequence + 6;
+        unsigned int second_code = 0;
+        sequence_length = 12; /* \uXXXX\uXXXX */
+
+        if ((input_end - second_sequence) < 6)
         {
-            if (*end_ptr == '\0')
-            {
-                /* prevent buffer overflow when last input character is a backslash */
-                goto fail;
-            }
-            /* Skip escaped quotes. */
-            end_ptr++;
+            /* input ends unexpectedly */
+            *error_pointer = first_sequence;
+            goto fail;
         }
-        len++;
+
+        if ((second_sequence[0] != '\\') || (second_sequence[1] != 'u'))
+        {
+            /* missing second half of the surrogate pair */
+            *error_pointer = first_sequence;
+            goto fail;
+        }
+
+        /* get the second utf16 sequence */
+        second_code = parse_hex4(second_sequence + 2);
+        /* check that the code is valid */
+        if ((second_code < 0xDC00) || (second_code > 0xDFFF))
+        {
+            /* invalid second half of the surrogate pair */
+            *error_pointer = first_sequence;
+            goto fail;
+        }
+
+
+        /* calculate the unicode codepoint from the surrogate pair */
+        codepoint = 0x10000 + (((first_code & 0x3FF) << 10) | (second_code & 0x3FF));
+    }
+    else
+    {
+        sequence_length = 6; /* \uXXXX */
+        codepoint = first_code;
     }
 
-    /* This is at most how long we need for the string, roughly. */
-    out = (unsigned char*)cJSON_malloc(len + 1);
-    if (!out)
+    /* encode as UTF-8
+     * takes at maximum 4 bytes to encode:
+     * 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+    if (codepoint < 0x80)
     {
+        /* normal ascii, encoding 0xxxxxxx */
+        utf8_length = 1;
+    }
+    else if (codepoint < 0x800)
+    {
+        /* two bytes, encoding 110xxxxx 10xxxxxx */
+        utf8_length = 2;
+    }
+    else if (codepoint < 0x10000)
+    {
+        /* three bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx */
+        utf8_length = 3;
+    }
+    else if (codepoint <= 0x10FFFF)
+    {
+        /* four bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx 10xxxxxx */
+        utf8_length = 4;
+    }
+    else
+    {
+        /* invalid unicode codepoint */
+        *error_pointer = first_sequence;
         goto fail;
     }
 
-    ptr2 = out;
-    /* loop through the string literal */
-    while (ptr < end_ptr)
+    /* encode as utf8 */
+    switch (utf8_length)
     {
-        if (*ptr != '\\')
+        case 4:
+            /* 10xxxxxx */
+            (*output_pointer)[3] = (unsigned char)((codepoint | 0x80) & 0xBF);
+            codepoint >>= 6;
+        case 3:
+            /* 10xxxxxx */
+            (*output_pointer)[2] = (unsigned char)((codepoint | 0x80) & 0xBF);
+            codepoint >>= 6;
+        case 2:
+            (*output_pointer)[1] = (unsigned char)((codepoint | 0x80) & 0xBF);
+            codepoint >>= 6;
+        case 1:
+            /* depending on the length in bytes this determines the
+               encoding of the first UTF8 byte */
+            (*output_pointer)[0] = (unsigned char)((codepoint | firstByteMark[utf8_length]) & 0xFF);
+            break;
+        default:
+            *error_pointer = first_sequence;
+            goto fail;
+    }
+    *output_pointer += utf8_length;
+
+    return sequence_length;
+
+fail:
+    return 0;
+}
+
+/* Parse the input text into an unescaped cinput, and populate item. */
+static const unsigned char *parse_string(cJSON * const item, const unsigned char * const input, const unsigned char ** const error_pointer)
+{
+    const unsigned char *input_pointer = input + 1;
+    const unsigned char *input_end = input + 1;
+    unsigned char *output_pointer = NULL;
+    unsigned char *output = NULL;
+
+    /* not a string */
+    if (*input != '\"')
+    {
+        *error_pointer = input;
+        goto fail;
+    }
+
+    {
+        /* calculate approximate size of the output (overestimate) */
+        size_t allocation_length = 0;
+        size_t skipped_bytes = 0;
+        while ((*input_end != '\"') && (*input_end != '\0'))
         {
-            *ptr2++ = *ptr++;
+            /* is escape sequence */
+            if (input_end[0] == '\\')
+            {
+                if (input_end[1] == '\0')
+                {
+                    /* prevent buffer overflow when last input character is a backslash */
+                    goto fail;
+                }
+                skipped_bytes++;
+                input_end++;
+            }
+            input_end++;
+        }
+        if (*input_end == '\0')
+        {
+            goto fail; /* string ended unexpectedly */
+        }
+
+        /* This is at most how much we need for the output */
+        allocation_length = (size_t) (input_end - input) - skipped_bytes;
+        output = (unsigned char*)cJSON_malloc(allocation_length + sizeof('\0'));
+        if (output == NULL)
+        {
+            goto fail; /* allocation failure */
+        }
+    }
+
+    output_pointer = output;
+    /* loop through the string literal */
+    while (input_pointer < input_end)
+    {
+        if (*input_pointer != '\\')
+        {
+            *output_pointer++ = *input_pointer++;
         }
         /* escape sequence */
         else
         {
-            ptr++;
-            switch (*ptr)
+            unsigned char sequence_length = 2;
+            switch (input_pointer[1])
             {
                 case 'b':
-                    *ptr2++ = '\b';
+                    *output_pointer++ = '\b';
                     break;
                 case 'f':
-                    *ptr2++ = '\f';
+                    *output_pointer++ = '\f';
                     break;
                 case 'n':
-                    *ptr2++ = '\n';
+                    *output_pointer++ = '\n';
                     break;
                 case 'r':
-                    *ptr2++ = '\r';
+                    *output_pointer++ = '\r';
                     break;
                 case 't':
-                    *ptr2++ = '\t';
+                    *output_pointer++ = '\t';
                     break;
                 case '\"':
                 case '\\':
                 case '/':
-                    *ptr2++ = *ptr;
+                    *output_pointer++ = input_pointer[1];
                     break;
+
+                /* UTF-16 literal */
                 case 'u':
-                    /* transcode utf16 to utf8. See RFC2781 and RFC3629. */
-                    uc = parse_hex4(ptr + 1); /* get the unicode char. */
-                    ptr += 4;
-                    if (ptr >= end_ptr)
+                    sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer, error_pointer);
+                    if (sequence_length == 0)
                     {
-                        /* invalid */
-                        *ep = str;
+                        /* failed to convert UTF16-literal to UTF-8 */
                         goto fail;
                     }
-                    /* check for invalid. */
-                    if (((uc >= 0xDC00) && (uc <= 0xDFFF)) || (uc == 0))
-                    {
-                        *ep = str;
-                        goto fail;
-                    }
-
-                    /* UTF16 surrogate pairs. */
-                    if ((uc >= 0xD800) && (uc<=0xDBFF))
-                    {
-                        if ((ptr + 6) > end_ptr)
-                        {
-                            /* invalid */
-                            *ep = str;
-                            goto fail;
-                        }
-                        if ((ptr[1] != '\\') || (ptr[2] != 'u'))
-                        {
-                            /* missing second-half of surrogate. */
-                            *ep = str;
-                            goto fail;
-                        }
-                        uc2 = parse_hex4(ptr + 3);
-                        ptr += 6; /* \uXXXX */
-                        if ((uc2 < 0xDC00) || (uc2 > 0xDFFF))
-                        {
-                            /* invalid second-half of surrogate. */
-                            *ep = str;
-                            goto fail;
-                        }
-                        /* calculate unicode codepoint from the surrogate pair */
-                        uc = 0x10000 + (((uc & 0x3FF) << 10) | (uc2 & 0x3FF));
-                    }
-
-                    /* encode as UTF8
-                     * takes at maximum 4 bytes to encode:
-                     * 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-                    len = 4;
-                    if (uc < 0x80)
-                    {
-                        /* normal ascii, encoding 0xxxxxxx */
-                        len = 1;
-                    }
-                    else if (uc < 0x800)
-                    {
-                        /* two bytes, encoding 110xxxxx 10xxxxxx */
-                        len = 2;
-                    }
-                    else if (uc < 0x10000)
-                    {
-                        /* three bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx */
-                        len = 3;
-                    }
-                    ptr2 += len;
-
-                    switch (len) {
-                        case 4:
-                            /* 10xxxxxx */
-                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
-                            uc >>= 6;
-                        case 3:
-                            /* 10xxxxxx */
-                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
-                            uc >>= 6;
-                        case 2:
-                            /* 10xxxxxx */
-                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
-                            uc >>= 6;
-                        case 1:
-                            /* depending on the length in bytes this determines the
-                             * encoding ofthe first UTF8 byte */
-                            *--ptr2 = (unsigned char)((uc | firstByteMark[len]) & 0xFF);
-                            break;
-                        default:
-                            *ep = str;
-                            goto fail;
-                    }
-                    ptr2 += len;
                     break;
+
                 default:
-                    *ep = str;
+                    *error_pointer = input_pointer;
                     goto fail;
             }
-            ptr++;
+            input_pointer += sequence_length;
         }
     }
-    *ptr2 = '\0';
-    if (*ptr == '\"')
-    {
-        ptr++;
-    }
+
+    /* zero terminate the output */
+    *output_pointer = '\0';
 
     item->type = cJSON_String;
-    item->valuestring = (char*)out;
+    item->valuestring = (char*)output;
 
-    return ptr;
+    return input_end + 1;
 
 fail:
-    if (out != NULL)
+    if (output != NULL)
     {
-        cJSON_free(out);
+        cJSON_free(output);
     }
 
     return NULL;
@@ -756,11 +811,11 @@ static unsigned char *print_string(const cJSON *item, printbuffer *p)
 }
 
 /* Predeclare these prototypes. */
-static const unsigned char *parse_value(cJSON *item, const unsigned char *value, const unsigned char **ep);
+static const unsigned char *parse_value(cJSON * const item, const unsigned char * const input, const unsigned char ** const ep);
 static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
-static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **ep);
+static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
-static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **ep);
+static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 
 /* Utility to jump whitespace and cr/lf */
@@ -870,50 +925,56 @@ int cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const cjbool 
 }
 
 /* Parser core - when encountering text, process appropriately. */
-static const unsigned  char *parse_value(cJSON *item, const unsigned char *value, const unsigned char **ep)
+static const unsigned  char *parse_value(cJSON * const item, const unsigned char * const input, const unsigned char ** const error_pointer)
 {
-    if (!value)
+    if (input == NULL)
     {
-        /* Fail on null. */
-        return NULL;
+        return NULL; /* no input */
     }
 
     /* parse the different types of values */
-    if (!strncmp((const char*)value, "null", 4))
+    /* null */
+    if (!strncmp((const char*)input, "null", 4))
     {
         item->type = cJSON_NULL;
-        return value + 4;
+        return input + 4;
     }
-    if (!strncmp((const char*)value, "false", 5))
+    /* false */
+    if (!strncmp((const char*)input, "false", 5))
     {
         item->type = cJSON_False;
-        return value + 5;
+        return input + 5;
     }
-    if (!strncmp((const char*)value, "true", 4))
+    /* true */
+    if (!strncmp((const char*)input, "true", 4))
     {
         item->type = cJSON_True;
         item->valueint = 1;
-        return value + 4;
+        return input + 4;
     }
-    if (*value == '\"')
+    /* string */
+    if (*input == '\"')
     {
-        return parse_string(item, value, ep);
+        return parse_string(item, input, error_pointer);
     }
-    if ((*value == '-') || ((*value >= '0') && (*value <= '9')))
+    /* number */
+    if ((*input == '-') || ((*input >= '0') && (*input <= '9')))
     {
-        return parse_number(item, value);
+        return parse_number(item, input);
     }
-    if (*value == '[')
+    /* array */
+    if (*input == '[')
     {
-        return parse_array(item, value, ep);
+        return parse_array(item, input, error_pointer);
     }
-    if (*value == '{')
+    /* object */
+    if (*input == '{')
     {
-        return parse_object(item, value, ep);
+        return parse_object(item, input, error_pointer);
     }
 
     /* failure. */
-    *ep = value;
+    *error_pointer = input;
     return NULL;
 }
 
@@ -1027,80 +1088,78 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
 }
 
 /* Build an array from input text. */
-static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **ep)
+static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const error_pointer)
 {
     cJSON *head = NULL; /* head of the linked list */
-    cJSON *child = NULL;
-    if (*value != '[')
+    cJSON *current_item = NULL;
+
+    if (*input != '[')
     {
-        /* not an array! */
-        *ep = value;
+        /* not an array */
+        *error_pointer = input;
         goto fail;
     }
 
-    value = skip(value + 1);
-    if (*value == ']')
+    input = skip(input + 1); /* skip whitespace */
+    if (*input == ']')
     {
-        /* empty array. */
+        /* empty array */
         goto success;
     }
 
-    head = child = cJSON_New_Item();
-    if (!child)
-    {
-        /* memory fail */
-        goto fail;
-    }
-    /* skip any spacing, get the value. */
-    value = skip(parse_value(child, skip(value), ep));
-    if (!value)
-    {
-        goto fail;
-    }
-
+    /* step back to character in front of the first element */
+    input--;
     /* loop through the comma separated array elements */
-    while (*value == ',')
+    do
     {
-        cJSON *new_item = NULL;
-        if (!(new_item = cJSON_New_Item()))
+        /* allocate next item */
+        cJSON *new_item = cJSON_New_Item();
+        if (new_item == NULL)
         {
-            /* memory fail */
-            goto fail;
+            goto fail; /* allocation failure */
         }
-        /* add new item to end of the linked list */
-        child->next = new_item;
-        new_item->prev = child;
-        child = new_item;
 
-        /* go to the next comma */
-        value = skip(parse_value(child, skip(value + 1), ep));
-        if (!value)
+        /* attach next item to list */
+        if (head == NULL)
         {
-            /* memory fail */
-            goto fail;
+            /* start the linked list */
+            current_item = head = new_item;
+        }
+        else
+        {
+            /* add to the end and advance */
+            current_item->next = new_item;
+            new_item->prev = current_item;
+            current_item = new_item;
+        }
+
+        /* parse next value */
+        input = skip(input + 1); /* skip whitespace before value */
+        input = parse_value(current_item, input, error_pointer);
+        input = skip(input); /* skip whitespace after value */
+        if (input == NULL)
+        {
+            goto fail; /* failed to parse value */
         }
     }
+    while (*input == ',');
 
-    if (*value == ']')
+    if (*input != ']')
     {
-        /* end of array */
-        goto success;
+        *error_pointer = input;
+        goto fail; /* expected end of array */
     }
-
-    /* malformed. */
-    *ep = value;
-    goto fail;
 
 success:
     item->type = cJSON_Array;
     item->child = head;
 
-    return value + 1;
+    return input + 1;
 
 fail:
-    if (child != NULL)
+    if (head != NULL)
     {
-        cJSON_Delete(child);
+        cJSON_Delete(head);
     }
 
     return NULL;
@@ -1276,108 +1335,95 @@ static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, p
 }
 
 /* Build an object from the text. */
-static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **ep)
+static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const error_pointer)
 {
     cJSON *head = NULL; /* linked list head */
-    cJSON *child = NULL;
-    if (*value != '{')
+    cJSON *current_item = NULL;
+
+    if (*input != '{')
     {
-        /* not an object! */
-        *ep = value;
-        goto fail;
+        *error_pointer = input;
+        goto fail; /* not an object */
     }
 
-    value = skip(value + 1);
-    if (*value == '}')
+    input = skip(input + 1); /* skip whitespace */
+    if (*input == '}')
     {
-        /* empty object. */
-        goto success;
+        goto success; /* empty object */
     }
 
-    head = child = cJSON_New_Item();
-    if (!child)
+    /* step back to character in front of the first element */
+    input--;
+    /* loop through the comma separated array elements */
+    do
     {
-        goto fail;
-    }
-    /* parse first key */
-    value = skip(parse_string(child, skip(value), ep));
-    if (!value)
-    {
-        goto fail;
-    }
-    /* use string as key, not value */
-    child->string = child->valuestring;
-    child->valuestring = NULL;
-
-    if (*value != ':')
-    {
-        /* invalid object. */
-        *ep = value;
-        goto fail;
-    }
-    /* skip any spacing, get the value. */
-    value = skip(parse_value(child, skip(value + 1), ep));
-    if (!value)
-    {
-        goto fail;
-    }
-
-    while (*value == ',')
-    {
-        cJSON *new_item = NULL;
-        if (!(new_item = cJSON_New_Item()))
+        /* allocate next item */
+        cJSON *new_item = cJSON_New_Item();
+        if (new_item == NULL)
         {
-            /* memory fail */
-            goto fail;
-        }
-        /* add to linked list */
-        child->next = new_item;
-        new_item->prev = child;
-
-        child = new_item;
-        value = skip(parse_string(child, skip(value + 1), ep));
-        if (!value)
-        {
-            goto fail;
+            goto fail; /* allocation failure */
         }
 
-        /* use string as key, not value */
-        child->string = child->valuestring;
-        child->valuestring = NULL;
-
-        if (*value != ':')
+        /* attach next item to list */
+        if (head == NULL)
         {
-            /* invalid object. */
-            *ep = value;
-            goto fail;
+            /* start the linked list */
+            current_item = head = new_item;
         }
-        /* skip any spacing, get the value. */
-        value = skip(parse_value(child, skip(value + 1), ep));
-        if (!value)
+        else
         {
-            goto fail;
+            /* add to the end and advance */
+            current_item->next = new_item;
+            new_item->prev = current_item;
+            current_item = new_item;
+        }
+
+        /* parse the name of the child */
+        input = skip(input + 1); /* skip whitespaces before name */
+        input = parse_string(current_item, input, error_pointer);
+        input = skip(input); /* skip whitespaces after name */
+        if (input == NULL)
+        {
+            goto fail; /* faile to parse name */
+        }
+
+        /* swap valuestring and string, because we parsed the name */
+        current_item->string = current_item->valuestring;
+        current_item->valuestring = NULL;
+
+        if (*input != ':')
+        {
+            *error_pointer = input;
+            goto fail; /* invalid object */
+        }
+
+        /* parse the value */
+        input = skip(input + 1); /* skip whitespaces before value */
+        input = parse_value(current_item, input, error_pointer);
+        input = skip(input); /* skip whitespaces after the value */
+        if (input == NULL)
+        {
+            goto fail; /* failed to parse value */
         }
     }
-    /* end of object */
-    if (*value == '}')
+    while (*input == ',');
+
+    if (*input != '}')
     {
-        goto success;
+        *error_pointer = input;
+        goto fail; /* expected end of object */
     }
-
-    /* malformed */
-    *ep = value;
-    goto fail;
 
 success:
     item->type = cJSON_Object;
     item->child = head;
 
-    return value + 1;
+    return input + 1;
 
 fail:
-    if (child != NULL)
+    if (head != NULL)
     {
-        cJSON_Delete(child);
+        cJSON_Delete(head);
     }
 
     return NULL;
