@@ -30,6 +30,7 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+#include <stdint.h>
 #include "cJSON.h"
 
 /* define our own boolean type */
@@ -403,201 +404,257 @@ static unsigned parse_hex4(const unsigned char *str)
     return h;
 }
 
-/* first bytes of UTF8 encoding for a given length in bytes */
-static const unsigned char firstByteMark[5] =
+/* converts a UTF-16 literal to UTF-8
+ * A literal can be one or two sequences of the form \uXXXX */
+static uint8_t utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer, const unsigned char **error_pointer)
 {
-    0x00, /* should never happen */
-    0x00, /* 0xxxxxxx */
-    0xC0, /* 110xxxxx */
-    0xE0, /* 1110xxxx */
-    0xF0 /* 11110xxx */
-};
-
-/* Parse the input text into an unescaped cstring, and populate item. */
-static const unsigned char *parse_string(cJSON *item, const unsigned char *str, const unsigned char **ep)
-{
-    const unsigned char *ptr = str + 1;
-    const unsigned char *end_ptr = str + 1;
-    unsigned char *ptr2 = NULL;
-    unsigned char *out = NULL;
-    size_t len = 0;
-    unsigned uc = 0;
-    unsigned uc2 = 0;
-
-    /* not a string! */
-    if (*str != '\"')
+    /* first bytes of UTF8 encoding for a given length in bytes */
+    static const unsigned char firstByteMark[5] =
     {
-        *ep = str;
+        0x00, /* should never happen */
+        0x00, /* 0xxxxxxx */
+        0xC0, /* 110xxxxx */
+        0xE0, /* 1110xxxx */
+        0xF0 /* 11110xxx */
+    };
+
+    long unsigned int codepoint = 0;
+    unsigned int first_code = 0;
+    const unsigned char *first_sequence = input_pointer;
+    uint8_t utf8_length = 0;
+    uint8_t sequence_length = 0;
+
+    /* get the first utf16 sequence */
+    first_code = parse_hex4(first_sequence + 2);
+    if ((input_end - first_sequence) < 6)
+    {
+        /* input ends unexpectedly */
+        *error_pointer = first_sequence;
         goto fail;
     }
 
-    while ((*end_ptr != '\"') && *end_ptr)
+    /* check that the code is valid */
+    if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)) || (first_code == 0))
     {
-        if (*end_ptr++ == '\\')
+        *error_pointer = first_sequence;
+        goto fail;
+    }
+
+    /* UTF16 surrogate pair */
+    if ((first_code >= 0xD800) && (first_code <= 0xDBFF))
+    {
+        const unsigned char *second_sequence = first_sequence + 6;
+        unsigned int second_code = 0;
+        sequence_length = 12; /* \uXXXX\uXXXX */
+
+        if ((input_end - second_sequence) < 6)
         {
-            if (*end_ptr == '\0')
-            {
-                /* prevent buffer overflow when last input character is a backslash */
-                goto fail;
-            }
-            /* Skip escaped quotes. */
-            end_ptr++;
+            /* input ends unexpectedly */
+            *error_pointer = first_sequence;
+            goto fail;
         }
-        len++;
+
+        if ((second_sequence[0] != '\\') || (second_sequence[1] != 'u'))
+        {
+            /* missing second half of the surrogate pair */
+            *error_pointer = first_sequence;
+            goto fail;
+        }
+
+        /* get the second utf16 sequence */
+        second_code = parse_hex4(second_sequence + 2);
+        /* check that the code is valid */
+        if ((second_code < 0xDC00) || (second_code > 0xDFFF))
+        {
+            /* invalid second half of the surrogate pair */
+            *error_pointer = first_sequence;
+            goto fail;
+        }
+
+
+        /* calculate the unicode codepoint from the surrogate pair */
+        codepoint = 0x10000 + (((first_code & 0x3FF) << 10) | (second_code & 0x3FF));
+    }
+    else
+    {
+        sequence_length = 6; /* \uXXXX */
+        codepoint = first_code;
     }
 
-    /* This is at most how long we need for the string, roughly. */
-    out = (unsigned char*)cJSON_malloc(len + 1);
-    if (!out)
+    /* encode as UTF-8
+     * takes at maximum 4 bytes to encode:
+     * 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+    if (codepoint < 0x80)
     {
+        /* normal ascii, encoding 0xxxxxxx */
+        utf8_length = 1;
+    }
+    else if (codepoint < 0x800)
+    {
+        /* two bytes, encoding 110xxxxx 10xxxxxx */
+        utf8_length = 2;
+    }
+    else if (codepoint < 0x10000)
+    {
+        /* three bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx */
+        utf8_length = 3;
+    }
+    else if (codepoint <= 0x10FFFF)
+    {
+        /* four bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx 10xxxxxx */
+        utf8_length = 4;
+    }
+    else
+    {
+        /* invalid unicode codepoint */
+        *error_pointer = first_sequence;
         goto fail;
     }
 
-    ptr2 = out;
-    /* loop through the string literal */
-    while (ptr < end_ptr)
+    /* encode as utf8 */
+    switch (utf8_length)
     {
-        if (*ptr != '\\')
+        case 4:
+            /* 10xxxxxx */
+            (*output_pointer)[3] = (unsigned char)((codepoint | 0x80) & 0xBF);
+            codepoint >>= 6;
+        case 3:
+            /* 10xxxxxx */
+            (*output_pointer)[2] = (unsigned char)((codepoint | 0x80) & 0xBF);
+            codepoint >>= 6;
+        case 2:
+            (*output_pointer)[1] = (unsigned char)((codepoint | 0x80) & 0xBF);
+            codepoint >>= 6;
+        case 1:
+            /* depending on the length in bytes this determines the
+               encoding of the first UTF8 byte */
+            (*output_pointer)[0] = (unsigned char)((codepoint | firstByteMark[utf8_length]) & 0xFF);
+            break;
+        default:
+            *error_pointer = first_sequence;
+            goto fail;
+    }
+    *output_pointer += utf8_length;
+
+    return sequence_length;
+
+fail:
+    return 0;
+}
+
+/* Parse the input text into an unescaped cinput, and populate item. */
+static const unsigned char *parse_string(cJSON *item, const unsigned char *input, const unsigned char **error_pointer)
+{
+    const unsigned char *input_pointer = input + 1;
+    const unsigned char *input_end = input + 1;
+    unsigned char *output_pointer = NULL;
+    unsigned char *output = NULL;
+
+    /* not a string */
+    if (*input != '\"')
+    {
+        *error_pointer = input;
+        goto fail;
+    }
+
+    {
+        /* calculate approximate size of the output (overestimate) */
+        size_t allocation_length = 0;
+        size_t skipped_bytes = 0;
+        while ((*input_end != '\"') && (*input_end != '\0'))
         {
-            *ptr2++ = *ptr++;
+            /* is escape sequence */
+            if (input_end[0] == '\\')
+            {
+                if (input_end[1] == '\0')
+                {
+                    /* prevent buffer overflow when last input character is a backslash */
+                    goto fail;
+                }
+                skipped_bytes++;
+                input_end++;
+            }
+            input_end++;
+        }
+        if (*input_end == '\0')
+        {
+            goto fail; /* string ended unexpectedly */
+        }
+
+        /* This is at most how much we need for the output */
+        allocation_length = (size_t) (input_end - input) - skipped_bytes;
+        output = (unsigned char*)cJSON_malloc(allocation_length + sizeof('\0'));
+        if (output == NULL)
+        {
+            goto fail; /* allocation failure */
+        }
+    }
+
+    output_pointer = output;
+    /* loop through the string literal */
+    while (input_pointer < input_end)
+    {
+        if (*input_pointer != '\\')
+        {
+            *output_pointer++ = *input_pointer++;
         }
         /* escape sequence */
         else
         {
-            ptr++;
-            switch (*ptr)
+            uint8_t sequence_length = 2;
+            switch (input_pointer[1])
             {
                 case 'b':
-                    *ptr2++ = '\b';
+                    *output_pointer++ = '\b';
                     break;
                 case 'f':
-                    *ptr2++ = '\f';
+                    *output_pointer++ = '\f';
                     break;
                 case 'n':
-                    *ptr2++ = '\n';
+                    *output_pointer++ = '\n';
                     break;
                 case 'r':
-                    *ptr2++ = '\r';
+                    *output_pointer++ = '\r';
                     break;
                 case 't':
-                    *ptr2++ = '\t';
+                    *output_pointer++ = '\t';
                     break;
                 case '\"':
                 case '\\':
                 case '/':
-                    *ptr2++ = *ptr;
+                    *output_pointer++ = input_pointer[1];
                     break;
+
+                /* UTF-16 literal */
                 case 'u':
-                    /* transcode utf16 to utf8. See RFC2781 and RFC3629. */
-                    uc = parse_hex4(ptr + 1); /* get the unicode char. */
-                    ptr += 4;
-                    if (ptr >= end_ptr)
+                    sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer, error_pointer);
+                    if (sequence_length == 0)
                     {
-                        /* invalid */
-                        *ep = str;
+                        /* failed to convert UTF16-literal to UTF-8 */
                         goto fail;
                     }
-                    /* check for invalid. */
-                    if (((uc >= 0xDC00) && (uc <= 0xDFFF)) || (uc == 0))
-                    {
-                        *ep = str;
-                        goto fail;
-                    }
-
-                    /* UTF16 surrogate pairs. */
-                    if ((uc >= 0xD800) && (uc<=0xDBFF))
-                    {
-                        if ((ptr + 6) > end_ptr)
-                        {
-                            /* invalid */
-                            *ep = str;
-                            goto fail;
-                        }
-                        if ((ptr[1] != '\\') || (ptr[2] != 'u'))
-                        {
-                            /* missing second-half of surrogate. */
-                            *ep = str;
-                            goto fail;
-                        }
-                        uc2 = parse_hex4(ptr + 3);
-                        ptr += 6; /* \uXXXX */
-                        if ((uc2 < 0xDC00) || (uc2 > 0xDFFF))
-                        {
-                            /* invalid second-half of surrogate. */
-                            *ep = str;
-                            goto fail;
-                        }
-                        /* calculate unicode codepoint from the surrogate pair */
-                        uc = 0x10000 + (((uc & 0x3FF) << 10) | (uc2 & 0x3FF));
-                    }
-
-                    /* encode as UTF8
-                     * takes at maximum 4 bytes to encode:
-                     * 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-                    len = 4;
-                    if (uc < 0x80)
-                    {
-                        /* normal ascii, encoding 0xxxxxxx */
-                        len = 1;
-                    }
-                    else if (uc < 0x800)
-                    {
-                        /* two bytes, encoding 110xxxxx 10xxxxxx */
-                        len = 2;
-                    }
-                    else if (uc < 0x10000)
-                    {
-                        /* three bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx */
-                        len = 3;
-                    }
-                    ptr2 += len;
-
-                    switch (len) {
-                        case 4:
-                            /* 10xxxxxx */
-                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
-                            uc >>= 6;
-                        case 3:
-                            /* 10xxxxxx */
-                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
-                            uc >>= 6;
-                        case 2:
-                            /* 10xxxxxx */
-                            *--ptr2 = (unsigned char)((uc | 0x80) & 0xBF);
-                            uc >>= 6;
-                        case 1:
-                            /* depending on the length in bytes this determines the
-                             * encoding ofthe first UTF8 byte */
-                            *--ptr2 = (unsigned char)((uc | firstByteMark[len]) & 0xFF);
-                            break;
-                        default:
-                            *ep = str;
-                            goto fail;
-                    }
-                    ptr2 += len;
                     break;
+
                 default:
-                    *ep = str;
+                    *error_pointer = input_pointer;
                     goto fail;
             }
-            ptr++;
+            input_pointer += sequence_length;
         }
     }
-    *ptr2 = '\0';
-    if (*ptr == '\"')
-    {
-        ptr++;
-    }
+
+    /* zero terminate the output */
+    *output_pointer = '\0';
 
     item->type = cJSON_String;
-    item->valuestring = (char*)out;
+    item->valuestring = (char*)output;
 
-    return ptr;
+    return input_end + 1;
 
 fail:
-    if (out != NULL)
+    if (output != NULL)
     {
-        cJSON_free(out);
+        cJSON_free(output);
     }
 
     return NULL;
