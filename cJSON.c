@@ -817,7 +817,7 @@ static const unsigned char *parse_value(cJSON *item, const unsigned char *value,
 static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
-static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **ep);
+static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 
 /* Utility to jump whitespace and cr/lf */
@@ -1331,26 +1331,25 @@ static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, p
 }
 
 /* Build an object from the text. */
-static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **error_pointer)
+static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const error_pointer)
 {
     cJSON *head = NULL; /* linked list head */
     cJSON *current_item = NULL;
 
-    if (*value != '{')
+    if (*input != '{')
     {
-        /* not an object */
-        *error_pointer = value;
-        goto fail;
+        *error_pointer = input;
+        goto fail; /* not an object */
     }
 
-    value = skip(value + 1); /* skip whitespace */
-    if (*value == '}')
+    input = skip(input + 1); /* skip whitespace */
+    if (*input == '}')
     {
         goto success; /* empty object */
     }
 
     /* step back to character in front of the first element */
-    value--;
+    input--;
     /* loop through the comma separated array elements */
     do
     {
@@ -1376,10 +1375,10 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         }
 
         /* parse the name of the child */
-        value = skip(value + 1); /* skip whitespaces before name */
-        value = parse_string(current_item, value, error_pointer);
-        value = skip(value); /* skip whitespaces after name */
-        if (value == NULL)
+        input = skip(input + 1); /* skip whitespaces before name */
+        input = parse_string(current_item, input, error_pointer);
+        input = skip(input); /* skip whitespaces after name */
+        if (input == NULL)
         {
             goto fail; /* faile to parse name */
         }
@@ -1388,38 +1387,34 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         current_item->string = current_item->valuestring;
         current_item->valuestring = NULL;
 
-        if (*value != ':')
+        if (*input != ':')
         {
-            /* invalid object */
-            *error_pointer = value;
-            goto fail;
+            *error_pointer = input;
+            goto fail; /* invalid object */
         }
 
         /* parse the value */
-        value = skip(value + 1); /* skip whitespaces before value */
-        value = parse_value(current_item, value, error_pointer);
-        value = skip(value); /* skip whitespaces after the value */
-        if (value == NULL)
+        input = skip(input + 1); /* skip whitespaces before value */
+        input = parse_value(current_item, input, error_pointer);
+        input = skip(input); /* skip whitespaces after the value */
+        if (input == NULL)
         {
             goto fail; /* failed to parse value */
         }
     }
-    while (*value == ',');
+    while (*input == ',');
 
-    if (*value == '}')
+    if (*input != '}')
     {
-        goto success; /* end of object */
+        *error_pointer = input;
+        goto fail; /* expected end of object */
     }
-
-    /* malformed object */
-    *error_pointer = value;
-    goto fail;
 
 success:
     item->type = cJSON_Object;
     item->child = head;
 
-    return value + 1;
+    return input + 1;
 
 fail:
     if (head != NULL)
