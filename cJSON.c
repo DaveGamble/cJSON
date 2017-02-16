@@ -543,7 +543,7 @@ fail:
 }
 
 /* Parse the input text into an unescaped cinput, and populate item. */
-static const unsigned char *parse_string(cJSON *item, const unsigned char *input, const unsigned char **error_pointer)
+static const unsigned char *parse_string(cJSON * const item, const unsigned char * const input, const unsigned char ** const error_pointer)
 {
     const unsigned char *input_pointer = input + 1;
     const unsigned char *input_end = input + 1;
