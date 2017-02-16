@@ -813,7 +813,7 @@ static unsigned char *print_string(const cJSON *item, printbuffer *p)
 }
 
 /* Predeclare these prototypes. */
-static const unsigned char *parse_value(cJSON *item, const unsigned char *value, const unsigned char **ep);
+static const unsigned char *parse_value(cJSON * const item, const unsigned char * const input, const unsigned char ** const ep);
 static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
@@ -927,50 +927,56 @@ int cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const cjbool 
 }
 
 /* Parser core - when encountering text, process appropriately. */
-static const unsigned  char *parse_value(cJSON *item, const unsigned char *value, const unsigned char **ep)
+static const unsigned  char *parse_value(cJSON * const item, const unsigned char * const input, const unsigned char ** const error_pointer)
 {
-    if (!value)
+    if (input == NULL)
     {
-        /* Fail on null. */
-        return NULL;
+        return NULL; /* no input */
     }
 
     /* parse the different types of values */
-    if (!strncmp((const char*)value, "null", 4))
+    /* null */
+    if (!strncmp((const char*)input, "null", 4))
     {
         item->type = cJSON_NULL;
-        return value + 4;
+        return input + 4;
     }
-    if (!strncmp((const char*)value, "false", 5))
+    /* false */
+    if (!strncmp((const char*)input, "false", 5))
     {
         item->type = cJSON_False;
-        return value + 5;
+        return input + 5;
     }
-    if (!strncmp((const char*)value, "true", 4))
+    /* true */
+    if (!strncmp((const char*)input, "true", 4))
     {
         item->type = cJSON_True;
         item->valueint = 1;
-        return value + 4;
+        return input + 4;
     }
-    if (*value == '\"')
+    /* string */
+    if (*input == '\"')
     {
-        return parse_string(item, value, ep);
+        return parse_string(item, input, error_pointer);
     }
-    if ((*value == '-') || ((*value >= '0') && (*value <= '9')))
+    /* number */
+    if ((*input == '-') || ((*input >= '0') && (*input <= '9')))
     {
-        return parse_number(item, value);
+        return parse_number(item, input);
     }
-    if (*value == '[')
+    /* array */
+    if (*input == '[')
     {
-        return parse_array(item, value, ep);
+        return parse_array(item, input, error_pointer);
     }
-    if (*value == '{')
+    /* object */
+    if (*input == '{')
     {
-        return parse_object(item, value, ep);
+        return parse_object(item, input, error_pointer);
     }
 
     /* failure. */
-    *ep = value;
+    *error_pointer = input;
     return NULL;
 }
 
