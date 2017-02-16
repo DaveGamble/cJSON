@@ -1277,96 +1277,88 @@ static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, p
 }
 
 /* Build an object from the text. */
-static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **ep)
+static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **error_pointer)
 {
     cJSON *head = NULL; /* linked list head */
-    cJSON *child = NULL;
+    cJSON *current_item = NULL;
+
     if (*value != '{')
     {
-        /* not an object! */
-        *ep = value;
+        /* not an object */
+        *error_pointer = value;
         goto fail;
     }
 
-    value = skip(value + 1);
+    value = skip(value + 1); /* skip whitespace */
     if (*value == '}')
     {
-        /* empty object. */
-        goto success;
+        goto success; /* empty object */
     }
 
-    head = child = cJSON_New_Item();
-    if (!child)
+    /* step back to character in front of the first element */
+    value--;
+    /* loop through the comma separated array elements */
+    do
     {
-        goto fail;
-    }
-    /* parse first key */
-    value = skip(parse_string(child, skip(value), ep));
-    if (!value)
-    {
-        goto fail;
-    }
-    /* use string as key, not value */
-    child->string = child->valuestring;
-    child->valuestring = NULL;
-
-    if (*value != ':')
-    {
-        /* invalid object. */
-        *ep = value;
-        goto fail;
-    }
-    /* skip any spacing, get the value. */
-    value = skip(parse_value(child, skip(value + 1), ep));
-    if (!value)
-    {
-        goto fail;
-    }
-
-    while (*value == ',')
-    {
-        cJSON *new_item = NULL;
-        if (!(new_item = cJSON_New_Item()))
+        /* allocate next item */
+        cJSON *new_item = cJSON_New_Item();
+        if (new_item == NULL)
         {
-            /* memory fail */
-            goto fail;
-        }
-        /* add to linked list */
-        child->next = new_item;
-        new_item->prev = child;
-
-        child = new_item;
-        value = skip(parse_string(child, skip(value + 1), ep));
-        if (!value)
-        {
-            goto fail;
+            goto fail; /* allocation failure */
         }
 
-        /* use string as key, not value */
-        child->string = child->valuestring;
-        child->valuestring = NULL;
+        /* attach next item to list */
+        if (head == NULL)
+        {
+            /* start the linked list */
+            current_item = head = new_item;
+        }
+        else
+        {
+            /* add to the end and advance */
+            current_item->next = new_item;
+            new_item->prev = current_item;
+            current_item = new_item;
+        }
+
+        /* parse the name of the child */
+        value = skip(value + 1); /* skip whitespaces before name */
+        value = parse_string(current_item, value, error_pointer);
+        value = skip(value); /* skip whitespaces after name */
+        if (value == NULL)
+        {
+            goto fail; /* faile to parse name */
+        }
+
+        /* swap valuestring and string, because we parsed the name */
+        current_item->string = current_item->valuestring;
+        current_item->valuestring = NULL;
 
         if (*value != ':')
         {
-            /* invalid object. */
-            *ep = value;
+            /* invalid object */
+            *error_pointer = value;
             goto fail;
         }
-        /* skip any spacing, get the value. */
-        value = skip(parse_value(child, skip(value + 1), ep));
-        if (!value)
+
+        /* parse the value */
+        value = skip(value + 1); /* skip whitespaces before value */
+        value = parse_value(current_item, value, error_pointer);
+        value = skip(value); /* skip whitespaces after the value */
+        if (value == NULL)
         {
-            goto fail;
+            goto fail; /* failed to parse value */
         }
     }
-    /* end of object */
+    while (*value == ',');
+
     if (*value == '}')
     {
-        goto success;
+        goto success; /* end of object */
     }
 
-    /* malformed */
-    *ep = value;
+    /* malformed object */
+    *error_pointer = value;
     goto fail;
 
 success:
@@ -1376,9 +1368,9 @@ success:
     return value + 1;
 
 fail:
-    if (child != NULL)
+    if (head != NULL)
     {
-        cJSON_Delete(child);
+        cJSON_Delete(head);
     }
 
     return NULL;
