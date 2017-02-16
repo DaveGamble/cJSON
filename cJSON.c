@@ -154,21 +154,20 @@ void cJSON_Delete(cJSON *c)
 }
 
 /* Parse the input text to generate a number, and populate the result into item. */
-static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
+static const unsigned char *parse_number(cJSON * const item, const unsigned char * const input)
 {
     double number = 0;
-    unsigned char *endpointer = NULL;
+    unsigned char *after_end = NULL;
 
-    if (num == NULL)
+    if (input == NULL)
     {
         return NULL;
     }
 
-    number = strtod((const char*)num, (char**)&endpointer);
-    if ((num == endpointer) || (num == NULL))
+    number = strtod((const char*)input, (char**)&after_end);
+    if (input == after_end)
     {
-        /* parse_error */
-        return NULL;
+        return NULL; /* parse_error */
     }
 
     item->valuedouble = number;
@@ -186,9 +185,10 @@ static const unsigned char *parse_number(cJSON *item, const unsigned char *num)
     {
         item->valueint = (int)number;
     }
+
     item->type = cJSON_Number;
 
-    return endpointer;
+    return after_end;
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
