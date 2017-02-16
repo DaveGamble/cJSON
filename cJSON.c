@@ -30,7 +30,6 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
-#include <stdint.h>
 #include "cJSON.h"
 
 /* define our own boolean type */
@@ -405,7 +404,7 @@ static unsigned parse_hex4(const unsigned char * const input)
 
 /* converts a UTF-16 literal to UTF-8
  * A literal can be one or two sequences of the form \uXXXX */
-static uint8_t utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer, const unsigned char **error_pointer)
+static unsigned char utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer, const unsigned char **error_pointer)
 {
     /* first bytes of UTF8 encoding for a given length in bytes */
     static const unsigned char firstByteMark[5] =
@@ -420,8 +419,8 @@ static uint8_t utf16_literal_to_utf8(const unsigned char * const input_pointer, 
     long unsigned int codepoint = 0;
     unsigned int first_code = 0;
     const unsigned char *first_sequence = input_pointer;
-    uint8_t utf8_length = 0;
-    uint8_t sequence_length = 0;
+    unsigned char utf8_length = 0;
+    unsigned char sequence_length = 0;
 
     /* get the first utf16 sequence */
     first_code = parse_hex4(first_sequence + 2);
@@ -600,7 +599,7 @@ static const unsigned char *parse_string(cJSON * const item, const unsigned char
         /* escape sequence */
         else
         {
-            uint8_t sequence_length = 2;
+            unsigned char sequence_length = 2;
             switch (input_pointer[1])
             {
                 case 'b':
