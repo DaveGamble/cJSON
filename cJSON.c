@@ -1029,6 +1029,7 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
 /* Build an array from input text. */
 static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **ep)
 {
+    cJSON *head = NULL; /* head of the linked list */
     cJSON *child = NULL;
     if (*value != '[')
     {
@@ -1044,8 +1045,8 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         goto success;
     }
 
-    item->child = child = cJSON_New_Item();
-    if (!item->child)
+    head = child = cJSON_New_Item();
+    if (!child)
     {
         /* memory fail */
         goto fail;
@@ -1092,14 +1093,14 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
 
 success:
     item->type = cJSON_Array;
+    item->child = head;
 
     return value + 1;
 
 fail:
-    if (item->child != NULL)
+    if (child != NULL)
     {
-        cJSON_Delete(item->child);
-        item->child = NULL;
+        cJSON_Delete(child);
     }
 
     return NULL;
@@ -1277,6 +1278,7 @@ static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, p
 /* Build an object from the text. */
 static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **ep)
 {
+    cJSON *head = NULL; /* linked list head */
     cJSON *child = NULL;
     if (*value != '{')
     {
@@ -1292,9 +1294,8 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
         goto success;
     }
 
-    child = cJSON_New_Item();
-    item->child = child;
-    if (!item->child)
+    head = child = cJSON_New_Item();
+    if (!child)
     {
         goto fail;
     }
@@ -1369,14 +1370,14 @@ static const unsigned char *parse_object(cJSON *item, const unsigned char *value
 
 success:
     item->type = cJSON_Object;
+    item->child = head;
 
     return value + 1;
 
 fail:
-    if (item->child != NULL)
+    if (child != NULL)
     {
         cJSON_Delete(child);
-        item->child = NULL;
     }
 
     return NULL;
