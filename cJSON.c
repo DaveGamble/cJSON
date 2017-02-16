@@ -368,7 +368,7 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 }
 
 /* parse 4 digit hexadecimal number */
-static unsigned parse_hex4(const unsigned char *str)
+static unsigned parse_hex4(const unsigned char * const input)
 {
     unsigned int h = 0;
     size_t i = 0;
@@ -376,17 +376,17 @@ static unsigned parse_hex4(const unsigned char *str)
     for (i = 0; i < 4; i++)
     {
         /* parse digit */
-        if ((*str >= '0') && (*str <= '9'))
+        if ((input[i] >= '0') && (input[i] <= '9'))
         {
-            h += (unsigned int) (*str) - '0';
+            h += (unsigned int) input[i] - '0';
         }
-        else if ((*str >= 'A') && (*str <= 'F'))
+        else if ((input[i] >= 'A') && (input[i] <= 'F'))
         {
-            h += (unsigned int) 10 + (*str) - 'A';
+            h += (unsigned int) 10 + input[i] - 'A';
         }
-        else if ((*str >= 'a') && (*str <= 'f'))
+        else if ((input[i] >= 'a') && (input[i] <= 'f'))
         {
-            h += (unsigned int) 10 + (*str) - 'a';
+            h += (unsigned int) 10 + input[i] - 'a';
         }
         else /* invalid */
         {
@@ -397,7 +397,6 @@ static unsigned parse_hex4(const unsigned char *str)
         {
             /* shift left to make place for the next nibble */
             h = h << 4;
-            str++;
         }
     }
 
