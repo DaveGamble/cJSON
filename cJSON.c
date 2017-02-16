@@ -815,7 +815,7 @@ static unsigned char *print_string(const cJSON *item, printbuffer *p)
 /* Predeclare these prototypes. */
 static const unsigned char *parse_value(cJSON *item, const unsigned char *value, const unsigned char **ep);
 static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
-static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **ep);
+static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 static const unsigned char *parse_object(cJSON *item, const unsigned char *value, const unsigned char **ep);
 static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
@@ -1084,27 +1084,27 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
 }
 
 /* Build an array from input text. */
-static const unsigned char *parse_array(cJSON *item, const unsigned char *value, const unsigned char **error_pointer)
+static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const error_pointer)
 {
     cJSON *head = NULL; /* head of the linked list */
     cJSON *current_item = NULL;
 
-    if (*value != '[')
+    if (*input != '[')
     {
         /* not an array */
-        *error_pointer = value;
+        *error_pointer = input;
         goto fail;
     }
 
-    value = skip(value + 1); /* skip whitespace */
-    if (*value == ']')
+    input = skip(input + 1); /* skip whitespace */
+    if (*input == ']')
     {
         /* empty array */
         goto success;
     }
 
     /* step back to character in front of the first element */
-    value--;
+    input--;
     /* loop through the comma separated array elements */
     do
     {
@@ -1130,30 +1130,27 @@ static const unsigned char *parse_array(cJSON *item, const unsigned char *value,
         }
 
         /* parse next value */
-        value = skip(value + 1); /* skip whitespace before value */
-        value = parse_value(current_item, value, error_pointer);
-        value = skip(value); /* skip whitespace after value */
-        if (value == NULL)
+        input = skip(input + 1); /* skip whitespace before value */
+        input = parse_value(current_item, input, error_pointer);
+        input = skip(input); /* skip whitespace after value */
+        if (input == NULL)
         {
             goto fail; /* failed to parse value */
         }
     }
-    while (*value == ',');
+    while (*input == ',');
 
-    if (*value == ']')
+    if (*input != ']')
     {
-        goto success; /* end of array */
+        *error_pointer = input;
+        goto fail; /* expected end of array */
     }
-
-    /* malformed array */
-    *error_pointer = value;
-    goto fail;
 
 success:
     item->type = cJSON_Array;
     item->child = head;
 
-    return value + 1;
+    return input + 1;
 
 fail:
     if (head != NULL)
