@@ -819,7 +819,7 @@ static const unsigned char *parse_object(cJSON * const item, const unsigned char
 static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 
 /* Utility to jump whitespace and cr/lf */
-static const unsigned char *skip(const unsigned char *in)
+static const unsigned char *skip_whitespace(const unsigned char *in)
 {
     while (in && *in && (*in <= 32))
     {
@@ -842,7 +842,7 @@ cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cjb
         return NULL;
     }
 
-    end = parse_value(c, skip((const unsigned char*)value), ep);
+    end = parse_value(c, skip_whitespace((const unsigned char*)value), ep);
     if (!end)
     {
         /* parse failure. ep is set. */
@@ -853,7 +853,7 @@ cJSON *cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cjb
     /* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
     if (require_null_terminated)
     {
-        end = skip(end);
+        end = skip_whitespace(end);
         if (*end)
         {
             cJSON_Delete(c);
@@ -1100,7 +1100,7 @@ static const unsigned char *parse_array(cJSON * const item, const unsigned char 
         goto fail;
     }
 
-    input = skip(input + 1); /* skip whitespace */
+    input = skip_whitespace(input + 1);
     if (*input == ']')
     {
         /* empty array */
@@ -1134,9 +1134,9 @@ static const unsigned char *parse_array(cJSON * const item, const unsigned char 
         }
 
         /* parse next value */
-        input = skip(input + 1); /* skip whitespace before value */
+        input = skip_whitespace(input + 1);
         input = parse_value(current_item, input, error_pointer);
-        input = skip(input); /* skip whitespace after value */
+        input = skip_whitespace(input);
         if (input == NULL)
         {
             goto fail; /* failed to parse value */
@@ -1346,7 +1346,7 @@ static const unsigned char *parse_object(cJSON * const item, const unsigned char
         goto fail; /* not an object */
     }
 
-    input = skip(input + 1); /* skip whitespace */
+    input = skip_whitespace(input + 1);
     if (*input == '}')
     {
         goto success; /* empty object */
@@ -1379,9 +1379,9 @@ static const unsigned char *parse_object(cJSON * const item, const unsigned char
         }
 
         /* parse the name of the child */
-        input = skip(input + 1); /* skip whitespaces before name */
+        input = skip_whitespace(input + 1);
         input = parse_string(current_item, input, error_pointer);
-        input = skip(input); /* skip whitespaces after name */
+        input = skip_whitespace(input);
         if (input == NULL)
         {
             goto fail; /* faile to parse name */
@@ -1398,9 +1398,9 @@ static const unsigned char *parse_object(cJSON * const item, const unsigned char
         }
 
         /* parse the value */
-        input = skip(input + 1); /* skip whitespaces before value */
+        input = skip_whitespace(input + 1);
         input = parse_value(current_item, input, error_pointer);
-        input = skip(input); /* skip whitespaces after the value */
+        input = skip_whitespace(input);
         if (input == NULL)
         {
             goto fail; /* failed to parse value */
