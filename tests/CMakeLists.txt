@@ -29,6 +29,11 @@ if(ENABLE_CJSON_TEST)
         endif()
     endif()
 
+    #"check" target that automatically builds everything and runs the tests
+    add_custom_target(check 
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS ${unity_tests})
+
     foreach(unity_test ${unity_tests})
         add_executable("${unity_test}" "${unity_test}.c")
         target_link_libraries("${unity_test}" "${CJSON_LIB}" unity test-common)
