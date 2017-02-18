@@ -101,12 +101,12 @@ int main(int argc, char** argv)
     filename = argv[1];
 
     json = read_file(filename);
-    if (json == NULL)
+    if ((json == NULL) || (json[0] == '\0') || (json[1] == '\0'))
     {
         status = EXIT_FAILURE;
         goto cleanup;
     }
-    item = cJSON_Parse(json);
+    item = cJSON_Parse(json + 2);
     if (item == NULL)
     {
         goto cleanup;
@@ -114,7 +114,29 @@ int main(int argc, char** argv)
 
     if ((argc == 3) && (strncmp(argv[2], "yes", 3) == 0))
     {
-        printed_json = cJSON_Print(item);
+        int do_format = 0;
+        if (json[1] == 'f')
+        {
+            do_format = 1;
+        }
+
+        if (json[0] == 'b')
+        {
+            /* buffered printing */
+            printed_json = cJSON_PrintBuffered(item, 1, do_format);
+        }
+        else
+        {
+            /* unbuffered printing */
+            if (do_format)
+            {
+                printed_json = cJSON_Print(item);
+            }
+            else
+            {
+                printed_json = cJSON_PrintUnformatted(item);
+            }
+        }
         if (printed_json == NULL)
         {
             status = EXIT_FAILURE;
