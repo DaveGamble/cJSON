@@ -300,7 +300,7 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
         }
         if (newbuffer)
         {
-            memcpy(newbuffer, p->buffer, p->length);
+            memcpy(newbuffer, p->buffer, p->offset + 1);
         }
         cJSON_free(p->buffer);
     }
