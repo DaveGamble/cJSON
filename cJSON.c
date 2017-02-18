@@ -81,6 +81,7 @@ static int cJSON_strcasecmp(const unsigned char *s1, const unsigned char *s2)
 
 static void *(*cJSON_malloc)(size_t sz) = malloc;
 static void (*cJSON_free)(void *ptr) = free;
+static void *(*cJSON_realloc)(void *pointer, size_t size) = realloc;
 
 static unsigned char* cJSON_strdup(const unsigned char* str)
 {
@@ -104,16 +105,33 @@ static unsigned char* cJSON_strdup(const unsigned char* str)
 
 void cJSON_InitHooks(cJSON_Hooks* hooks)
 {
-    if (!hooks)
+    if (hooks == NULL)
     {
         /* Reset hooks */
         cJSON_malloc = malloc;
         cJSON_free = free;
+        cJSON_realloc = realloc;
         return;
     }
 
-    cJSON_malloc = (hooks->malloc_fn) ? hooks->malloc_fn : malloc;
-    cJSON_free = (hooks->free_fn) ? hooks->free_fn : free;
+    cJSON_malloc = malloc;
+    if (hooks->malloc_fn != NULL)
+    {
+        cJSON_malloc = hooks->malloc_fn;
+    }
+
+    cJSON_free = free;
+    if (hooks->free_fn != NULL)
+    {
+        cJSON_free = hooks->free_fn;
+    }
+
+    /* use realloc only if both free and malloc are used */
+    cJSON_realloc = NULL;
+    if ((cJSON_malloc == malloc) && (cJSON_free == free))
+    {
+        cJSON_realloc = realloc;
+    }
 }
 
 /* Internal constructor. */
@@ -263,20 +281,29 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
         }
     }
 
-    newbuffer = (unsigned char*)cJSON_malloc(newsize);
-    if (!newbuffer)
+    if (cJSON_realloc != NULL)
     {
-        cJSON_free(p->buffer);
-        p->length = 0;
-        p->buffer = NULL;
+        /* reallocate with realloc if available */
+        newbuffer = (unsigned char*)cJSON_realloc(p->buffer, newsize);
+    }
+    else
+    {
+        /* otherwise reallocate manually */
+        newbuffer = (unsigned char*)cJSON_malloc(newsize);
+        if (!newbuffer)
+        {
+            cJSON_free(p->buffer);
+            p->length = 0;
+            p->buffer = NULL;
 
-        return NULL;
+            return NULL;
+        }
+        if (newbuffer)
+        {
+            memcpy(newbuffer, p->buffer, p->length);
+        }
+        cJSON_free(p->buffer);
     }
-    if (newbuffer)
-    {
-        memcpy(newbuffer, p->buffer, p->length);
-    }
-    cJSON_free(p->buffer);
     p->length = newsize;
     p->buffer = newbuffer;
 
