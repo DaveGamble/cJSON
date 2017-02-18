@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     const char *filename = NULL;
     cJSON *item = NULL;
     char *json = NULL;
-    int status = EXIT_SUCCESS;
+    int status;
     char *printed_json = NULL;
 
     if ((argc < 2) || (argc > 3))
@@ -99,6 +99,12 @@ int main(int argc, char** argv)
     }
 
     filename = argv[1];
+
+#if __AFL_HAVE_MANUAL_CONTROL
+    while (__AFL_LOOP(1000))
+    {
+#endif
+    status = EXIT_SUCCESS;
 
     json = read_file(filename);
     if ((json == NULL) || (json[0] == '\0') || (json[1] == '\0'))
@@ -149,15 +155,21 @@ cleanup:
     if (item != NULL)
     {
         cJSON_Delete(item);
+        item = NULL;
     }
     if (json != NULL)
     {
         free(json);
+        json = NULL;
     }
     if (printed_json != NULL)
     {
         free(printed_json);
+        printed_json = NULL;
     }
+#if __AFL_HAVE_MANUAL_CONTROL
+    }
+#endif
 
     return status;
 }

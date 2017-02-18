@@ -18,6 +18,8 @@ if (ENABLE_FUZZING)
         set(fuzz_print_parameter "yes")
     endif()
 
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error")
+
     add_custom_target(afl
         COMMAND "${AFL_FUZZ}" -i "${CMAKE_CURRENT_SOURCE_DIR}/inputs" -o "${CMAKE_CURRENT_BINARY_DIR}/findings" -x "${CMAKE_CURRENT_SOURCE_DIR}/json.dict" -- "${CMAKE_CURRENT_BINARY_DIR}/afl-main" "@@" "${fuzz_print_parameter}"
         DEPENDS afl-main)
