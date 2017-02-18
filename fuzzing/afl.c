@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../cJSON.h"
 
@@ -86,21 +87,40 @@ int main(int argc, char** argv)
     const char *filename = NULL;
     cJSON *item = NULL;
     char *json = NULL;
+    int status = EXIT_SUCCESS;
+    char *printed_json = NULL;
 
-    if (argc < 2)
+    if ((argc < 2) || (argc > 3))
     {
         printf("Usage:\n");
-        printf("%s input_file\n", argv[0]);
-        printf("\t input_file: file containing the test data");
+        printf("%s input_file [enable_printing]\n", argv[0]);
+        printf("\t input_file: file containing the test data\n");
+        printf("\t enable_printing: print after parsing, 'yes' or 'no', defaults to 'no'\n");
     }
 
     filename = argv[1];
 
     json = read_file(filename);
+    if (json == NULL)
+    {
+        status = EXIT_FAILURE;
+        goto cleanup;
+    }
     item = cJSON_Parse(json);
     if (item == NULL)
     {
         goto cleanup;
+    }
+
+    if ((argc == 3) && (strncmp(argv[2], "yes", 3) == 0))
+    {
+        printed_json = cJSON_Print(item);
+        if (printed_json == NULL)
+        {
+            status = EXIT_FAILURE;
+            goto cleanup;
+        }
+        printf("%s\n", printed_json);
     }
 
 cleanup:
@@ -112,6 +132,10 @@ cleanup:
     {
         free(json);
     }
+    if (printed_json != NULL)
+    {
+        free(printed_json);
+    }
 
-    return EXIT_SUCCESS;
+    return status;
 }
