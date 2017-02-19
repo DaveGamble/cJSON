@@ -241,9 +241,9 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
     unsigned char *newbuffer = NULL;
     size_t newsize = 0;
 
-    if (p == NULL)
+    if ((p == NULL) || (p->buffer == NULL))
     {
-        return (unsigned char*)cJSON_malloc(needed);
+        return NULL;
     }
 
     if (needed > INT_MAX)
@@ -252,10 +252,6 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
         return NULL;
     }
 
-    if (p->buffer == NULL)
-    {
-        return NULL;
-    }
     needed += p->offset;
     if (needed <= p->length)
     {
