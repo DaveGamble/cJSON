@@ -865,15 +865,66 @@ cJSON *cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
+#define min(a, b) ((a < b) ? a : b)
+
+static unsigned char *print(const cJSON * const item, cjbool format)
+{
+    printbuffer buffer[1];
+    unsigned char *printed = NULL;
+
+    memset(buffer, 0, sizeof(buffer));
+
+    /* create buffer */
+    buffer->buffer = (unsigned char*) cJSON_malloc(256);
+    if (buffer->buffer == NULL)
+    {
+        goto fail;
+    }
+
+    /* print the value */
+    if (print_value(item, 0, format, buffer) == NULL)
+    {
+        goto fail;
+    }
+    buffer->offset = update(buffer); /* update the length of the string */
+
+    /* copy the buffer over to a new one */
+    printed = (unsigned char*) cJSON_malloc(buffer->offset + 1);
+    if (printed == NULL)
+    {
+        goto fail;
+    }
+    strncpy((char*)printed, (char*)buffer->buffer, min(buffer->length, buffer->offset + 1));
+    printed[buffer->offset] = '\0'; /* just to be sure */
+
+    /* free the buffer */
+    cJSON_free(buffer->buffer);
+
+    return printed;
+
+fail:
+    if (buffer->buffer != NULL)
+    {
+        cJSON_free(buffer->buffer);
+    }
+
+    if (printed != NULL)
+    {
+        cJSON_free(printed);
+    }
+
+    return NULL;
+}
+
 /* Render a cJSON item/entity/structure to text. */
 char *cJSON_Print(const cJSON *item)
 {
-    return (char*)print_value(item, 0, 1, 0);
+    return (char*)print(item, true);
 }
 
 char *cJSON_PrintUnformatted(const cJSON *item)
 {
-    return (char*)print_value(item, 0, 0, 0);
+    return (char*)print(item, false);
 }
 
 char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
