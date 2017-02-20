@@ -668,9 +668,9 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
     const unsigned char *input_pointer = NULL;
     unsigned char *output = NULL;
     unsigned char *output_pointer = NULL;
-    size_t length = 0;
-    cjbool contains_special_char = false;
-    unsigned char token = '\0';
+    size_t output_length = 0;
+    /* numbers of additional characters needed for escaping */
+    size_t escape_characters = 0;
 
     if (output_buffer == NULL)
     {
@@ -680,7 +680,7 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
     /* empty string */
     if (input == NULL)
     {
-        output = ensure(output_buffer, 3);
+        output = ensure(output_buffer, sizeof("\"\""));
         if (output == NULL)
         {
             return NULL;
@@ -693,102 +693,83 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
     /* set "flag" to 1 if something needs to be escaped */
     for (input_pointer = input; *input_pointer; input_pointer++)
     {
-        contains_special_char |= (((*input_pointer > 0) && (*input_pointer < 32)) /* unprintable characters */
-                || (*input_pointer == '\"') /* double quote */
-                || (*input_pointer == '\\')) /* backslash */
-            ? 1
-            : 0;
-    }
-    /* no characters have to be escaped */
-    if (!contains_special_char)
-    {
-        length = (size_t)(input_pointer - input);
-
-        output = ensure(output_buffer, length + 3);
-        if (output == NULL)
+        if (strchr("\"\\\b\f\n\r\t", *input_pointer))
         {
-            return NULL;
+            /* one character escape sequence */
+            escape_characters++;
         }
-
-        output_pointer = output;
-        *output_pointer++ = '\"';
-        strcpy((char*)output_pointer, (const char*)input);
-        output_pointer[length] = '\"';
-        output_pointer[length + 1] = '\0';
-
-        return output;
-    }
-
-    input_pointer = input;
-    /* calculate additional space that is needed for escaping */
-    while ((token = *input_pointer))
-    {
-        ++length;
-        if (strchr("\"\\\b\f\n\r\t", token))
+        else if (*input_pointer < 32)
         {
-            length++; /* +1 for the backslash */
+            /* UTF-16 escape sequence uXXXX */
+            escape_characters += 5;
         }
-        else if (token < 32)
-        {
-            length += 5; /* +5 for \uXXXX */
-        }
-        input_pointer++;
     }
+    output_length = (size_t)(input_pointer - input) + escape_characters;
 
-    output = ensure(output_buffer, length + 3);
+    output = ensure(output_buffer, output_length + sizeof("\"\""));
     if (output == NULL)
     {
         return NULL;
     }
 
-    output_pointer = output;
-    input_pointer = input;
-    *output_pointer++ = '\"';
+    /* no characters have to be escaped */
+    if (escape_characters == 0)
+    {
+        output[0] = '\"';
+        memcpy(output + 1, input, output_length);
+        output[output_length + 1] = '\"';
+        output[output_length + 2] = '\0';
+
+        return output;
+    }
+
+    output[0] = '\"';
+    output_pointer = output + 1;
     /* copy the string */
-    while (*input_pointer)
+    for (input_pointer = input; *input_pointer != '\0'; input_pointer++, output_pointer++)
     {
         if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\'))
         {
             /* normal character, copy */
-            *output_pointer++ = *input_pointer++;
+            *output_pointer = *input_pointer;
         }
         else
         {
             /* character needs to be escaped */
             *output_pointer++ = '\\';
-            switch (token = *input_pointer++)
+            switch (*input_pointer)
             {
                 case '\\':
-                    *output_pointer++ = '\\';
+                    *output_pointer = '\\';
                     break;
                 case '\"':
-                    *output_pointer++ = '\"';
+                    *output_pointer = '\"';
                     break;
                 case '\b':
-                    *output_pointer++ = 'b';
+                    *output_pointer = 'b';
                     break;
                 case '\f':
-                    *output_pointer++ = 'f';
+                    *output_pointer = 'f';
                     break;
                 case '\n':
-                    *output_pointer++ = 'n';
+                    *output_pointer = 'n';
                     break;
                 case '\r':
-                    *output_pointer++ = 'r';
+                    *output_pointer = 'r';
                     break;
                 case '\t':
-                    *output_pointer++ = 't';
+                    *output_pointer = 't';
                     break;
                 default:
                     /* escape and print as unicode codepoint */
-                    sprintf((char*)output_pointer, "u%04x", token);
-                    output_pointer += 5;
+                    sprintf((char*)output_pointer, "u%04x", *input_pointer);
+                    output_pointer += 4;
                     break;
             }
         }
     }
-    *output_pointer++ = '\"';
-    *output_pointer++ = '\0';
+    output[output_length + 1] = '\"';
+    output[output_length + 2] = '\0';
 
     return output;
 }
