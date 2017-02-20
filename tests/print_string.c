@@ -40,6 +40,7 @@ static void assert_print_string(const char *expected, const char *input)
 static void print_string_should_print_empty_strings(void)
 {
     assert_print_string("\"\"", "");
+    assert_print_string("\"\"", NULL);
 }
 
 static void print_string_should_print_ascii(void)
