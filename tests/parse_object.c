@@ -76,7 +76,7 @@ static void parse_object_should_parse_empty_objects(void)
     reset(item);
 }
 
-static void parse_array_should_parse_arrays_with_one_element(void)
+static void parse_object_should_parse_objects_with_one_element(void)
 {
 
     assert_parse_object("{\"one\":1}");
@@ -163,6 +163,6 @@ int main(void)
     RUN_TEST(parse_object_should_parse_empty_objects);
     RUN_TEST(parse_object_should_not_parse_non_objects);
     RUN_TEST(parse_object_should_parse_objects_with_multiple_elements);
-    RUN_TEST(parse_array_should_parse_arrays_with_one_element);
+    RUN_TEST(parse_object_should_parse_objects_with_one_element);
     return UNITY_END();
 }
