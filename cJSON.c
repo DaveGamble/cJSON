@@ -241,9 +241,9 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
     unsigned char *newbuffer = NULL;
     size_t newsize = 0;
 
-    if (p == NULL)
+    if ((p == NULL) || (p->buffer == NULL))
     {
-        return (unsigned char*)cJSON_malloc(needed);
+        return NULL;
     }
 
     if (needed > INT_MAX)
@@ -252,10 +252,6 @@ static unsigned char* ensure(printbuffer *p, size_t needed)
         return NULL;
     }
 
-    if (p->buffer == NULL)
-    {
-        return NULL;
-    }
     needed += p->offset;
     if (needed <= p->length)
     {
@@ -328,6 +324,12 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 {
     unsigned char *str = NULL;
     double d = item->valuedouble;
+
+    if (p == NULL)
+    {
+        return NULL;
+    }
+
     /* special case for 0. */
     if (d == 0)
     {
@@ -678,6 +680,11 @@ static unsigned char *print_string_ptr(const unsigned char *str, printbuffer *p)
     cjbool flag = false;
     unsigned char token = '\0';
 
+    if (p == NULL)
+    {
+        return NULL;
+    }
+
     /* empty string */
     if (!str)
     {
@@ -865,15 +872,66 @@ cJSON *cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
+#define min(a, b) ((a < b) ? a : b)
+
+static unsigned char *print(const cJSON * const item, cjbool format)
+{
+    printbuffer buffer[1];
+    unsigned char *printed = NULL;
+
+    memset(buffer, 0, sizeof(buffer));
+
+    /* create buffer */
+    buffer->buffer = (unsigned char*) cJSON_malloc(256);
+    if (buffer->buffer == NULL)
+    {
+        goto fail;
+    }
+
+    /* print the value */
+    if (print_value(item, 0, format, buffer) == NULL)
+    {
+        goto fail;
+    }
+    buffer->offset = update(buffer); /* update the length of the string */
+
+    /* copy the buffer over to a new one */
+    printed = (unsigned char*) cJSON_malloc(buffer->offset + 1);
+    if (printed == NULL)
+    {
+        goto fail;
+    }
+    strncpy((char*)printed, (char*)buffer->buffer, min(buffer->length, buffer->offset + 1));
+    printed[buffer->offset] = '\0'; /* just to be sure */
+
+    /* free the buffer */
+    cJSON_free(buffer->buffer);
+
+    return printed;
+
+fail:
+    if (buffer->buffer != NULL)
+    {
+        cJSON_free(buffer->buffer);
+    }
+
+    if (printed != NULL)
+    {
+        cJSON_free(printed);
+    }
+
+    return NULL;
+}
+
 /* Render a cJSON item/entity/structure to text. */
 char *cJSON_Print(const cJSON *item)
 {
-    return (char*)print_value(item, 0, 1, 0);
+    return (char*)print(item, true);
 }
 
 char *cJSON_PrintUnformatted(const cJSON *item)
 {
-    return (char*)print_value(item, 0, 0, 0);
+    return (char*)print(item, false);
 }
 
 char *cJSON_PrintBuffered(const cJSON *item, int prebuffer, cjbool fmt)
@@ -977,101 +1035,71 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
     {
         return NULL;
     }
-    if (p)
-    {
-        switch ((item->type) & 0xFF)
-        {
-            case cJSON_NULL:
-                out = ensure(p, 5);
-                if (out != NULL)
-                {
-                    strcpy((char*)out, "null");
-                }
-                break;
-            case cJSON_False:
-                out = ensure(p, 6);
-                if (out != NULL)
-                {
-                    strcpy((char*)out, "false");
-                }
-                break;
-            case cJSON_True:
-                out = ensure(p, 5);
-                if (out != NULL)
-                {
-                    strcpy((char*)out, "true");
-                }
-                break;
-            case cJSON_Number:
-                out = print_number(item, p);
-                break;
-            case cJSON_Raw:
-            {
-                size_t raw_length = 0;
-                if (item->valuestring == NULL)
-                {
-                    if (!p->noalloc)
-                    {
-                        cJSON_free(p->buffer);
-                    }
-                    out = NULL;
-                    break;
-                }
 
-                raw_length = strlen(item->valuestring) + sizeof('\0');
-                out = ensure(p, raw_length);
-                if (out != NULL)
+    if (p == NULL)
+    {
+        return NULL;
+    }
+
+    switch ((item->type) & 0xFF)
+    {
+        case cJSON_NULL:
+            out = ensure(p, 5);
+            if (out != NULL)
+            {
+                strcpy((char*)out, "null");
+            }
+            break;
+        case cJSON_False:
+            out = ensure(p, 6);
+            if (out != NULL)
+            {
+                strcpy((char*)out, "false");
+            }
+            break;
+        case cJSON_True:
+            out = ensure(p, 5);
+            if (out != NULL)
+            {
+                strcpy((char*)out, "true");
+            }
+            break;
+        case cJSON_Number:
+            out = print_number(item, p);
+            break;
+        case cJSON_Raw:
+        {
+            size_t raw_length = 0;
+            if (item->valuestring == NULL)
+            {
+                if (!p->noalloc)
                 {
-                    memcpy(out, item->valuestring, raw_length);
+                    cJSON_free(p->buffer);
                 }
+                out = NULL;
                 break;
             }
-            case cJSON_String:
-                out = print_string(item, p);
-                break;
-            case cJSON_Array:
-                out = print_array(item, depth, fmt, p);
-                break;
-            case cJSON_Object:
-                out = print_object(item, depth, fmt, p);
-                break;
-            default:
-                out = NULL;
-                break;
+
+            raw_length = strlen(item->valuestring) + sizeof('\0');
+            out = ensure(p, raw_length);
+            if (out != NULL)
+            {
+                memcpy(out, item->valuestring, raw_length);
+            }
+            break;
         }
-    }
-    else
-    {
-        switch ((item->type) & 0xFF)
-        {
-            case cJSON_NULL:
-                out = cJSON_strdup((const unsigned char*)"null");
-                break;
-            case cJSON_False:
-                out = cJSON_strdup((const unsigned char*)"false");
-                break;
-            case cJSON_True:
-                out = cJSON_strdup((const unsigned char*)"true");
-                break;
-            case cJSON_Number:
-                out = print_number(item, 0);
-                break;
-            case cJSON_Raw:
-                out = cJSON_strdup((unsigned char*)item->valuestring);
-                break;
-            case cJSON_String:
-                out = print_string(item, 0);
-                break;
-            case cJSON_Array:
-                out = print_array(item, depth, fmt, 0);
-                break;
-            case cJSON_Object:
-                out = print_object(item, depth, fmt, 0);
-                break;
-            default:
-                out = NULL;
-                break;
-        }
+        case cJSON_String:
+            out = print_string(item, p);
+            break;
+        case cJSON_Array:
+            out = print_array(item, depth, fmt, p);
+            break;
+        case cJSON_Object:
+            out = print_object(item, depth, fmt, p);
+            break;
+        default:
+            out = NULL;
+            break;
     }
 
     return out;
@@ -1158,16 +1186,18 @@ fail:
 /* Render an array to text */
 static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p)
 {
-    unsigned char **entries;
     unsigned char *out = NULL;
     unsigned char *ptr = NULL;
-    unsigned char *ret = NULL;
     size_t len = 5;
     cJSON *child = item->child;
     size_t numentries = 0;
     size_t i = 0;
     cjbool fail = false;
-    size_t tmplen = 0;
+
+    if (p == NULL)
+    {
+        return NULL;
+    }
 
     /* How many entries in the array? */
     while (child)
@@ -1188,131 +1218,51 @@ static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, p
         return out;
     }
 
-    if (p)
+    /* Compose the output array. */
+    /* opening square bracket */
+    i = p->offset;
+    ptr = ensure(p, 1);
+    if (ptr == NULL)
     {
-        /* Compose the output array. */
-        /* opening square bracket */
-        i = p->offset;
-        ptr = ensure(p, 1);
-        if (ptr == NULL)
+        return NULL;
+    }
+    *ptr = '[';
+    p->offset++;
+
+    child = item->child;
+    while (child && !fail)
+    {
+        if (!print_value(child, depth + 1, fmt, p))
         {
             return NULL;
         }
-        *ptr = '[';
-        p->offset++;
-
-        child = item->child;
-        while (child && !fail)
+        p->offset = update(p);
+        if (child->next)
         {
-            if (!print_value(child, depth + 1, fmt, p))
+            len = fmt ? 2 : 1;
+            ptr = ensure(p, len + 1);
+            if (ptr == NULL)
             {
                 return NULL;
             }
-            p->offset = update(p);
-            if (child->next)
+            *ptr++ = ',';
+            if(fmt)
             {
-                len = fmt ? 2 : 1;
-                ptr = ensure(p, len + 1);
-                if (ptr == NULL)
-                {
-                    return NULL;
-                }
-                *ptr++ = ',';
-                if(fmt)
-                {
-                    *ptr++ = ' ';
-                }
-                *ptr = '\0';
-                p->offset += len;
+                *ptr++ = ' ';
             }
-            child = child->next;
+            *ptr = '\0';
+            p->offset += len;
         }
-        ptr = ensure(p, 2);
-        if (ptr == NULL)
-        {
-            return NULL;
-        }
-        *ptr++ = ']';
-        *ptr = '\0';
-        out = (p->buffer) + i;
+        child = child->next;
     }
-    else
+    ptr = ensure(p, 2);
+    if (ptr == NULL)
     {
-        /* Allocate an array to hold the pointers to all printed values */
-        entries = (unsigned char**)cJSON_malloc(numentries * sizeof(unsigned char*));
-        if (!entries)
-        {
-            return NULL;
-        }
-        memset(entries, '\0', numentries * sizeof(unsigned char*));
-
-        /* Retrieve all the results: */
-        child = item->child;
-        while (child && !fail)
-        {
-            ret = print_value(child, depth + 1, fmt, 0);
-            entries[i++] = ret;
-            if (ret)
-            {
-                len += strlen((char*)ret) + 2 + (fmt ? 1 : 0);
-            }
-            else
-            {
-                fail = true;
-            }
-            child = child->next;
-        }
-
-        /* If we didn't fail, try to malloc the output string */
-        if (!fail)
-        {
-            out = (unsigned char*)cJSON_malloc(len);
-        }
-        /* If that fails, we fail. */
-        if (!out)
-        {
-            fail = true;
-        }
-
-        /* Handle failure. */
-        if (fail)
-        {
-            /* free all the entries in the array */
-            for (i = 0; i < numentries; i++)
-            {
-                if (entries[i])
-                {
-                    cJSON_free(entries[i]);
-                }
-            }
-            cJSON_free(entries);
-            return NULL;
-        }
-
-        /* Compose the output array. */
-        *out='[';
-        ptr = out + 1;
-        *ptr = '\0';
-        for (i = 0; i < numentries; i++)
-        {
-            tmplen = strlen((char*)entries[i]);
-            memcpy(ptr, entries[i], tmplen);
-            ptr += tmplen;
-            if (i != (numentries - 1))
-            {
-                *ptr++ = ',';
-                if(fmt)
-                {
-                    *ptr++ = ' ';
-                }
-                *ptr = '\0';
-            }
-            cJSON_free(entries[i]);
-        }
-        cJSON_free(entries);
-        *ptr++ = ']';
-        *ptr++ = '\0';
+        return NULL;
     }
+    *ptr++ = ']';
+    *ptr = '\0';
+    out = (p->buffer) + i;
 
     return out;
 }
@@ -1415,19 +1365,18 @@ fail:
 /* Render an object to text. */
 static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p)
 {
-    unsigned char **entries = NULL;
-    unsigned char **names = NULL;
     unsigned char *out = NULL;
     unsigned char *ptr = NULL;
-    unsigned char *ret = NULL;
-    unsigned char *str = NULL;
     size_t len = 7;
     size_t i = 0;
     size_t j = 0;
     cJSON *child = item->child;
     size_t numentries = 0;
-    cjbool fail = false;
-    size_t tmplen = 0;
+
+    if (p == NULL)
+    {
+        return NULL;
+    }
 
     /* Count the number of entries. */
     while (child)
@@ -1459,18 +1408,80 @@ static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, 
         return out;
     }
 
-    if (p)
+    /* Compose the output: */
+    i = p->offset;
+    len = fmt ? 2 : 1; /* fmt: {\n */
+    ptr = ensure(p, len + 1);
+    if (ptr == NULL)
     {
-        /* Compose the output: */
-        i = p->offset;
-        len = fmt ? 2 : 1; /* fmt: {\n */
+        return NULL;
+    }
+
+    *ptr++ = '{';
+    if (fmt)
+    {
+        *ptr++ = '\n';
+    }
+    *ptr = '\0';
+    p->offset += len;
+
+    child = item->child;
+    depth++;
+    while (child)
+    {
+        if (fmt)
+        {
+            ptr = ensure(p, depth);
+            if (ptr == NULL)
+            {
+                return NULL;
+            }
+            for (j = 0; j < depth; j++)
+            {
+                *ptr++ = '\t';
+            }
+            p->offset += depth;
+        }
+
+        /* print key */
+        if (!print_string_ptr((unsigned char*)child->string, p))
+        {
+            return NULL;
+        }
+        p->offset = update(p);
+
+        len = fmt ? 2 : 1;
+        ptr = ensure(p, len);
+        if (ptr == NULL)
+        {
+            return NULL;
+        }
+        *ptr++ = ':';
+        if (fmt)
+        {
+            *ptr++ = '\t';
+        }
+        p->offset+=len;
+
+        /* print value */
+        if (!print_value(child, depth, fmt, p))
+        {
+            return NULL;
+        }
+        p->offset = update(p);
+
+        /* print comma if not last */
+        len = (size_t) (fmt ? 1 : 0) + (child->next ? 1 : 0);
         ptr = ensure(p, len + 1);
         if (ptr == NULL)
         {
             return NULL;
         }
+        if (child->next)
+        {
+            *ptr++ = ',';
+        }
 
-        *ptr++ = '{';
         if (fmt)
         {
             *ptr++ = '\n';
@@ -1478,210 +1489,24 @@ static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, 
         *ptr = '\0';
         p->offset += len;
 
-        child = item->child;
-        depth++;
-        while (child)
-        {
-            if (fmt)
-            {
-                ptr = ensure(p, depth);
-                if (ptr == NULL)
-                {
-                    return NULL;
-                }
-                for (j = 0; j < depth; j++)
-                {
-                    *ptr++ = '\t';
-                }
-                p->offset += depth;
-            }
-
-            /* print key */
-            if (!print_string_ptr((unsigned char*)child->string, p))
-            {
-                return NULL;
-            }
-            p->offset = update(p);
-
-            len = fmt ? 2 : 1;
-            ptr = ensure(p, len);
-            if (ptr == NULL)
-            {
-                return NULL;
-            }
-            *ptr++ = ':';
-            if (fmt)
-            {
-                *ptr++ = '\t';
-            }
-            p->offset+=len;
-
-            /* print value */
-            if (!print_value(child, depth, fmt, p))
-            {
-                return NULL;
-            };
-            p->offset = update(p);
-
-            /* print comma if not last */
-            len = (size_t) (fmt ? 1 : 0) + (child->next ? 1 : 0);
-            ptr = ensure(p, len + 1);
-            if (ptr == NULL)
-            {
-                return NULL;
-            }
-            if (child->next)
-            {
-                *ptr++ = ',';
-            }
-
-            if (fmt)
-            {
-                *ptr++ = '\n';
-            }
-            *ptr = '\0';
-            p->offset += len;
-
-            child = child->next;
-        }
-
-        ptr = ensure(p, fmt ? (depth + 1) : 2);
-        if (ptr == NULL)
-        {
-            return NULL;
-        }
-        if (fmt)
-        {
-            for (i = 0; i < (depth - 1); i++)
-            {
-                *ptr++ = '\t';
-            }
-        }
-        *ptr++ = '}';
-        *ptr = '\0';
-        out = (p->buffer) + i;
+        child = child->next;
     }
-    else
+
+    ptr = ensure(p, fmt ? (depth + 1) : 2);
+    if (ptr == NULL)
     {
-        /* Allocate space for the names and the objects */
-        entries = (unsigned char**)cJSON_malloc(numentries * sizeof(unsigned char*));
-        if (!entries)
-        {
-            return NULL;
-        }
-        names = (unsigned char**)cJSON_malloc(numentries * sizeof(unsigned char*));
-        if (!names)
-        {
-            cJSON_free(entries);
-            return NULL;
-        }
-        memset(entries, '\0', sizeof(unsigned char*) * numentries);
-        memset(names, '\0', sizeof(unsigned char*) * numentries);
-
-        /* Collect all the results into our arrays: */
-        child = item->child;
-        depth++;
-        if (fmt)
-        {
-            len += depth;
-        }
-        while (child && !fail)
-        {
-            names[i] = str = print_string_ptr((unsigned char*)child->string, 0); /* print key */
-            entries[i++] = ret = print_value(child, depth, fmt, 0);
-            if (str && ret)
-            {
-                len += strlen((char*)ret) + strlen((char*)str) + 2 + (fmt ? 2 + depth : 0);
-            }
-            else
-            {
-                fail = true;
-            }
-            child = child->next;
-        }
-
-        /* Try to allocate the output string */
-        if (!fail)
-        {
-            out = (unsigned char*)cJSON_malloc(len);
-        }
-        if (!out)
-        {
-            fail = true;
-        }
-
-        /* Handle failure */
-        if (fail)
-        {
-            /* free all the printed keys and values */
-            for (i = 0; i < numentries; i++)
-            {
-                if (names[i])
-                {
-                    cJSON_free(names[i]);
-                }
-                if (entries[i])
-                {
-                    cJSON_free(entries[i]);
-                }
-            }
-            cJSON_free(names);
-            cJSON_free(entries);
-            return NULL;
-        }
-
-        /* Compose the output: */
-        *out = '{';
-        ptr = out + 1;
-        if (fmt)
-        {
-            *ptr++ = '\n';
-        }
-        *ptr = '\0';
-        for (i = 0; i < numentries; i++)
-        {
-            if (fmt)
-            {
-                for (j = 0; j < depth; j++)
-                {
-                    *ptr++='\t';
-                }
-            }
-            tmplen = strlen((char*)names[i]);
-            memcpy(ptr, names[i], tmplen);
-            ptr += tmplen;
-            *ptr++ = ':';
-            if (fmt)
-            {
-                *ptr++ = '\t';
-            }
-            strcpy((char*)ptr, (char*)entries[i]);
-            ptr += strlen((char*)entries[i]);
-            if (i != (numentries - 1))
-            {
-                *ptr++ = ',';
-            }
-            if (fmt)
-            {
-                *ptr++ = '\n';
-            }
-            *ptr = '\0';
-            cJSON_free(names[i]);
-            cJSON_free(entries[i]);
-        }
-
-        cJSON_free(names);
-        cJSON_free(entries);
-        if (fmt)
-        {
-            for (i = 0; i < (depth - 1); i++)
-            {
-                *ptr++ = '\t';
-            }
-        }
-        *ptr++ = '}';
-        *ptr++ = '\0';
+        return NULL;
     }
+    if (fmt)
+    {
+        for (i = 0; i < (depth - 1); i++)
+        {
+            *ptr++ = '\t';
+        }
+    }
+    *ptr++ = '}';
+    *ptr = '\0';
+    out = (p->buffer) + i;
 
     return out;
 }
