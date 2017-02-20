@@ -320,12 +320,12 @@ static size_t update(const printbuffer *p)
 }
 
 /* Render the number nicely from the given item into a string. */
-static unsigned char *print_number(const cJSON *item, printbuffer *p)
+static unsigned char *print_number(const cJSON * const item, printbuffer * const output_buffer)
 {
-    unsigned char *str = NULL;
+    unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
 
-    if (p == NULL)
+    if (output_buffer == NULL)
     {
         return NULL;
     }
@@ -333,41 +333,41 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
     /* value is an int */
     if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
     {
-            /* 2^64+1 can be represented in 21 chars. */
-        str = ensure(p, 21);
-        if (str != NULL)
+        /* 2^64+1 can be represented in 21 chars. */
+        output_pointer = ensure(output_buffer, 21);
+        if (output_pointer != NULL)
         {
-            sprintf((char*)str, "%d", item->valueint);
+            sprintf((char*)output_pointer, "%d", item->valueint);
         }
     }
     /* value is a floating point number */
     else
     {
         /* This is a nice tradeoff. */
-        str = ensure(p, 64);
-        if (str != NULL)
+        output_pointer = ensure(output_buffer, 64);
+        if (output_pointer != NULL)
         {
             /* This checks for NaN and Infinity */
             if ((d * 0) != 0)
             {
-                sprintf((char*)str, "null");
+                sprintf((char*)output_pointer, "null");
             }
             else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
             {
-                sprintf((char*)str, "%.0f", d);
+                sprintf((char*)output_pointer, "%.0f", d);
             }
             else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
             {
-                sprintf((char*)str, "%e", d);
+                sprintf((char*)output_pointer, "%e", d);
             }
             else
             {
-                sprintf((char*)str, "%f", d);
+                sprintf((char*)output_pointer, "%f", d);
             }
         }
     }
 
-    return str;
+    return output_pointer;
 }
 
 /* parse 4 digit hexadecimal number */
