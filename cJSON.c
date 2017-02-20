@@ -794,7 +794,7 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
 }
 
 /* Invoke print_string_ptr (which is useful) on an item. */
-static unsigned char *print_string(const cJSON *item, printbuffer *p)
+static unsigned char *print_string(const cJSON * const item, printbuffer * const p)
 {
     return print_string_ptr((unsigned char*)item->valuestring, p);
 }
