@@ -786,7 +786,7 @@ static unsigned char *print_value(const cJSON * const item, const size_t depth, 
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON * const item, const size_t depth, const cjbool format, printbuffer * const output_buffer);
 static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
-static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
+static unsigned char *print_object(const cJSON * const item, size_t depth, const cjbool format, printbuffer * const output_buffer);
 
 /* Utility to jump whitespace and cr/lf */
 static const unsigned char *skip_whitespace(const unsigned char *in)
@@ -1312,152 +1312,152 @@ fail:
 }
 
 /* Render an object to text. */
-static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p)
+static unsigned char *print_object(const cJSON * const item, size_t depth, const cjbool format, printbuffer * const output_buffer)
 {
-    unsigned char *out = NULL;
-    unsigned char *ptr = NULL;
-    size_t len = 7;
+    unsigned char *output = NULL;
+    unsigned char *output_pointer = NULL;
+    size_t length = 7;
     size_t i = 0;
     size_t j = 0;
-    cJSON *child = item->child;
-    size_t numentries = 0;
+    cJSON *current_item = item->child;
+    size_t object_length = 0;
 
-    if (p == NULL)
+    if (output_buffer == NULL)
     {
         return NULL;
     }
 
     /* Count the number of entries. */
-    while (child)
+    while (current_item)
     {
-        numentries++;
-        child = child->next;
+        object_length++;
+        current_item = current_item->next;
     }
 
     /* Explicitly handle empty object case */
-    if (!numentries)
+    if (!object_length)
     {
-        out = ensure(p, fmt ? depth + 4 : 3);
-        if (out == NULL)
+        output = ensure(output_buffer, format ? depth + 4 : 3);
+        if (output == NULL)
         {
             return NULL;
         }
-        ptr = out;
-        *ptr++ = '{';
-        if (fmt) {
-            *ptr++ = '\n';
+        output_pointer = output;
+        *output_pointer++ = '{';
+        if (format) {
+            *output_pointer++ = '\n';
             for (i = 0; i < depth; i++)
             {
-                *ptr++ = '\t';
+                *output_pointer++ = '\t';
             }
         }
-        *ptr++ = '}';
-        *ptr++ = '\0';
+        *output_pointer++ = '}';
+        *output_pointer++ = '\0';
 
-        return out;
+        return output;
     }
 
     /* Compose the output: */
-    i = p->offset;
-    len = fmt ? 2 : 1; /* fmt: {\n */
-    ptr = ensure(p, len + 1);
-    if (ptr == NULL)
+    i = output_buffer->offset;
+    length = format ? 2 : 1; /* fmt: {\n */
+    output_pointer = ensure(output_buffer, length + 1);
+    if (output_pointer == NULL)
     {
         return NULL;
     }
 
-    *ptr++ = '{';
-    if (fmt)
+    *output_pointer++ = '{';
+    if (format)
     {
-        *ptr++ = '\n';
+        *output_pointer++ = '\n';
     }
-    *ptr = '\0';
-    p->offset += len;
+    *output_pointer = '\0';
+    output_buffer->offset += length;
 
-    child = item->child;
+    current_item = item->child;
     depth++;
-    while (child)
+    while (current_item)
     {
-        if (fmt)
+        if (format)
         {
-            ptr = ensure(p, depth);
-            if (ptr == NULL)
+            output_pointer = ensure(output_buffer, depth);
+            if (output_pointer == NULL)
             {
                 return NULL;
             }
             for (j = 0; j < depth; j++)
             {
-                *ptr++ = '\t';
+                *output_pointer++ = '\t';
             }
-            p->offset += depth;
+            output_buffer->offset += depth;
         }
 
         /* print key */
-        if (!print_string_ptr((unsigned char*)child->string, p))
+        if (!print_string_ptr((unsigned char*)current_item->string, output_buffer))
         {
             return NULL;
         }
-        update_offset(p);
+        update_offset(output_buffer);
 
-        len = fmt ? 2 : 1;
-        ptr = ensure(p, len);
-        if (ptr == NULL)
+        length = format ? 2 : 1;
+        output_pointer = ensure(output_buffer, length);
+        if (output_pointer == NULL)
         {
             return NULL;
         }
-        *ptr++ = ':';
-        if (fmt)
+        *output_pointer++ = ':';
+        if (format)
         {
-            *ptr++ = '\t';
+            *output_pointer++ = '\t';
         }
-        p->offset+=len;
+        output_buffer->offset += length;
 
         /* print value */
-        if (!print_value(child, depth, fmt, p))
+        if (!print_value(current_item, depth, format, output_buffer))
         {
             return NULL;
         }
-        update_offset(p);
+        update_offset(output_buffer);
 
         /* print comma if not last */
-        len = (size_t) (fmt ? 1 : 0) + (child->next ? 1 : 0);
-        ptr = ensure(p, len + 1);
-        if (ptr == NULL)
+        length = (size_t) (format ? 1 : 0) + (current_item->next ? 1 : 0);
+        output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == NULL)
         {
             return NULL;
         }
-        if (child->next)
+        if (current_item->next)
         {
-            *ptr++ = ',';
+            *output_pointer++ = ',';
         }
 
-        if (fmt)
+        if (format)
         {
-            *ptr++ = '\n';
+            *output_pointer++ = '\n';
         }
-        *ptr = '\0';
-        p->offset += len;
+        *output_pointer = '\0';
+        output_buffer->offset += length;
 
-        child = child->next;
+        current_item = current_item->next;
     }
 
-    ptr = ensure(p, fmt ? (depth + 1) : 2);
-    if (ptr == NULL)
+    output_pointer = ensure(output_buffer, format ? (depth + 1) : 2);
+    if (output_pointer == NULL)
     {
         return NULL;
     }
-    if (fmt)
+    if (format)
     {
         for (i = 0; i < (depth - 1); i++)
         {
-            *ptr++ = '\t';
+            *output_pointer++ = '\t';
         }
     }
-    *ptr++ = '}';
-    *ptr = '\0';
-    out = (p->buffer) + i;
+    *output_pointer++ = '}';
+    *output_pointer = '\0';
+    output = (output_buffer->buffer) + i;
 
-    return out;
+    return output;
 }
 
 /* Get Array size/item / object item. */
