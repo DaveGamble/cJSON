@@ -236,7 +236,7 @@ typedef struct
 } printbuffer;
 
 /* realloc printbuffer if necessary to have at least "needed" bytes more */
-static unsigned char* ensure(printbuffer *p, size_t needed)
+static unsigned char* ensure(printbuffer * const p, size_t needed)
 {
     unsigned char *newbuffer = NULL;
     size_t newsize = 0;
@@ -663,134 +663,134 @@ fail:
 }
 
 /* Render the cstring provided to an escaped version that can be printed. */
-static unsigned char *print_string_ptr(const unsigned char *str, printbuffer *p)
+static unsigned char *print_string_ptr(const unsigned char * const input, printbuffer * const output_buffer)
 {
-    const unsigned char *ptr = NULL;
-    unsigned char *ptr2 = NULL;
-    unsigned char *out = NULL;
-    size_t len = 0;
-    cjbool flag = false;
+    const unsigned char *input_pointer = NULL;
+    unsigned char *output = NULL;
+    unsigned char *output_pointer = NULL;
+    size_t length = 0;
+    cjbool contains_special_char = false;
     unsigned char token = '\0';
 
-    if (p == NULL)
+    if (output_buffer == NULL)
     {
         return NULL;
     }
 
     /* empty string */
-    if (!str)
+    if (input == NULL)
     {
-        out = ensure(p, 3);
-        if (out == NULL)
+        output = ensure(output_buffer, 3);
+        if (output == NULL)
         {
             return NULL;
         }
-        strcpy((char*)out, "\"\"");
+        strcpy((char*)output, "\"\"");
 
-        return out;
+        return output;
     }
 
     /* set "flag" to 1 if something needs to be escaped */
-    for (ptr = str; *ptr; ptr++)
+    for (input_pointer = input; *input_pointer; input_pointer++)
     {
-        flag |= (((*ptr > 0) && (*ptr < 32)) /* unprintable characters */
-                || (*ptr == '\"') /* double quote */
-                || (*ptr == '\\')) /* backslash */
+        contains_special_char |= (((*input_pointer > 0) && (*input_pointer < 32)) /* unprintable characters */
+                || (*input_pointer == '\"') /* double quote */
+                || (*input_pointer == '\\')) /* backslash */
             ? 1
             : 0;
     }
     /* no characters have to be escaped */
-    if (!flag)
+    if (!contains_special_char)
     {
-        len = (size_t)(ptr - str);
+        length = (size_t)(input_pointer - input);
 
-        out = ensure(p, len + 3);
-        if (out == NULL)
+        output = ensure(output_buffer, length + 3);
+        if (output == NULL)
         {
             return NULL;
         }
 
-        ptr2 = out;
-        *ptr2++ = '\"';
-        strcpy((char*)ptr2, (const char*)str);
-        ptr2[len] = '\"';
-        ptr2[len + 1] = '\0';
+        output_pointer = output;
+        *output_pointer++ = '\"';
+        strcpy((char*)output_pointer, (const char*)input);
+        output_pointer[length] = '\"';
+        output_pointer[length + 1] = '\0';
 
-        return out;
+        return output;
     }
 
-    ptr = str;
+    input_pointer = input;
     /* calculate additional space that is needed for escaping */
-    while ((token = *ptr))
+    while ((token = *input_pointer))
     {
-        ++len;
+        ++length;
         if (strchr("\"\\\b\f\n\r\t", token))
         {
-            len++; /* +1 for the backslash */
+            length++; /* +1 for the backslash */
         }
         else if (token < 32)
         {
-            len += 5; /* +5 for \uXXXX */
+            length += 5; /* +5 for \uXXXX */
         }
-        ptr++;
+        input_pointer++;
     }
 
-    out = ensure(p, len + 3);
-    if (out == NULL)
+    output = ensure(output_buffer, length + 3);
+    if (output == NULL)
     {
         return NULL;
     }
 
-    ptr2 = out;
-    ptr = str;
-    *ptr2++ = '\"';
+    output_pointer = output;
+    input_pointer = input;
+    *output_pointer++ = '\"';
     /* copy the string */
-    while (*ptr)
+    while (*input_pointer)
     {
-        if ((*ptr > 31) && (*ptr != '\"') && (*ptr != '\\'))
+        if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\'))
         {
             /* normal character, copy */
-            *ptr2++ = *ptr++;
+            *output_pointer++ = *input_pointer++;
         }
         else
         {
             /* character needs to be escaped */
-            *ptr2++ = '\\';
-            switch (token = *ptr++)
+            *output_pointer++ = '\\';
+            switch (token = *input_pointer++)
             {
                 case '\\':
-                    *ptr2++ = '\\';
+                    *output_pointer++ = '\\';
                     break;
                 case '\"':
-                    *ptr2++ = '\"';
+                    *output_pointer++ = '\"';
                     break;
                 case '\b':
-                    *ptr2++ = 'b';
+                    *output_pointer++ = 'b';
                     break;
                 case '\f':
-                    *ptr2++ = 'f';
+                    *output_pointer++ = 'f';
                     break;
                 case '\n':
-                    *ptr2++ = 'n';
+                    *output_pointer++ = 'n';
                     break;
                 case '\r':
-                    *ptr2++ = 'r';
+                    *output_pointer++ = 'r';
                     break;
                 case '\t':
-                    *ptr2++ = 't';
+                    *output_pointer++ = 't';
                     break;
                 default:
                     /* escape and print as unicode codepoint */
-                    sprintf((char*)ptr2, "u%04x", token);
-                    ptr2 += 5;
+                    sprintf((char*)output_pointer, "u%04x", token);
+                    output_pointer += 5;
                     break;
             }
         }
     }
-    *ptr2++ = '\"';
-    *ptr2++ = '\0';
+    *output_pointer++ = '\"';
+    *output_pointer++ = '\0';
 
-    return out;
+    return output;
 }
 
 /* Invoke print_string_ptr (which is useful) on an item. */
