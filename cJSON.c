@@ -1156,51 +1156,31 @@ static unsigned char *print_array(const cJSON * const item, const size_t depth, 
 {
     unsigned char *output = NULL;
     unsigned char *output_pointer = NULL;
-    size_t length = 5;
+    size_t length = 0;
     cJSON *current_element = item->child;
-    size_t array_length = 0;
-    size_t i = 0;
-    cjbool fail = false;
+    size_t output_offset = 0;
 
     if (output_buffer == NULL)
     {
         return NULL;
     }
 
-    /* How many entries in the array? */
-    while (current_element)
-    {
-        array_length++;
-        current_element = current_element->next;
-    }
-
-    /* Explicitly handle empty arrays */
-    if (array_length == 0)
-    {
-        output = ensure(output_buffer, 3);
-        if (output != NULL)
-        {
-            strcpy((char*)output, "[]");
-        }
-
-        return output;
-    }
-
     /* Compose the output array. */
     /* opening square bracket */
-    i = output_buffer->offset;
+    output_offset = output_buffer->offset;
     output_pointer = ensure(output_buffer, 1);
     if (output_pointer == NULL)
     {
         return NULL;
     }
+
     *output_pointer = '[';
     output_buffer->offset++;
 
     current_element = item->child;
-    while (current_element && !fail)
+    while (current_element != NULL)
     {
-        if (!print_value(current_element, depth + 1, format, output_buffer))
+        if (print_value(current_element, depth + 1, format, output_buffer) == NULL)
         {
             return NULL;
         }
@@ -1223,6 +1203,7 @@ static unsigned char *print_array(const cJSON * const item, const size_t depth, 
         }
         current_element = current_element->next;
     }
+
     output_pointer = ensure(output_buffer, 2);
     if (output_pointer == NULL)
     {
@@ -1230,7 +1211,7 @@ static unsigned char *print_array(const cJSON * const item, const size_t depth, 
     }
     *output_pointer++ = ']';
     *output_pointer = '\0';
-    output = (output_buffer->buffer) + i;
+    output = output_buffer->buffer + output_offset;
 
     return output;
 }
