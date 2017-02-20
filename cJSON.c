@@ -306,17 +306,17 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
     return newbuffer + p->offset;
 }
 
-/* calculate the new length of the string in a printbuffer */
-static size_t update(const printbuffer *p)
+/* calculate the new length of the string in a printbuffer and update the offset */
+static void update_offset(printbuffer * const buffer)
 {
-    const unsigned char *str = NULL;
-    if (!p || !p->buffer)
+    const unsigned char *buffer_pointer = NULL;
+    if ((buffer == NULL) || (buffer->buffer == NULL))
     {
-        return 0;
+        return;
     }
-    str = p->buffer + p->offset;
+    buffer_pointer = buffer->buffer + buffer->offset;
 
-    return p->offset + strlen((const char*)str);
+    buffer->offset += strlen((const char*)buffer_pointer);
 }
 
 /* Render the number nicely from the given item into a string. */
@@ -866,7 +866,7 @@ static unsigned char *print(const cJSON * const item, cjbool format)
     {
         goto fail;
     }
-    buffer->offset = update(buffer); /* update the length of the string */
+    update_offset(buffer);
 
     /* copy the buffer over to a new one */
     printed = (unsigned char*) cJSON_malloc(buffer->offset + 1);
@@ -1204,7 +1204,7 @@ static unsigned char *print_array(const cJSON * const item, const size_t depth, 
         {
             return NULL;
         }
-        output_buffer->offset = update(output_buffer);
+        update_offset(output_buffer);
         if (current_element->next)
         {
             length = format ? 2 : 1;
@@ -1416,7 +1416,7 @@ static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, 
         {
             return NULL;
         }
-        p->offset = update(p);
+        update_offset(p);
 
         len = fmt ? 2 : 1;
         ptr = ensure(p, len);
@@ -1436,7 +1436,7 @@ static unsigned char *print_object(const cJSON *item, size_t depth, cjbool fmt, 
         {
             return NULL;
         }
-        p->offset = update(p);
+        update_offset(p);
 
         /* print comma if not last */
         len = (size_t) (fmt ? 1 : 0) + (child->next ? 1 : 0);
