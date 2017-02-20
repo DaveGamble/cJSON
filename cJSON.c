@@ -330,17 +330,8 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
         return NULL;
     }
 
-    /* special case for 0. */
-    if (d == 0)
-    {
-        str = ensure(p, 2);
-        if (str != NULL)
-        {
-            strcpy((char*)str,"0");
-        }
-    }
     /* value is an int */
-    else if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
+    if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
     {
             /* 2^64+1 can be represented in 21 chars. */
         str = ensure(p, 21);
@@ -375,6 +366,7 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
             }
         }
     }
+
     return str;
 }
 
