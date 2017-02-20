@@ -14,6 +14,11 @@ if(ENABLE_CJSON_TEST)
         parse_array
         parse_object
         parse_value
+        print_string
+        print_number
+        print_array
+        print_object
+        print_value
     )
 
     add_library(test-common common.c)
