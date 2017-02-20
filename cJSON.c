@@ -786,7 +786,7 @@ static unsigned char *print_value(const cJSON * const item, const size_t depth, 
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON * const item, const size_t depth, const cjbool format, printbuffer * const output_buffer);
 static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
-static unsigned char *print_object(const cJSON * const item, size_t depth, const cjbool format, printbuffer * const output_buffer);
+static unsigned char *print_object(const cJSON * const item, const size_t depth, const cjbool format, printbuffer * const output_buffer);
 
 /* Utility to jump whitespace and cr/lf */
 static const unsigned char *skip_whitespace(const unsigned char *in)
@@ -1312,53 +1312,21 @@ fail:
 }
 
 /* Render an object to text. */
-static unsigned char *print_object(const cJSON * const item, size_t depth, const cjbool format, printbuffer * const output_buffer)
+static unsigned char *print_object(const cJSON * const item, const size_t depth, const cjbool format, printbuffer * const output_buffer)
 {
     unsigned char *output = NULL;
     unsigned char *output_pointer = NULL;
-    size_t length = 7;
-    size_t i = 0;
-    size_t j = 0;
+    size_t length = 0;
+    size_t output_offset = 0;
     cJSON *current_item = item->child;
-    size_t object_length = 0;
 
     if (output_buffer == NULL)
     {
         return NULL;
     }
 
-    /* Count the number of entries. */
-    while (current_item)
-    {
-        object_length++;
-        current_item = current_item->next;
-    }
-
-    /* Explicitly handle empty object case */
-    if (!object_length)
-    {
-        output = ensure(output_buffer, format ? depth + 4 : 3);
-        if (output == NULL)
-        {
-            return NULL;
-        }
-        output_pointer = output;
-        *output_pointer++ = '{';
-        if (format) {
-            *output_pointer++ = '\n';
-            for (i = 0; i < depth; i++)
-            {
-                *output_pointer++ = '\t';
-            }
-        }
-        *output_pointer++ = '}';
-        *output_pointer++ = '\0';
-
-        return output;
-    }
-
     /* Compose the output: */
-    i = output_buffer->offset;
+    output_offset = output_buffer->offset;
     length = format ? 2 : 1; /* fmt: {\n */
     output_pointer = ensure(output_buffer, length + 1);
     if (output_pointer == NULL)
@@ -1371,29 +1339,28 @@ static unsigned char *print_object(const cJSON * const item, size_t depth, const
     {
         *output_pointer++ = '\n';
     }
-    *output_pointer = '\0';
     output_buffer->offset += length;
 
     current_item = item->child;
-    depth++;
     while (current_item)
     {
         if (format)
         {
-            output_pointer = ensure(output_buffer, depth);
+            size_t i;
+            output_pointer = ensure(output_buffer, depth + 1);
             if (output_pointer == NULL)
             {
                 return NULL;
             }
-            for (j = 0; j < depth; j++)
+            for (i = 0; i < depth + 1; i++)
             {
                 *output_pointer++ = '\t';
             }
-            output_buffer->offset += depth;
+            output_buffer->offset += depth + 1;
         }
 
         /* print key */
-        if (!print_string_ptr((unsigned char*)current_item->string, output_buffer))
+        if (print_string_ptr((unsigned char*)current_item->string, output_buffer) == NULL)
         {
             return NULL;
         }
@@ -1413,7 +1380,7 @@ static unsigned char *print_object(const cJSON * const item, size_t depth, const
         output_buffer->offset += length;
 
         /* print value */
-        if (!print_value(current_item, depth, format, output_buffer))
+        if (!print_value(current_item, depth + 1, format, output_buffer))
         {
             return NULL;
         }
@@ -1441,21 +1408,22 @@ static unsigned char *print_object(const cJSON * const item, size_t depth, const
         current_item = current_item->next;
     }
 
-    output_pointer = ensure(output_buffer, format ? (depth + 1) : 2);
+    output_pointer = ensure(output_buffer, format ? (depth + 2) : 2);
     if (output_pointer == NULL)
     {
         return NULL;
     }
     if (format)
     {
-        for (i = 0; i < (depth - 1); i++)
+        size_t i;
+        for (i = 0; i < (depth); i++)
         {
             *output_pointer++ = '\t';
         }
     }
     *output_pointer++ = '}';
     *output_pointer = '\0';
-    output = (output_buffer->buffer) + i;
+    output = (output_buffer->buffer) + output_offset;
 
     return output;
 }
