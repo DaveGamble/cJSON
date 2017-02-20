@@ -782,7 +782,7 @@ static unsigned char *print_string(const cJSON * const item, printbuffer * const
 
 /* Predeclare these prototypes. */
 static const unsigned char *parse_value(cJSON * const item, const unsigned char * const input, const unsigned char ** const ep);
-static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
+static unsigned char *print_value(const cJSON * const item, const size_t depth, const cjbool format, printbuffer * const output_buffer);
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
 static unsigned char *print_array(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p);
 static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep);
@@ -1000,16 +1000,11 @@ static const unsigned  char *parse_value(cJSON * const item, const unsigned char
 }
 
 /* Render a value to text. */
-static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, printbuffer *p)
+static unsigned char *print_value(const cJSON * const item, const size_t depth, const cjbool format,  printbuffer * const output_buffer)
 {
-    unsigned char *out = NULL;
+    unsigned char *output = NULL;
 
-    if (!item)
-    {
-        return NULL;
-    }
-
-    if (p == NULL)
+    if ((item == NULL) || (output_buffer == NULL))
     {
         return NULL;
     }
@@ -1017,65 +1012,65 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
     switch ((item->type) & 0xFF)
     {
         case cJSON_NULL:
-            out = ensure(p, 5);
-            if (out != NULL)
+            output = ensure(output_buffer, 5);
+            if (output != NULL)
             {
-                strcpy((char*)out, "null");
+                strcpy((char*)output, "null");
             }
             break;
         case cJSON_False:
-            out = ensure(p, 6);
-            if (out != NULL)
+            output = ensure(output_buffer, 6);
+            if (output != NULL)
             {
-                strcpy((char*)out, "false");
+                strcpy((char*)output, "false");
             }
             break;
         case cJSON_True:
-            out = ensure(p, 5);
-            if (out != NULL)
+            output = ensure(output_buffer, 5);
+            if (output != NULL)
             {
-                strcpy((char*)out, "true");
+                strcpy((char*)output, "true");
             }
             break;
         case cJSON_Number:
-            out = print_number(item, p);
+            output = print_number(item, output_buffer);
             break;
         case cJSON_Raw:
         {
             size_t raw_length = 0;
             if (item->valuestring == NULL)
             {
-                if (!p->noalloc)
+                if (!output_buffer->noalloc)
                 {
-                    cJSON_free(p->buffer);
+                    cJSON_free(output_buffer->buffer);
                 }
-                out = NULL;
+                output = NULL;
                 break;
             }
 
             raw_length = strlen(item->valuestring) + sizeof('\0');
-            out = ensure(p, raw_length);
-            if (out != NULL)
+            output = ensure(output_buffer, raw_length);
+            if (output != NULL)
             {
-                memcpy(out, item->valuestring, raw_length);
+                memcpy(output, item->valuestring, raw_length);
             }
             break;
         }
         case cJSON_String:
-            out = print_string(item, p);
+            output = print_string(item, output_buffer);
             break;
         case cJSON_Array:
-            out = print_array(item, depth, fmt, p);
+            output = print_array(item, depth, format, output_buffer);
             break;
         case cJSON_Object:
-            out = print_object(item, depth, fmt, p);
+            output = print_object(item, depth, format, output_buffer);
             break;
         default:
-            out = NULL;
+            output = NULL;
             break;
     }
 
-    return out;
+    return output;
 }
 
 /* Build an array from input text. */
