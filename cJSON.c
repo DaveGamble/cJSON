@@ -1466,6 +1466,24 @@ cJSON *cJSON_GetObjectItem(const cJSON *object, const char *string)
     return c;
 }
 
+cJSON *cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+{
+    cJSON *current_element = NULL;
+
+    if ((object == NULL) || (string == NULL))
+    {
+        return NULL;
+    }
+
+    current_element = object->child;
+    while ((current_element != NULL) && (strcmp(string, current_element->string) != 0))
+    {
+        current_element = current_element->next;
+    }
+
+    return current_element;
+}
+
 cjbool cJSON_HasObjectItem(const cJSON *object, const char *string)
 {
     return cJSON_GetObjectItem(object, string) ? 1 : 0;
