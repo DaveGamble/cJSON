@@ -1182,7 +1182,6 @@ static unsigned char *print_array(const cJSON * const item, const size_t depth, 
     *output_pointer = '[';
     output_buffer->offset++;
 
-    current_element = item->child;
     while (current_element != NULL)
     {
         if (print_value(current_element, depth + 1, format, output_buffer, hooks) == NULL)
@@ -1346,7 +1345,6 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
     }
     output_buffer->offset += length;
 
-    current_item = item->child;
     while (current_item)
     {
         if (format)
