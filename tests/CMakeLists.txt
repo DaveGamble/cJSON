@@ -19,6 +19,7 @@ if(ENABLE_CJSON_TEST)
         print_array
         print_object
         print_value
+        misc_tests
     )
 
     add_library(test-common common.c)
