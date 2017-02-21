@@ -37,7 +37,7 @@ static void assert_print_number(const char *expected, double input)
     memset(item, 0, sizeof(item));
     cJSON_SetNumberValue(item, input);
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(print_number(item, &buffer), "Failed to print number.");
+    TEST_ASSERT_NOT_NULL_MESSAGE(print_number(item, &buffer, &global_hooks), "Failed to print number.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
 }
 
