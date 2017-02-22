@@ -25,57 +25,6 @@
 #include <string.h>
 #include "cJSON.h"
 
-/* Parse text to JSON, then render back to text, and print! */
-static void doit(char *text)
-{
-    char *out = NULL;
-    cJSON *json = NULL;
-
-    json = cJSON_Parse(text);
-    if (!json)
-    {
-        printf("Error before: [%s]\n", cJSON_GetErrorPtr());
-    }
-    else
-    {
-        out = cJSON_Print(json);
-        cJSON_Delete(json);
-        printf("%s\n", out);
-        free(out);
-    }
-}
-
-#if 0
-/* Read a file, parse, render back, etc. */
-static void dofile(char *filename)
-{
-    FILE *f = NULL;
-    long len = 0;
-    char *data = NULL;
-
-    /* open in read binary mode */
-    f = fopen(filename,"rb");
-    /* get the length */
-    fseek(f, 0, SEEK_END);
-    len = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    data = (char*)malloc(len + 1);
-    if (data == NULL)
-    {
-        printf("Failed to allocate memory.\n");
-        exit(1);
-    }
-
-    fread(data, 1, len, f);
-    data[len] = '\0';
-    fclose(f);
-
-    doit(data);
-    free(data);
-}
-#endif
-
 /* Used by some code below as an example datatype. */
 struct record
 {
@@ -97,8 +46,8 @@ static int print_preallocated(cJSON *root)
     char *out = NULL;
     char *buf = NULL;
     char *buf_fail = NULL;
-    int len = 0;
-    int len_fail = 0;
+    size_t len = 0;
+    size_t len_fail = 0;
 
     /* formatted print */
     out = cJSON_Print(root);
@@ -106,7 +55,7 @@ static int print_preallocated(cJSON *root)
     /* create buffer to succeed */
     /* the extra 64 bytes are in case a floating point value is printed */
     len = strlen(out) + 64;
-    buf = malloc(len);
+    buf = (char*)malloc(len);
     if (buf == NULL)
     {
         printf("Failed to allocate memory.\n");
@@ -115,7 +64,7 @@ static int print_preallocated(cJSON *root)
 
     /* create buffer to fail */
     len_fail = strlen(out);
-    buf_fail = malloc(len_fail);
+    buf_fail = (char*)malloc(len_fail);
     if (buf_fail == NULL)
     {
         printf("Failed to allocate memory.\n");
@@ -123,7 +72,7 @@ static int print_preallocated(cJSON *root)
     }
 
     /* Print to buffer */
-    if (!cJSON_PrintPreallocated(root, buf, len, 1)) {
+    if (!cJSON_PrintPreallocated(root, buf, (int)len, 1)) {
         printf("cJSON_PrintPreallocated failed!\n");
         if (strcmp(out, buf) != 0) {
             printf("cJSON_PrintPreallocated not the same as cJSON_Print!\n");
@@ -140,7 +89,7 @@ static int print_preallocated(cJSON *root)
     printf("%s\n", buf);
 
     /* force it to fail */
-    if (cJSON_PrintPreallocated(root, buf_fail, len_fail, 1)) {
+    if (cJSON_PrintPreallocated(root, buf_fail, (int)len_fail, 1)) {
         printf("cJSON_PrintPreallocated failed to show error with insufficient memory!\n");
         printf("cJSON_Print result:\n%s\n", out);
         printf("cJSON_PrintPreallocated result:\n%s\n", buf_fail);
@@ -309,94 +258,8 @@ static void create_objects(void)
 
 int main(void)
 {
-    /* a bunch of json: */
-    char text1[] =
-        "{\n"
-        "\"name\": \"Jack (\\\"Bee\\\") Nimble\", \n"
-        "\"format\": {\"type\":       \"rect\", \n"
-        "\"width\":      1920, \n"
-        "\"height\":     1080, \n"
-        "\"interlace\":  false,\"frame rate\": 24\n"
-        "}\n"
-        "}";
-    char text2[] = "[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
-    char text3[] =
-        "[\n"
-        "    [0, -1, 0],\n"
-        "    [1, 0, 0],\n"
-        "    [0, 0, 1]\n"
-        "\t]\n";
-    char text4[] =
-        "{\n"
-        "\t\t\"Image\": {\n"
-        "\t\t\t\"Width\":  800,\n"
-        "\t\t\t\"Height\": 600,\n"
-        "\t\t\t\"Title\":  \"View from 15th Floor\",\n"
-        "\t\t\t\"Thumbnail\": {\n"
-        "\t\t\t\t\"Url\":    \"http:/*www.example.com/image/481989943\",\n"
-        "\t\t\t\t\"Height\": 125,\n"
-        "\t\t\t\t\"Width\":  \"100\"\n"
-        "\t\t\t},\n"
-        "\t\t\t\"IDs\": [116, 943, 234, 38793]\n"
-        "\t\t}\n"
-        "\t}";
-    char text5[] =
-        "[\n"
-        "\t {\n"
-        "\t \"precision\": \"zip\",\n"
-        "\t \"Latitude\":  37.7668,\n"
-        "\t \"Longitude\": -122.3959,\n"
-        "\t \"Address\":   \"\",\n"
-        "\t \"City\":      \"SAN FRANCISCO\",\n"
-        "\t \"State\":     \"CA\",\n"
-        "\t \"Zip\":       \"94107\",\n"
-        "\t \"Country\":   \"US\"\n"
-        "\t },\n"
-        "\t {\n"
-        "\t \"precision\": \"zip\",\n"
-        "\t \"Latitude\":  37.371991,\n"
-        "\t \"Longitude\": -122.026020,\n"
-        "\t \"Address\":   \"\",\n"
-        "\t \"City\":      \"SUNNYVALE\",\n"
-        "\t \"State\":     \"CA\",\n"
-        "\t \"Zip\":       \"94085\",\n"
-        "\t \"Country\":   \"US\"\n"
-        "\t }\n"
-        "\t ]";
-
-    char text6[] =
-        "<!DOCTYPE html>"
-        "<html>\n"
-        "<head>\n"
-        "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
-        "  <style type=\"text/css\">\n"
-        "    html, body, iframe { margin: 0; padding: 0; height: 100%; }\n"
-        "    iframe { display: block; width: 100%; border: none; }\n"
-        "  </style>\n"
-        "<title>Application Error</title>\n"
-        "</head>\n"
-        "<body>\n"
-        "  <iframe src=\"//s3.amazonaws.com/heroku_pages/error.html\">\n"
-        "    <p>Application Error</p>\n"
-        "  </iframe>\n"
-        "</body>\n"
-        "</html>\n";
-
-    /* Process each json textblock by parsing, then rebuilding: */
-    doit(text1);
-    doit(text2);
-    doit(text3);
-    doit(text4);
-    doit(text5);
-    doit(text6);
-
-    /* Parse standard testfiles: */
-    /* dofile("../../tests/test1"); */
-    /* dofile("../../tests/test2"); */
-    /* dofile("../../tests/test3"); */
-    /* dofile("../../tests/test4"); */
-    /* dofile("../../tests/test5"); */
-    /* dofile("../../tests/test6"); */
+    /* print the version */
+    printf("Version: %s\n", cJSON_Version());
 
     /* Now some samplecode for building objects concisely: */
     create_objects();

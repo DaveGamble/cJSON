@@ -1,0 +1,28 @@
+dist: trusty
+sudo: false
+language: c
+env:
+  matrix:
+    - VALGRIND=On SANITIZERS=Off
+    - VALGRIND=Off SANITIZERS=Off
+    - VALGRIND=Off SANITIZERS=On
+compiler:
+  - gcc
+  - clang
+addons:
+  apt:
+    packages:
+      - valgrind
+      - libasan0
+      - lib32asan0
+      # currently not supported on travis:
+      # - libasan1
+      # - libasan2
+      # - libubsan0
+      - llvm
+script:
+  - mkdir build
+  - cd build
+  - cmake .. -DENABLE_CJSON_UTILS=On -DENABLE_VALGRIND="${VALGRIND}" -DENABLE_SANITIZERS="${SANITIZERS}"
+  - make
+  - make test CTEST_OUTPUT_ON_FAILURE=On

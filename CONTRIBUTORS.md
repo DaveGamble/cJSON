@@ -14,6 +14,7 @@ Contributors
 * Ian Mobley
 * Irwan Djadjadi
 * [IvanVoid](https://github.com/npi3pak)
+* [Jiri Zouhar](https://github.com/loigu)
 * [Jonathan Fether](https://github.com/jfether)
 * [Kevin Branigan](https://github.com/kbranigan)
 * [Kyle Chisholm](https://github.com/ChisholmKyle)

@@ -1,23 +1,73 @@
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 2.8)
 
+subdirs(tests)
+
 include(GNUInstallDirs)
 
 project(cJSON C)
 
 set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 1)
+set(PROJECT_VERSION_MINOR 3)
 set(PROJECT_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
+
+set(custom_compiler_flags)
+
+include(CheckCCompilerFlag)
 option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags for Clang and GCC" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
-    if(("${CMAKE_C_COMPILER_ID}" MATCHES "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89 -pedantic -Wall -Wextra -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes -Wstrict-overflow=2 -Wcast-qual")
-    endif()
+    list(APPEND custom_compiler_flags
+        -std=c89
+        -pedantic
+        -Wall
+        -Wextra
+        -Werror
+        -Wstrict-prototypes
+        -Wwrite-strings
+        -Wshadow
+        -Winit-self
+        -Wcast-align
+        -Wformat=2
+        -Wmissing-prototypes
+        -Wstrict-overflow=2
+        -Wcast-qual
+        -Wundef
+        -Wswitch-default
+        -Wconversion
+        -Wc++-compat
+        -fstack-protector-strong
+        )
 endif()
+
+option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
+if (ENABLE_SANITIZERS)
+    list(APPEND custom_compiler_flags
+        -fno-omit-frame-pointer
+        -fsanitize=address
+        -fsanitize=undefined
+        -fsanitize=float-divide-by-zero
+        -fsanitize=float-cast-overflow
+        -fsanitize-address-use-after-scope
+        -fsanitize=integer
+        -01
+        -fno-sanitize-recover
+        )
+endif()
+
+# apply custom compiler flags
+foreach(compiler_flag ${custom_compiler_flags})
+    #remove problematic characters
+    string(REGEX REPLACE "[^a-zA-Z0-9]" "" current_variable ${compiler_flag})
+
+    CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED_${current_variable}")
+    if (FLAG_SUPPORTED_${current_variable})
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${compiler_flag}")
+    endif()
+endforeach()
 
 #variables for pkg-config
 set(prefix "${CMAKE_INSTALL_PREFIX}")
@@ -98,6 +148,8 @@ install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)
+    enable_testing()
+
     set(TEST_CJSON cJSON_test)
     add_executable("${TEST_CJSON}" test.c)
     target_link_libraries("${TEST_CJSON}" "${CJSON_LIB}")
