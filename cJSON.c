@@ -422,14 +422,15 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     unsigned char utf8_length = 0;
     unsigned char sequence_length = 0;
 
-    /* get the first utf16 sequence */
-    first_code = parse_hex4(first_sequence + 2);
     if ((input_end - first_sequence) < 6)
     {
         /* input ends unexpectedly */
         *error_pointer = first_sequence;
         goto fail;
     }
+
+    /* get the first utf16 sequence */
+    first_code = parse_hex4(first_sequence + 2);
 
     /* check that the code is valid */
     if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)) || (first_code == 0))
