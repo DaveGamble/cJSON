@@ -2410,3 +2410,70 @@ void cJSON_Minify(char *json)
     /* and null-terminate. */
     *into = '\0';
 }
+
+const char *cJSON_GetObjectCstr(const cJSON *object, const char *string)
+{
+	cJSON *cj = cJSON_GetObjectItem(object, string);
+
+	if (!cj || cj->type != cJSON_String || !cj->valuestring) return NULL;
+
+	return cj->valuestring;
+}
+
+cJSON *cJSON_AddChildObj(cJSON *json, const char *name, cJSON *obj)
+{
+	cJSON *new_json = NULL;
+	if (!json) {
+		return NULL;
+	}
+
+	if (obj) {
+		new_json = obj;
+	} else {
+		new_json = cJSON_CreateObject();
+		if (!new_json) {
+			return NULL;
+		}
+	}
+
+	cJSON_AddItemToObject(json, name, new_json);
+
+	return new_json;
+}
+
+cJSON *cJSON_AddChildArray(cJSON *json, const char *name)
+{
+	cJSON *new_json = NULL;
+
+	if (!json) {
+		return NULL;
+	}
+
+	new_json = cJSON_CreateArray();
+
+	if (!new_json) {
+		return NULL;
+	}
+
+	cJSON_AddItemToObject(json, name, new_json);
+
+	return new_json;
+}
+
+cJSON *cJSON_AddChildString(cJSON *json, const char *name, const char *val)
+{
+	cJSON *new_json = NULL;
+
+	if (!json) {
+		return NULL;
+	}
+
+	new_json = cJSON_CreateString(val);
+	if (!new_json) {
+		return NULL;
+	}
+
+	cJSON_AddItemToObject(json, name, new_json);
+
+	return new_json;
+}
