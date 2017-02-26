@@ -178,6 +178,11 @@ extern double cJSON_SetNumberHelper(cJSON *object, double number);
 /* Macro for iterating over an array */
 #define cJSON_ArrayForEach(pos, head) for(pos = (head)->child; pos != NULL; pos = pos->next)
 
+const char *cJSON_GetObjectCstr(const cJSON *object, const char *string);
+cJSON *cJSON_AddChildObj(cJSON *json, const char *name, cJSON *obj);
+cJSON *cJSON_AddChildArray(cJSON *json, const char *name);
+cJSON *cJSON_AddChildString(cJSON *json, const char *name, const char *val);
+
 #ifdef __cplusplus
 }
 #endif
