@@ -115,7 +115,7 @@ static void cJSONUtils_PointerEncodedstrcpy(unsigned char *d, const unsigned cha
     *d = '\0';
 }
 
-char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
+CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 {
     int type = object->type;
     size_t c = 0;
@@ -171,7 +171,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
     return NULL;
 }
 
-cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 {
     /* follow path of the pointer */
     while ((*pointer++ == '/') && object)
@@ -499,7 +499,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     return 0;
 }
 
-int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
     int err = 0;
 
@@ -551,7 +551,7 @@ static void cJSONUtils_GeneratePatch(cJSON *patches, const unsigned char *op, co
     cJSON_AddItemToArray(patches, patch);
 }
 
-void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val)
+CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val)
 {
     cJSONUtils_GeneratePatch(array, (const unsigned char*)op, (const unsigned char*)path, 0, val);
 }
@@ -671,7 +671,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
     }
 }
 
-cJSON* cJSONUtils_GeneratePatches(cJSON *from, cJSON *to)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to)
 {
     cJSON *patches = cJSON_CreateArray();
     cJSONUtils_CompareToPatch(patches, (const unsigned char*)"", from, to);
@@ -786,12 +786,12 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     return list;
 }
 
-void cJSONUtils_SortObject(cJSON *object)
+CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object)
 {
     object->child = cJSONUtils_SortList(object->child);
 }
 
-cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
 {
     if (!patch || ((patch->type & 0xFF) != cJSON_Object))
     {
@@ -824,7 +824,7 @@ cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
     return target;
 }
 
-cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
 {
     cJSON *patch = NULL;
     if (!to)
