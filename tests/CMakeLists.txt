@@ -1,6 +1,6 @@
-add_library(unity unity/src/unity.c)
-
 if(ENABLE_CJSON_TEST)
+    add_library(unity unity/src/unity.c)
+
     #copy test files
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/inputs")
     file(GLOB test_files "inputs/*")
