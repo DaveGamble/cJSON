@@ -329,6 +329,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
 {
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
+    int length = 0;
 
     if (output_buffer == NULL)
     {
@@ -342,7 +343,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
         output_pointer = ensure(output_buffer, 21, hooks);
         if (output_pointer != NULL)
         {
-            sprintf((char*)output_pointer, "%d", item->valueint);
+            length = sprintf((char*)output_pointer, "%d", item->valueint);
         }
     }
     /* value is a floating point number */
@@ -355,22 +356,30 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
             /* This checks for NaN and Infinity */
             if ((d * 0) != 0)
             {
-                sprintf((char*)output_pointer, "null");
+                length = sprintf((char*)output_pointer, "null");
             }
             else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
             {
-                sprintf((char*)output_pointer, "%.0f", d);
+                length = sprintf((char*)output_pointer, "%.0f", d);
             }
             else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
             {
-                sprintf((char*)output_pointer, "%e", d);
+                length = sprintf((char*)output_pointer, "%e", d);
             }
             else
             {
-                sprintf((char*)output_pointer, "%f", d);
+                length = sprintf((char*)output_pointer, "%f", d);
             }
         }
     }
+
+    /* sprintf failed */
+    if (length < 0)
+    {
+        return NULL;
+    }
+
+    output_buffer->offset += (size_t)length;
 
     return output_pointer;
 }
