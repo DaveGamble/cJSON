@@ -78,6 +78,8 @@ typedef struct cJSON_Hooks
       void (*free_fn)(void *ptr);
 } cJSON_Hooks;
 
+typedef int cJSON_bool;
+
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 #define __WINDOWS__
 #endif
@@ -129,9 +131,9 @@ CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item);
 /* Render a cJSON entity to text for transfer/storage without any formatting. Free the char* when finished. */
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item);
 /* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
-CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, int fmt);
+CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt);
 /* Render a cJSON entity to text using a buffer already allocated in memory with length buf_len. Returns 1 on success and 0 on failure. */
-CJSON_PUBLIC(int) cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const int fmt);
+CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const cJSON_bool fmt);
 /* Delete a cJSON entity and all subentities. */
 CJSON_PUBLIC(void) cJSON_Delete(cJSON *c);
 
@@ -142,27 +144,27 @@ CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int item);
 /* Get item "string" from object. Case insensitive. */
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *string);
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON *object, const char *string);
-CJSON_PUBLIC(int) cJSON_HasObjectItem(const cJSON *object, const char *string);
+CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string);
 /* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when cJSON_Parse() returns 0. 0 when cJSON_Parse() succeeds. */
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
 
 /* These functions check the type of an item */
-CJSON_PUBLIC(int) cJSON_IsInvalid(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsFalse(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsTrue(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsBool(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsNull(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsNumber(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsString(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsArray(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsObject(const cJSON * const item);
-CJSON_PUBLIC(int) cJSON_IsRaw(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsFalse(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsTrue(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsBool(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsArray(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsObject(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item);
 
 /* These calls create a cJSON item of the appropriate type. */
 CJSON_PUBLIC(cJSON *) cJSON_CreateNull(void);
 CJSON_PUBLIC(cJSON *) cJSON_CreateTrue(void);
 CJSON_PUBLIC(cJSON *) cJSON_CreateFalse(void);
-CJSON_PUBLIC(cJSON *) cJSON_CreateBool(int b);
+CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean);
 CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num);
 CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string);
 /* raw json */
@@ -199,14 +201,14 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newi
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 
 /* Duplicate a cJSON item */
-CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, int recurse);
+CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse);
 /* Duplicate will create a new, identical cJSON item to the one you pass, in new memory that will
 need to be released. With recurse!=0, it will duplicate any children connected to the item.
 The item->next and ->prev pointers are always zero on return from Duplicate. */
 
 /* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
 /* If you supply a ptr in return_parse_end and parsing fails, then return_parse_end will contain a pointer to the error. If not, then cJSON_GetErrorPtr() does the job. */
-CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, int require_null_terminated);
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated);
 
 CJSON_PUBLIC(void) cJSON_Minify(char *json);
 
