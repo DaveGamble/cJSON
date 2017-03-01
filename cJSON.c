@@ -1914,7 +1914,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
 
     for(i = 0; a && (i < (size_t)count); i++)
     {
-        n = cJSON_CreateNumber(numbers[i]);
+        n = cJSON_CreateNumber((double)numbers[i]);
         if(!n)
         {
             cJSON_Delete(a);

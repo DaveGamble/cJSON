@@ -41,6 +41,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wc++-compat
         -fstack-protector-strong
         -Wcomma
+        -Wdouble-promotion
         )
 endif()
 
