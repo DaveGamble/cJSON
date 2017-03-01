@@ -2185,7 +2185,7 @@ CJSON_PUBLIC(void) cJSON_Minify(char *json)
     *into = '\0';
 }
 
-extern cjbool cJSON_IsInvalid(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsInvalid(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2195,7 +2195,7 @@ extern cjbool cJSON_IsInvalid(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Invalid;
 }
 
-extern cjbool cJSON_IsFalse(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsFalse(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2205,7 +2205,7 @@ extern cjbool cJSON_IsFalse(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_False;
 }
 
-extern cjbool cJSON_IsTrue(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsTrue(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2216,7 +2216,7 @@ extern cjbool cJSON_IsTrue(const cJSON * const item)
 }
 
 
-extern cjbool cJSON_IsBool(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsBool(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2225,7 +2225,7 @@ extern cjbool cJSON_IsBool(const cJSON * const item)
 
     return (item->type & (cJSON_True | cJSON_False)) != 0;
 }
-extern cjbool cJSON_IsNull(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsNull(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2235,7 +2235,7 @@ extern cjbool cJSON_IsNull(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_NULL;
 }
 
-extern cjbool cJSON_IsNumber(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsNumber(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2245,7 +2245,7 @@ extern cjbool cJSON_IsNumber(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Number;
 }
 
-extern cjbool cJSON_IsString(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsString(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2255,7 +2255,7 @@ extern cjbool cJSON_IsString(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_String;
 }
 
-extern cjbool cJSON_IsArray(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsArray(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2265,7 +2265,7 @@ extern cjbool cJSON_IsArray(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Array;
 }
 
-extern cjbool cJSON_IsObject(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsObject(const cJSON * const item)
 {
     if (item == NULL)
     {
@@ -2275,7 +2275,7 @@ extern cjbool cJSON_IsObject(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Object;
 }
 
-extern cjbool cJSON_IsRaw(const cJSON * const item)
+CJSON_PUBLIC(cjbool) cJSON_IsRaw(const cJSON * const item)
 {
     if (item == NULL)
     {

@@ -33,9 +33,6 @@ extern "C"
 #define CJSON_VERSION_MINOR 3
 #define CJSON_VERSION_PATCH 0
 
-/* returns the version of cJSON as a string */
-extern const char* cJSON_Version(void);
-
 #include <stddef.h>
 
 /* cJSON Types: */
@@ -118,6 +115,9 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #endif
 #endif
 
+/* returns the version of cJSON as a string */
+CJSON_PUBLIC(const char*) cJSON_Version(void);
+
 /* Supply malloc, realloc and free functions to cJSON */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
@@ -147,16 +147,16 @@ CJSON_PUBLIC(int) cJSON_HasObjectItem(const cJSON *object, const char *string);
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
 
 /* These functions check the type of an item */
-extern int cJSON_IsInvalid(const cJSON * const item);
-extern int cJSON_IsFalse(const cJSON * const item);
-extern int cJSON_IsTrue(const cJSON * const item);
-extern int cJSON_IsBool(const cJSON * const item);
-extern int cJSON_IsNull(const cJSON * const item);
-extern int cJSON_IsNumber(const cJSON * const item);
-extern int cJSON_IsString(const cJSON * const item);
-extern int cJSON_IsArray(const cJSON * const item);
-extern int cJSON_IsObject(const cJSON * const item);
-extern int cJSON_IsRaw(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsInvalid(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsFalse(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsTrue(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsBool(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsNull(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsNumber(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsString(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsArray(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsObject(const cJSON * const item);
+CJSON_PUBLIC(int) cJSON_IsRaw(const cJSON * const item);
 
 /* These calls create a cJSON item of the appropriate type. */
 CJSON_PUBLIC(cJSON *) cJSON_CreateNull(void);
