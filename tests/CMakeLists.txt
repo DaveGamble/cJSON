@@ -1,6 +1,13 @@
 add_library(unity unity/src/unity.c)
 
 if(ENABLE_CJSON_TEST)
+
+    # Disable -Werror for Unity
+    list(FIND custom_compiler_flags "-Werror" werror_found)
+    if (werror_found)
+        target_compile_options(unity PRIVATE "-Wno-error")
+    endif()
+
     #copy test files
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/inputs")
     file(GLOB test_files "inputs/*")
