@@ -1,7 +1,7 @@
 [{
 		"precision":	"zip",
-		"Latitude":	37.766800,
-		"Longitude":	-122.395900,
+		"Latitude":	37.7668,
+		"Longitude":	-122.3959,
 		"Address":	"",
 		"City":	"SAN FRANCISCO",
 		"State":	"CA",
@@ -10,7 +10,7 @@
 	}, {
 		"precision":	"zip",
 		"Latitude":	37.371991,
-		"Longitude":	-122.026020,
+		"Longitude":	-122.02602,
 		"Address":	"",
 		"City":	"SUNNYVALE",
 		"State":	"CA",

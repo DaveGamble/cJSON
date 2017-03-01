@@ -324,55 +324,90 @@ static void update_offset(printbuffer * const buffer)
     buffer->offset += strlen((const char*)buffer_pointer);
 }
 
+/* Removes trailing zeroes from the end of a printed number */
+static unsigned char *trim_trailing_zeroes(printbuffer * const buffer)
+{
+    size_t offset = 0;
+    unsigned char *content = NULL;
+
+    if ((buffer == NULL) || (buffer->buffer == NULL) || (buffer->offset < 1))
+    {
+        return NULL;
+    }
+
+    offset = buffer->offset - 1;
+    content = buffer->buffer;
+
+    while ((offset > 0) && (content[offset] == '0'))
+    {
+        offset--;
+    }
+    if ((offset > 0) && (content[offset] == '.'))
+    {
+        offset--;
+    }
+
+    offset++;
+    content[offset] = '\0';
+
+    buffer->offset = offset;
+
+    return content + offset;
+}
+
 /* Render the number nicely from the given item into a string. */
 static unsigned char *print_number(const cJSON * const item, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
+    int length = 0;
+    cjbool trim_zeroes = true; /* should at the end be removed? */
 
     if (output_buffer == NULL)
     {
         return NULL;
     }
 
-    /* value is an int */
-    if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
+    /* This is a nice tradeoff. */
+    output_pointer = ensure(output_buffer, 64, hooks);
+    if (output_pointer != NULL)
     {
-        /* 2^64+1 can be represented in 21 chars. */
-        output_pointer = ensure(output_buffer, 21, hooks);
-        if (output_pointer != NULL)
+        /* This checks for NaN and Infinity */
+        if ((d * 0) != 0)
         {
-            sprintf((char*)output_pointer, "%d", item->valueint);
+            length = sprintf((char*)output_pointer, "null");
         }
-    }
-    /* value is a floating point number */
-    else
-    {
-        /* This is a nice tradeoff. */
-        output_pointer = ensure(output_buffer, 64, hooks);
-        if (output_pointer != NULL)
+        else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
         {
-            /* This checks for NaN and Infinity */
-            if ((d * 0) != 0)
-            {
-                sprintf((char*)output_pointer, "null");
-            }
-            else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
-            {
-                sprintf((char*)output_pointer, "%.0f", d);
-            }
-            else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
-            {
-                sprintf((char*)output_pointer, "%e", d);
-            }
-            else
-            {
-                sprintf((char*)output_pointer, "%f", d);
-            }
+            /* integer */
+            length = sprintf((char*)output_pointer, "%.0f", d);
+            trim_zeroes = false; /* don't remove zeroes for "big integers" */
+        }
+        else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
+        {
+            length = sprintf((char*)output_pointer, "%e", d);
+            trim_zeroes = false; /* don't remove zeroes in engineering notation */
+        }
+        else
+        {
+            length = sprintf((char*)output_pointer, "%f", d);
         }
     }
 
-    return output_pointer;
+    /* sprintf failed */
+    if (length < 0)
+    {
+        return NULL;
+    }
+
+    output_buffer->offset += (size_t)length;
+
+    if (trim_zeroes)
+    {
+        return trim_trailing_zeroes(output_buffer);
+    }
+
+    return output_buffer->buffer + output_buffer->offset;
 }
 
 /* parse 4 digit hexadecimal number */

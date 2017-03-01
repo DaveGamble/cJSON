@@ -66,7 +66,7 @@ static void print_value_should_print_false(void)
 
 static void print_value_should_print_number(void)
 {
-    assert_print_value("1.500000");
+    assert_print_value("1.5");
 }
 
 static void print_value_should_print_string(void)

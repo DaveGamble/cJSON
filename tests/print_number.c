@@ -62,7 +62,7 @@ static void print_number_should_print_positive_integers(void)
 
 static void print_number_should_print_positive_reals(void)
 {
-    assert_print_number("0.123000", 0.123);
+    assert_print_number("0.123", 0.123);
     assert_print_number("1.000000e-09", 10e-10);
     assert_print_number("1000000000000", 10e11);
     assert_print_number("1.230000e+129", 123e+127);
@@ -71,7 +71,7 @@ static void print_number_should_print_positive_reals(void)
 
 static void print_number_should_print_negative_reals(void)
 {
-    assert_print_number("-0.012300", -0.0123);
+    assert_print_number("-0.0123", -0.0123);
     assert_print_number("-1.000000e-09", -10e-10);
     assert_print_number("-1000000000000000000000", -10e20);
     assert_print_number("-1.230000e+129", -123e+127);
@@ -87,6 +87,22 @@ static void print_number_should_print_non_number(void)
     /* assert_print_number("null", -INFTY); */
 }
 
+static void trim_trailing_zeroes_should_trim_trailing_zeroes(void)
+{
+    printbuffer buffer;
+    unsigned char number[100];
+    unsigned char *pointer = NULL;
+    buffer.length = sizeof(number);
+    buffer.buffer = number;
+
+    strcpy((char*)number, "10.00");
+    buffer.offset = sizeof("10.00") - 1;
+    pointer = trim_trailing_zeroes(&buffer);
+    TEST_ASSERT_EQUAL_UINT8('\0', *pointer);
+    TEST_ASSERT_EQUAL_STRING("10", number);
+    TEST_ASSERT_EQUAL_UINT(sizeof("10") - 1, buffer.offset);
+}
+
 int main(void)
 {
     /* initialize cJSON item */
@@ -98,6 +114,7 @@ int main(void)
     RUN_TEST(print_number_should_print_positive_reals);
     RUN_TEST(print_number_should_print_negative_reals);
     RUN_TEST(print_number_should_print_non_number);
+    RUN_TEST(trim_trailing_zeroes_should_trim_trailing_zeroes);
 
     return UNITY_END();
 }
