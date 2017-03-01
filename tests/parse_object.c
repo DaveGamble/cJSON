@@ -134,7 +134,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
                 i = 0;
                 (i < (sizeof(expected_types)/sizeof(int)))
                 && (node != NULL);
-                i++, node = node->next)
+                (void)i++, node = node->next)
         {
             assert_is_child(node, expected_names[i], expected_types[i]);
         }

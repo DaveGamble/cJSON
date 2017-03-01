@@ -124,7 +124,7 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
                 i = 0;
                 (i < (sizeof(expected_types)/sizeof(int)))
                 && (node != NULL);
-                i++, node = node->next)
+                (void)i++, node = node->next)
         {
             TEST_ASSERT_BITS(0xFF, expected_types[i], node->type);
         }

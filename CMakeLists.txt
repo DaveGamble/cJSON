@@ -40,6 +40,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wconversion
         -Wc++-compat
         -fstack-protector-strong
+        -Wcomma
         )
 endif()
 
