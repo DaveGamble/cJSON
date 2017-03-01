@@ -42,6 +42,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -fstack-protector-strong
         -Wcomma
         -Wdouble-promotion
+        -Wparentheses
         )
 endif()
 
