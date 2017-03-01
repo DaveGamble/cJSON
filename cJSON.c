@@ -368,44 +368,29 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
         return NULL;
     }
 
-    /* value is an int */
-    if ((fabs(((double)item->valueint) - d) <= DBL_EPSILON) && (d <= INT_MAX) && (d >= INT_MIN))
+    /* This is a nice tradeoff. */
+    output_pointer = ensure(output_buffer, 64, hooks);
+    if (output_pointer != NULL)
     {
-        trim_zeroes = false; /* don't remove zeroes for integers */
-
-        /* 2^64+1 can be represented in 21 chars. */
-        output_pointer = ensure(output_buffer, 21, hooks);
-        if (output_pointer != NULL)
+        /* This checks for NaN and Infinity */
+        if ((d * 0) != 0)
         {
-            length = sprintf((char*)output_pointer, "%d", item->valueint);
+            length = sprintf((char*)output_pointer, "null");
         }
-    }
-    /* value is a floating point number */
-    else
-    {
-        /* This is a nice tradeoff. */
-        output_pointer = ensure(output_buffer, 64, hooks);
-        if (output_pointer != NULL)
+        else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
         {
-            /* This checks for NaN and Infinity */
-            if ((d * 0) != 0)
-            {
-                length = sprintf((char*)output_pointer, "null");
-            }
-            else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
-            {
-                length = sprintf((char*)output_pointer, "%.0f", d);
-                trim_zeroes = false; /* don't remove zeroes for "big integers" */
-            }
-            else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
-            {
-                length = sprintf((char*)output_pointer, "%e", d);
-                trim_zeroes = false; /* don't remove zeroes in engineering notation */
-            }
-            else
-            {
-                length = sprintf((char*)output_pointer, "%f", d);
-            }
+            /* integer */
+            length = sprintf((char*)output_pointer, "%.0f", d);
+            trim_zeroes = false; /* don't remove zeroes for "big integers" */
+        }
+        else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
+        {
+            length = sprintf((char*)output_pointer, "%e", d);
+            trim_zeroes = false; /* don't remove zeroes in engineering notation */
+        }
+        else
+        {
+            length = sprintf((char*)output_pointer, "%f", d);
         }
     }
 
