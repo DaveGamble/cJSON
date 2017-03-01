@@ -381,7 +381,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
 
     output_buffer->offset += (size_t)length;
 
-    return output_pointer;
+    return output_buffer->buffer + output_buffer->offset;
 }
 
 /* parse 4 digit hexadecimal number */
