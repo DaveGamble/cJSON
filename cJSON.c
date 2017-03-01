@@ -68,7 +68,7 @@ static int cJSON_strcasecmp(const unsigned char *s1, const unsigned char *s2)
     {
         return 1;
     }
-    for(; tolower(*s1) == tolower(*s2); ++s1, ++s2)
+    for(; tolower(*s1) == tolower(*s2); (void)++s1, ++s2)
     {
         if (*s1 == '\0')
         {
@@ -731,7 +731,7 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
     output[0] = '\"';
     output_pointer = output + 1;
     /* copy the string */
-    for (input_pointer = input; *input_pointer != '\0'; input_pointer++, output_pointer++)
+    for (input_pointer = input; *input_pointer != '\0'; (void)input_pointer++, output_pointer++)
     {
         if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\'))
         {
@@ -1914,7 +1914,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
 
     for(i = 0; a && (i < (size_t)count); i++)
     {
-        n = cJSON_CreateNumber(numbers[i]);
+        n = cJSON_CreateNumber((double)numbers[i]);
         if(!n)
         {
             cJSON_Delete(a);
