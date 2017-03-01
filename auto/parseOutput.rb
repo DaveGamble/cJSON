@@ -65,6 +65,17 @@ class ParseOutput
             @arrayList.push "     <testcase classname=\"" + @testSuite + "\" name=\"" + testName + "\"/>"
         end          
     end
+    
+# Test was flagged as having passed so format the output.
+# This is using the Unity fixture output and not the original Unity output.
+    def testPassedUnityFixture(array)
+        testSuite = array[0].sub("TEST(", "")
+        testSuite = testSuite.sub(",", "")
+        testName = array[1].sub(")", "")
+        if @xmlOut == true
+            @arrayList.push "     <testcase classname=\"" + testSuite + "\" name=\"" + testName + "\"/>"
+        end          
+    end
 
 # Test was flagged as being ingored so format the output
     def testIgnored(array)
@@ -73,6 +84,14 @@ class ParseOutput
         reason = array[lastItem].chomp
         testSuiteVerify(array[@className])
         printf "%-40s IGNORED\n", testName
+
+        if testName.start_with? "TEST("
+          array2 = testName.split(" ")
+          @testSuite = array2[0].sub("TEST(", "")
+          @testSuite = @testSuite.sub(",", "")
+          testName = array2[1].sub(")", "")
+        end
+
         if @xmlOut == true
             @arrayList.push "     <testcase classname=\"" + @testSuite + "\" name=\"" + testName + "\">"
             @arrayList.push "            <skipped type=\"TEST IGNORED\"> " + reason + " </skipped>"
@@ -87,6 +106,14 @@ class ParseOutput
         reason = array[lastItem].chomp + " at line: " + array[lastItem - 3]
         testSuiteVerify(array[@className])
         printf "%-40s FAILED\n", testName
+        
+        if testName.start_with? "TEST("
+          array2 = testName.split(" ")
+          @testSuite = array2[0].sub("TEST(", "")
+          @testSuite = @testSuite.sub(",", "")
+          testName = array2[1].sub(")", "")
+        end
+        
         if @xmlOut == true
             @arrayList.push "     <testcase classname=\"" + @testSuite + "\" name=\"" + testName + "\">"
             @arrayList.push "            <failure type=\"ASSERT FAILED\"> " + reason + " </failure>"
@@ -138,7 +165,7 @@ class ParseOutput
             lineSize = lineArray.size
             # If we were able to split the line then we can look to see if any of our target words
             # were found.  Case is important.
-            if lineSize >= 4
+            if ((lineSize >= 4) || (line.start_with? "TEST("))
                 # Determine if this test passed
                 if  line.include? ":PASS"
                     testPassed(lineArray)
@@ -149,6 +176,12 @@ class ParseOutput
                 elsif line.include? ":IGNORE:"
                     testIgnored(lineArray)
                     testIgnore += 1
+                elsif line.start_with? "TEST("
+                  if line.include? " PASS"
+                    lineArray = line.split(" ")
+                    testPassedUnityFixture(lineArray)
+                    testPass += 1
+                  end
                 # If none of the keywords are found there are no more tests for this suite so clear
                 # the test flag
                 else
