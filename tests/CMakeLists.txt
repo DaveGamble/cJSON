@@ -7,6 +7,11 @@ if(ENABLE_CJSON_TEST)
     if (werror_found)
         target_compile_options(unity PRIVATE "-Wno-error")
     endif()
+    # Disable -fvisibility=hidden for Unity
+    list(FIND custom_compiler_flags "-fvisibility=hidden" visibility_found)
+    if (visibility_found)
+        target_compile_options(unity PRIVATE "-fvisibility=default")
+    endif()
 
     #copy test files
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/inputs")

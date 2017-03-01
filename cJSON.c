@@ -23,6 +23,7 @@
 /* cJSON */
 /* JSON parser in C. */
 
+#pragma GCC visibility push(default)
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -30,6 +31,8 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+#pragma GCC visibility pop
+
 #include "cJSON.h"
 
 /* define our own boolean type */
