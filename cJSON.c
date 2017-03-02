@@ -694,7 +694,7 @@ fail:
 }
 
 /* Render the cstring provided to an escaped version that can be printed. */
-static unsigned char *print_string_ptr(const unsigned char * const input, printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     const unsigned char *input_pointer = NULL;
     unsigned char *output = NULL;
@@ -705,7 +705,7 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
 
     if (output_buffer == NULL)
     {
-        return NULL;
+        return false;
     }
 
     /* empty string */
@@ -714,11 +714,11 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
         output = ensure(output_buffer, sizeof("\"\""), hooks);
         if (output == NULL)
         {
-            return NULL;
+            return false;
         }
         strcpy((char*)output, "\"\"");
 
-        return output;
+        return true;
     }
 
     /* set "flag" to 1 if something needs to be escaped */
@@ -740,7 +740,7 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
     output = ensure(output_buffer, output_length + sizeof("\"\""), hooks);
     if (output == NULL)
     {
-        return NULL;
+        return false;
     }
 
     /* no characters have to be escaped */
@@ -751,7 +751,7 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
         output[output_length + 1] = '\"';
         output[output_length + 2] = '\0';
 
-        return output;
+        return true;
     }
 
     output[0] = '\"';
@@ -802,11 +802,11 @@ static unsigned char *print_string_ptr(const unsigned char * const input, printb
     output[output_length + 1] = '\"';
     output[output_length + 2] = '\0';
 
-    return output;
+    return true;
 }
 
 /* Invoke print_string_ptr (which is useful) on an item. */
-static unsigned char *print_string(const cJSON * const item, printbuffer * const p, const internal_hooks * const hooks)
+static cJSON_bool print_string(const cJSON * const item, printbuffer * const p, const internal_hooks * const hooks)
 {
     return print_string_ptr((unsigned char*)item->valuestring, p, hooks);
 }
@@ -1092,7 +1092,7 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
             break;
         }
         case cJSON_String:
-            output = print_string(item, output_buffer, hooks);
+            return print_string(item, output_buffer, hooks);
             break;
         case cJSON_Array:
             return print_array(item, depth, format, output_buffer, hooks);
@@ -1384,7 +1384,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
         }
 
         /* print key */
-        if (print_string_ptr((unsigned char*)current_item->string, output_buffer, hooks) == NULL)
+        if (!print_string_ptr((unsigned char*)current_item->string, output_buffer, hooks))
         {
             return false;
         }
