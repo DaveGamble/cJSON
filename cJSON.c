@@ -817,7 +817,7 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep, const internal_hooks * const hooks);
 static cJSON_bool print_array(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep, const internal_hooks * const hooks);
-static unsigned char *print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
+static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 
 /* Utility to jump whitespace and cr/lf */
 static const unsigned char *skip_whitespace(const unsigned char *in)
@@ -1098,8 +1098,7 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
         case cJSON_Array:
             return print_array(item, depth, format, output_buffer, hooks);
         case cJSON_Object:
-            output = print_object(item, depth, format, output_buffer, hooks);
-            break;
+            return print_object(item, depth, format, output_buffer, hooks);
         default:
             output = NULL;
             break;
@@ -1342,26 +1341,23 @@ fail:
 }
 
 /* Render an object to text. */
-static unsigned char *print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
-    unsigned char *output = NULL;
     unsigned char *output_pointer = NULL;
     size_t length = 0;
-    size_t output_offset = 0;
     cJSON *current_item = item->child;
 
     if (output_buffer == NULL)
     {
-        return NULL;
+        return false;
     }
 
     /* Compose the output: */
-    output_offset = output_buffer->offset;
     length = format ? 2 : 1; /* fmt: {\n */
     output_pointer = ensure(output_buffer, length + 1, hooks);
     if (output_pointer == NULL)
     {
-        return NULL;
+        return false;
     }
 
     *output_pointer++ = '{';
@@ -1379,7 +1375,7 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
             output_pointer = ensure(output_buffer, depth + 1, hooks);
             if (output_pointer == NULL)
             {
-                return NULL;
+                return false;
             }
             for (i = 0; i < depth + 1; i++)
             {
@@ -1391,7 +1387,7 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
         /* print key */
         if (print_string_ptr((unsigned char*)current_item->string, output_buffer, hooks) == NULL)
         {
-            return NULL;
+            return false;
         }
         update_offset(output_buffer);
 
@@ -1399,7 +1395,7 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
         output_pointer = ensure(output_buffer, length, hooks);
         if (output_pointer == NULL)
         {
-            return NULL;
+            return false;
         }
         *output_pointer++ = ':';
         if (format)
@@ -1411,7 +1407,7 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
         /* print value */
         if (!print_value(current_item, depth + 1, format, output_buffer, hooks))
         {
-            return NULL;
+            return false;
         }
         update_offset(output_buffer);
 
@@ -1420,7 +1416,7 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
         output_pointer = ensure(output_buffer, length + 1, hooks);
         if (output_pointer == NULL)
         {
-            return NULL;
+            return false;
         }
         if (current_item->next)
         {
@@ -1440,7 +1436,7 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
     output_pointer = ensure(output_buffer, format ? (depth + 2) : 2, hooks);
     if (output_pointer == NULL)
     {
-        return NULL;
+        return false;
     }
     if (format)
     {
@@ -1452,9 +1448,8 @@ static unsigned char *print_object(const cJSON * const item, const size_t depth,
     }
     *output_pointer++ = '}';
     *output_pointer = '\0';
-    output = (output_buffer->buffer) + output_offset;
 
-    return output;
+    return true;
 }
 
 /* Get Array size/item / object item. */
