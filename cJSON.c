@@ -1049,27 +1049,34 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
     {
         case cJSON_NULL:
             output = ensure(output_buffer, 5, hooks);
-            if (output != NULL)
+            if (output == NULL)
             {
-                strcpy((char*)output, "null");
+                return false;
             }
-            break;
+            strcpy((char*)output, "null");
+            return true;
+
         case cJSON_False:
             output = ensure(output_buffer, 6, hooks);
-            if (output != NULL)
+            if (output == NULL)
             {
-                strcpy((char*)output, "false");
+                return false;
             }
-            break;
+            strcpy((char*)output, "false");
+            return true;
+
         case cJSON_True:
             output = ensure(output_buffer, 5, hooks);
-            if (output != NULL)
+            if (output == NULL)
             {
-                strcpy((char*)output, "true");
+                return false;
             }
-            break;
+            strcpy((char*)output, "true");
+            return true;
+
         case cJSON_Number:
             return print_number(item, output_buffer, hooks);
+
         case cJSON_Raw:
         {
             size_t raw_length = 0;
@@ -1079,31 +1086,31 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
                 {
                     hooks->deallocate(output_buffer->buffer);
                 }
-                output = NULL;
-                break;
+                return false;
             }
 
             raw_length = strlen(item->valuestring) + sizeof('\0');
             output = ensure(output_buffer, raw_length, hooks);
-            if (output != NULL)
+            if (output == NULL)
             {
-                memcpy(output, item->valuestring, raw_length);
+                return false;
             }
-            break;
+            memcpy(output, item->valuestring, raw_length);
+            return true;
         }
+
         case cJSON_String:
             return print_string(item, output_buffer, hooks);
-            break;
+
         case cJSON_Array:
             return print_array(item, depth, format, output_buffer, hooks);
+
         case cJSON_Object:
             return print_object(item, depth, format, output_buffer, hooks);
-        default:
-            output = NULL;
-            break;
-    }
 
-    return output != NULL;
+        default:
+            return false;
+    }
 }
 
 /* Build an array from input text. */
