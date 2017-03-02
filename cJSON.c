@@ -327,14 +327,14 @@ static void update_offset(printbuffer * const buffer)
 }
 
 /* Removes trailing zeroes from the end of a printed number */
-static unsigned char *trim_trailing_zeroes(printbuffer * const buffer)
+static cJSON_bool trim_trailing_zeroes(printbuffer * const buffer)
 {
     size_t offset = 0;
     unsigned char *content = NULL;
 
     if ((buffer == NULL) || (buffer->buffer == NULL) || (buffer->offset < 1))
     {
-        return NULL;
+        return false;
     }
 
     offset = buffer->offset - 1;
@@ -354,11 +354,11 @@ static unsigned char *trim_trailing_zeroes(printbuffer * const buffer)
 
     buffer->offset = offset;
 
-    return content + offset;
+    return true;
 }
 
 /* Render the number nicely from the given item into a string. */
-static unsigned char *print_number(const cJSON * const item, printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
@@ -367,7 +367,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
 
     if (output_buffer == NULL)
     {
-        return NULL;
+        return false;
     }
 
     /* This is a nice tradeoff. */
@@ -399,7 +399,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
     /* sprintf failed */
     if (length < 0)
     {
-        return NULL;
+        return false;
     }
 
     output_buffer->offset += (size_t)length;
@@ -409,7 +409,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
         return trim_trailing_zeroes(output_buffer);
     }
 
-    return output_buffer->buffer;
+    return true;
 }
 
 /* parse 4 digit hexadecimal number */
@@ -1069,8 +1069,7 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
             }
             break;
         case cJSON_Number:
-            output = print_number(item, output_buffer, hooks);
-            break;
+            return print_number(item, output_buffer, hooks);
         case cJSON_Raw:
         {
             size_t raw_length = 0;

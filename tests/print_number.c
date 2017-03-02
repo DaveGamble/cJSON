@@ -37,7 +37,7 @@ static void assert_print_number(const char *expected, double input)
     memset(item, 0, sizeof(item));
     cJSON_SetNumberValue(item, input);
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(print_number(item, &buffer, &global_hooks), "Failed to print number.");
+    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer, &global_hooks), "Failed to print number.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
 }
 
@@ -91,14 +91,13 @@ static void trim_trailing_zeroes_should_trim_trailing_zeroes(void)
 {
     printbuffer buffer;
     unsigned char number[100];
-    unsigned char *pointer = NULL;
     buffer.length = sizeof(number);
     buffer.buffer = number;
 
     strcpy((char*)number, "10.00");
     buffer.offset = sizeof("10.00") - 1;
-    pointer = trim_trailing_zeroes(&buffer);
-    TEST_ASSERT_EQUAL_UINT8('\0', *pointer);
+    TEST_ASSERT_TRUE(trim_trailing_zeroes(&buffer));
+    TEST_ASSERT_EQUAL_UINT8('\0', buffer.buffer[buffer.offset]);
     TEST_ASSERT_EQUAL_STRING("10", number);
     TEST_ASSERT_EQUAL_UINT(sizeof("10") - 1, buffer.offset);
 }
