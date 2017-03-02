@@ -1,8 +1,10 @@
+#pragma GCC visibility push(default)
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#pragma GCC visibility pop
 
 #include "cJSON_Utils.h"
 
