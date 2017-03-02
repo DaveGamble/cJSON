@@ -43,7 +43,7 @@ static void assert_print_value(const char *input)
 
     TEST_ASSERT_NOT_NULL_MESSAGE(parse_value(item, (const unsigned char*)input, &error_pointer, &global_hooks), "Failed to parse value.");
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(print_value(item, 0, false, &buffer, &global_hooks), "Failed to print value.");
+    TEST_ASSERT_TRUE_MESSAGE(print_value(item, 0, false, &buffer, &global_hooks), "Failed to print value.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, buffer.buffer, "Printed value is not as expected.");
 
     reset(item);

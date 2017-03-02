@@ -813,7 +813,7 @@ static unsigned char *print_string(const cJSON * const item, printbuffer * const
 
 /* Predeclare these prototypes. */
 static const unsigned char *parse_value(cJSON * const item, const unsigned char * const input, const unsigned char ** const ep, const internal_hooks * const hooks);
-static unsigned char *print_value(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
+static cJSON_bool print_value(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 static const unsigned char *parse_array(cJSON * const item, const unsigned char *input, const unsigned char ** const ep, const internal_hooks * const hooks);
 static unsigned char *print_array(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep, const internal_hooks * const hooks);
@@ -893,7 +893,7 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     }
 
     /* print the value */
-    if (print_value(item, 0, format, buffer, hooks) == NULL)
+    if (!print_value(item, 0, format, buffer, hooks))
     {
         goto fail;
     }
@@ -957,7 +957,12 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
     p.offset = 0;
     p.noalloc = false;
 
-    return (char*)print_value(item, 0, fmt, &p, &global_hooks);
+    if (!print_value(item, 0, fmt, &p, &global_hooks))
+    {
+        return NULL;
+    }
+
+    return (char*)p.buffer;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const cJSON_bool fmt)
@@ -973,7 +978,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const i
     p.length = (size_t)len;
     p.offset = 0;
     p.noalloc = true;
-    return print_value(item, 0, fmt, &p, &global_hooks) != NULL;
+    return print_value(item, 0, fmt, &p, &global_hooks);
 }
 
 /* Parser core - when encountering text, process appropriately. */
@@ -1031,13 +1036,13 @@ static const unsigned  char *parse_value(cJSON * const item, const unsigned char
 }
 
 /* Render a value to text. */
-static unsigned char *print_value(const cJSON * const item, const size_t depth, const cJSON_bool format,  printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_value(const cJSON * const item, const size_t depth, const cJSON_bool format,  printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     unsigned char *output = NULL;
 
     if ((item == NULL) || (output_buffer == NULL))
     {
-        return NULL;
+        return false;
     }
 
     switch ((item->type) & 0xFF)
@@ -1101,7 +1106,7 @@ static unsigned char *print_value(const cJSON * const item, const size_t depth, 
             break;
     }
 
-    return output;
+    return output != NULL;
 }
 
 /* Build an array from input text. */
@@ -1210,7 +1215,7 @@ static unsigned char *print_array(const cJSON * const item, const size_t depth, 
 
     while (current_element != NULL)
     {
-        if (print_value(current_element, depth + 1, format, output_buffer, hooks) == NULL)
+        if (!print_value(current_element, depth + 1, format, output_buffer, hooks))
         {
             return NULL;
         }
