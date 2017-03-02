@@ -452,21 +452,13 @@ static unsigned parse_hex4(const unsigned char * const input)
  * A literal can be one or two sequences of the form \uXXXX */
 static unsigned char utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer, const unsigned char **error_pointer)
 {
-    /* first bytes of UTF8 encoding for a given length in bytes */
-    static const unsigned char firstByteMark[5] =
-    {
-        0x00, /* should never happen */
-        0x00, /* 0xxxxxxx */
-        0xC0, /* 110xxxxx */
-        0xE0, /* 1110xxxx */
-        0xF0 /* 11110xxx */
-    };
-
     long unsigned int codepoint = 0;
     unsigned int first_code = 0;
     const unsigned char *first_sequence = input_pointer;
     unsigned char utf8_length = 0;
+    unsigned char utf8_position = 0;
     unsigned char sequence_length = 0;
+    unsigned char first_byte_mark = 0;
 
     /* get the first utf16 sequence */
     first_code = parse_hex4(first_sequence + 2);
@@ -537,16 +529,19 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     {
         /* two bytes, encoding 110xxxxx 10xxxxxx */
         utf8_length = 2;
+        first_byte_mark = 0xC0; /* 11000000 */
     }
     else if (codepoint < 0x10000)
     {
         /* three bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx */
         utf8_length = 3;
+        first_byte_mark = 0xE0; /* 11100000 */
     }
     else if (codepoint <= 0x10FFFF)
     {
         /* four bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx 10xxxxxx */
         utf8_length = 4;
+        first_byte_mark = 0xF0; /* 11110000 */
     }
     else
     {
@@ -556,28 +551,22 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     }
 
     /* encode as utf8 */
-    switch (utf8_length)
+    for (utf8_position = (unsigned char)(utf8_length - 1); utf8_position > 0; utf8_position--)
     {
-        case 4:
-            /* 10xxxxxx */
-            (*output_pointer)[3] = (unsigned char)((codepoint | 0x80) & 0xBF);
-            codepoint >>= 6;
-        case 3:
-            /* 10xxxxxx */
-            (*output_pointer)[2] = (unsigned char)((codepoint | 0x80) & 0xBF);
-            codepoint >>= 6;
-        case 2:
-            (*output_pointer)[1] = (unsigned char)((codepoint | 0x80) & 0xBF);
-            codepoint >>= 6;
-        case 1:
-            /* depending on the length in bytes this determines the
-               encoding of the first UTF8 byte */
-            (*output_pointer)[0] = (unsigned char)((codepoint | firstByteMark[utf8_length]) & 0xFF);
-            break;
-        default:
-            *error_pointer = first_sequence;
-            goto fail;
+        /* 10xxxxxx */
+        (*output_pointer)[utf8_position] = (unsigned char)((codepoint | 0x80) & 0xBF);
+        codepoint >>= 6;
     }
+    /* encode first byte */
+    if (utf8_length > 1)
+    {
+        (*output_pointer)[0] = (unsigned char)((codepoint | first_byte_mark) & 0xFF);
+    }
+    else
+    {
+        (*output_pointer)[0] = (unsigned char)(codepoint & 0x7F);
+    }
+
     *output_pointer += utf8_length;
 
     return sequence_length;
