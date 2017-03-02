@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     const char *filename = NULL;
     cJSON *item = NULL;
     char *json = NULL;
-    int status;
+    int status = EXIT_FAILURE;
     char *printed_json = NULL;
 
     if ((argc < 2) || (argc > 3))
@@ -96,6 +96,7 @@ int main(int argc, char** argv)
         printf("%s input_file [enable_printing]\n", argv[0]);
         printf("\t input_file: file containing the test data\n");
         printf("\t enable_printing: print after parsing, 'yes' or 'no', defaults to 'no'\n");
+        goto cleanup;
     }
 
     filename = argv[1];
