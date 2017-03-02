@@ -409,7 +409,7 @@ static unsigned char *print_number(const cJSON * const item, printbuffer * const
         return trim_trailing_zeroes(output_buffer);
     }
 
-    return output_buffer->buffer + output_buffer->offset;
+    return output_buffer->buffer;
 }
 
 /* parse 4 digit hexadecimal number */
