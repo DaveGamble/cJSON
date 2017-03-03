@@ -25,9 +25,8 @@
 
 #include "../cJSON.c"
 
-extern void reset(cJSON *item);
-extern char *read_file(const char *filename);
-extern cjbool assert_is_invalid(cJSON *item);
+CJSON_PUBLIC(void) reset(cJSON *item);
+CJSON_PUBLIC(char*) read_file(const char *filename);
 
 /* assertion helper macros */
 #define assert_has_type(item, item_type) TEST_ASSERT_BITS_MESSAGE(0xFF, item_type, item->type, "Item doesn't have expected type.")

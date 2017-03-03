@@ -47,15 +47,15 @@ static void assert_is_string(cJSON *string_item)
 
 static void assert_parse_string(const char *string, const char *expected)
 {
-    TEST_ASSERT_NOT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer), "Couldn't parse string.");
+    TEST_ASSERT_NOT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer, &global_hooks), "Couldn't parse string.");
     assert_is_string(item);
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, item->valuestring, "The parsed result isn't as expected.");
-    cJSON_free(item->valuestring);
+    global_hooks.deallocate(item->valuestring);
     item->valuestring = NULL;
 }
 
 #define assert_not_parse_string(string) \
-    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer), "Malformed string should not be accepted");\
+    TEST_ASSERT_NULL_MESSAGE(parse_string(item, (const unsigned char*)string, &error_pointer, &global_hooks), "Malformed string should not be accepted");\
     assert_is_invalid(item)
 
 

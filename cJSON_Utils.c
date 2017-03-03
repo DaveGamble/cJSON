@@ -1,8 +1,10 @@
+#pragma GCC visibility push(default)
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#pragma GCC visibility pop
 
 #include "cJSON_Utils.h"
 
@@ -31,7 +33,7 @@ static int cJSONUtils_strcasecmp(const unsigned char *s1, const unsigned char *s
     {
         return 1;
     }
-    for(; tolower(*s1) == tolower(*s2); ++s1, ++s2)
+    for(; tolower(*s1) == tolower(*s2); (void)++s1, ++s2)
     {
         if(*s1 == 0)
         {
@@ -49,7 +51,7 @@ static int cJSONUtils_Pstrcasecmp(const unsigned char *a, const unsigned char *e
     {
         return (a == e) ? 0 : 1; /* both NULL? */
     }
-    for (; *a && *e && (*e != '/'); a++, e++) /* compare until next '/' */
+    for (; *a && *e && (*e != '/'); (void)a++, e++) /* compare until next '/' */
     {
         if (*e == '~')
         {
@@ -81,7 +83,7 @@ static int cJSONUtils_Pstrcasecmp(const unsigned char *a, const unsigned char *e
 static size_t cJSONUtils_PointerEncodedstrlen(const unsigned char *s)
 {
     size_t l = 0;
-    for (; *s; s++, l++)
+    for (; *s; (void)s++, l++)
     {
         if ((*s == '~') || (*s == '/'))
         {
@@ -115,9 +117,8 @@ static void cJSONUtils_PointerEncodedstrcpy(unsigned char *d, const unsigned cha
     *d = '\0';
 }
 
-char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
+CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 {
-    int type = object->type;
     size_t c = 0;
     cJSON *obj = 0;
 
@@ -128,12 +129,12 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
     }
 
     /* recursively search all children of the object */
-    for (obj = object->child; obj; obj = obj->next, c++)
+    for (obj = object->child; obj; (void)(obj = obj->next), c++)
     {
         unsigned char *found = (unsigned char*)cJSONUtils_FindPointerFromObjectTo(obj, target);
         if (found)
         {
-            if ((type & 0xFF) == cJSON_Array)
+            if (cJSON_IsArray(object))
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
                 unsigned char *ret = (unsigned char*)malloc(strlen((char*)found) + 23);
@@ -150,7 +151,7 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
 
                 return (char*)ret;
             }
-            else if ((type & 0xFF) == cJSON_Object)
+            else if (cJSON_IsObject(object))
             {
                 unsigned char *ret = (unsigned char*)malloc(strlen((char*)found) + cJSONUtils_PointerEncodedstrlen((unsigned char*)obj->string) + 2);
                 *ret = '/';
@@ -171,12 +172,12 @@ char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
     return NULL;
 }
 
-cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 {
     /* follow path of the pointer */
     while ((*pointer++ == '/') && object)
     {
-        if ((object->type & 0xFF) == cJSON_Array)
+        if (cJSON_IsArray(object))
         {
             size_t which = 0;
             /* parse array index */
@@ -195,7 +196,7 @@ cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer)
             }
             object = cJSON_GetArrayItem(object, (int)which);
         }
-        else if ((object->type & 0xFF) == cJSON_Object)
+        else if (cJSON_IsObject(object))
         {
             object = object->child;
             /* GetObjectItem. */
@@ -227,7 +228,7 @@ static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
         return;
     }
 
-    for (; *string; s2++, string++)
+    for (; *string; (void)s2++, string++)
     {
         *s2 = (*string != '~')
             ? (*string)
@@ -269,11 +270,11 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
         /* Couldn't find object to remove child from. */
         ret = NULL;
     }
-    else if ((parent->type & 0xFF) == cJSON_Array)
+    else if (cJSON_IsArray(parent))
     {
         ret = cJSON_DetachItemFromArray(parent, atoi((char*)childptr));
     }
-    else if ((parent->type & 0xFF) == cJSON_Object)
+    else if (cJSON_IsObject(parent))
     {
         ret = cJSON_DetachItemFromObject(parent, (char*)childptr);
     }
@@ -299,7 +300,7 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
             /* string mismatch. */
             return (strcmp(a->valuestring, b->valuestring) != 0) ? -3 : 0;
         case cJSON_Array:
-            for (a = a->child, b = b->child; a && b; a = a->next, b = b->next)
+            for ((void)(a = a->child), b = b->child; a && b; (void)(a = a->next), b = b->next)
             {
                 int err = cJSONUtils_Compare(a, b);
                 if (err)
@@ -474,7 +475,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         cJSON_Delete(value);
         return 9;
     }
-    else if ((parent->type & 0xFF) == cJSON_Array)
+    else if (cJSON_IsArray(parent))
     {
         if (!strcmp((char*)childptr, "-"))
         {
@@ -485,7 +486,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             cJSON_InsertItemInArray(parent, atoi((char*)childptr), value);
         }
     }
-    else if ((parent->type & 0xFF) == cJSON_Object)
+    else if (cJSON_IsObject(parent))
     {
         cJSON_DeleteItemFromObject(parent, (char*)childptr);
         cJSON_AddItemToObject(parent, (char*)childptr, value);
@@ -499,7 +500,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     return 0;
 }
 
-int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
     int err = 0;
 
@@ -508,7 +509,7 @@ int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
         return 1;
     }
 
-    if ((patches->type & 0xFF) != cJSON_Array)
+    if (cJSON_IsArray(patches))
     {
         /* malformed patches. */
         return 1;
@@ -551,7 +552,7 @@ static void cJSONUtils_GeneratePatch(cJSON *patches, const unsigned char *op, co
     cJSON_AddItemToArray(patches, patch);
 }
 
-void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val)
+CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val)
 {
     cJSONUtils_GeneratePatch(array, (const unsigned char*)op, (const unsigned char*)path, 0, val);
 }
@@ -590,7 +591,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
             size_t c = 0;
             unsigned char *newpath = (unsigned char*)malloc(strlen((const char*)path) + 23); /* Allow space for 64bit int. */
             /* generate patches for all array elements that exist in "from" and "to" */
-            for (c = 0, from = from->child, to = to->child; from && to; from = from->next, to = to->next, c++)
+            for ((void)(c = 0), (void)(from = from->child), to = to->child; from && to; (void)(from = from->next), (void)(to = to->next), c++)
             {
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
@@ -604,7 +605,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
                 cJSONUtils_CompareToPatch(patches, newpath, from, to);
             }
             /* remove leftover elements from 'from' that are not in 'to' */
-            for (; from; from = from->next, c++)
+            for (; from; (void)(from = from->next), c++)
             {
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
@@ -618,7 +619,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
                 cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, newpath, 0);
             }
             /* add new elements in 'to' that were not in 'from' */
-            for (; to; to = to->next, c++)
+            for (; to; (void)(to = to->next), c++)
             {
                 cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to);
             }
@@ -671,7 +672,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
     }
 }
 
-cJSON* cJSONUtils_GeneratePatches(cJSON *from, cJSON *to)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to)
 {
     cJSON *patches = cJSON_CreateArray();
     cJSONUtils_CompareToPatch(patches, (const unsigned char*)"", from, to);
@@ -786,21 +787,21 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     return list;
 }
 
-void cJSONUtils_SortObject(cJSON *object)
+CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object)
 {
     object->child = cJSONUtils_SortList(object->child);
 }
 
-cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
 {
-    if (!patch || ((patch->type & 0xFF) != cJSON_Object))
+    if (!cJSON_IsObject(patch))
     {
         /* scalar value, array or NULL, just duplicate */
         cJSON_Delete(target);
         return cJSON_Duplicate(patch, 1);
     }
 
-    if (!target || ((target->type & 0xFF) != cJSON_Object))
+    if (!cJSON_IsObject(target))
     {
         cJSON_Delete(target);
         target = cJSON_CreateObject();
@@ -809,7 +810,7 @@ cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
     patch = patch->child;
     while (patch)
     {
-        if ((patch->type & 0xFF) == cJSON_NULL)
+        if (cJSON_IsNull(patch))
         {
             /* NULL is the indicator to remove a value, see RFC7396 */
             cJSON_DeleteItemFromObject(target, patch->string);
@@ -824,7 +825,7 @@ cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
     return target;
 }
 
-cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
 {
     cJSON *patch = NULL;
     if (!to)
@@ -832,7 +833,7 @@ cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to)
         /* patch to delete everything */
         return cJSON_CreateNull();
     }
-    if (((to->type & 0xFF) != cJSON_Object) || !from || ((from->type & 0xFF) != cJSON_Object))
+    if (!cJSON_IsObject(to) || !cJSON_IsObject(from))
     {
         return cJSON_Duplicate(to, 1);
     }

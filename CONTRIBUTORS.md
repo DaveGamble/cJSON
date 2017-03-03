@@ -21,6 +21,7 @@ Contributors
 * [Linus Wallgren](https://github.com/ecksun)
 * [Max Bruckner](https://github.com/FSMaxB)
 * Mike Pontillo
+* [Mike Jerris](https://github.com/mjerris)
 * Paulo Antonio Alvarez
 * [Rafael Leal Dias](https://github.com/rafaeldias)
 * [Rod Vagg](https://github.com/rvagg)

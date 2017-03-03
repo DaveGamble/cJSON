@@ -20,27 +20,13 @@
   THE SOFTWARE.
 */
 
-#include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-CJSON_PUBLIC(void) reset(cJSON *item)
-{
-    if ((item != NULL) && (item->child != NULL))
-    {
-        cJSON_Delete(item->child);
-    }
-    if ((item->valuestring != NULL) && !(item->type & cJSON_IsReference))
-    {
-        global_hooks.deallocate(item->valuestring);
-    }
-    if ((item->string != NULL) && !(item->type & cJSON_StringIsConst))
-    {
-        global_hooks.deallocate(item->string);
-    }
+#include "../cJSON.h"
 
-    memset(item, 0, sizeof(cJSON));
-}
-
-CJSON_PUBLIC(char*) read_file(const char *filename)
+static char *read_file(const char *filename)
 {
     FILE *file = NULL;
     long length = 0;
@@ -94,4 +80,97 @@ cleanup:
     }
 
     return content;
+}
+
+int main(int argc, char** argv)
+{
+    const char *filename = NULL;
+    cJSON *item = NULL;
+    char *json = NULL;
+    int status = EXIT_FAILURE;
+    char *printed_json = NULL;
+
+    if ((argc < 2) || (argc > 3))
+    {
+        printf("Usage:\n");
+        printf("%s input_file [enable_printing]\n", argv[0]);
+        printf("\t input_file: file containing the test data\n");
+        printf("\t enable_printing: print after parsing, 'yes' or 'no', defaults to 'no'\n");
+        goto cleanup;
+    }
+
+    filename = argv[1];
+
+#if __AFL_HAVE_MANUAL_CONTROL
+    while (__AFL_LOOP(1000))
+    {
+#endif
+    status = EXIT_SUCCESS;
+
+    json = read_file(filename);
+    if ((json == NULL) || (json[0] == '\0') || (json[1] == '\0'))
+    {
+        status = EXIT_FAILURE;
+        goto cleanup;
+    }
+    item = cJSON_Parse(json + 2);
+    if (item == NULL)
+    {
+        goto cleanup;
+    }
+
+    if ((argc == 3) && (strncmp(argv[2], "yes", 3) == 0))
+    {
+        int do_format = 0;
+        if (json[1] == 'f')
+        {
+            do_format = 1;
+        }
+
+        if (json[0] == 'b')
+        {
+            /* buffered printing */
+            printed_json = cJSON_PrintBuffered(item, 1, do_format);
+        }
+        else
+        {
+            /* unbuffered printing */
+            if (do_format)
+            {
+                printed_json = cJSON_Print(item);
+            }
+            else
+            {
+                printed_json = cJSON_PrintUnformatted(item);
+            }
+        }
+        if (printed_json == NULL)
+        {
+            status = EXIT_FAILURE;
+            goto cleanup;
+        }
+        printf("%s\n", printed_json);
+    }
+
+cleanup:
+    if (item != NULL)
+    {
+        cJSON_Delete(item);
+        item = NULL;
+    }
+    if (json != NULL)
+    {
+        free(json);
+        json = NULL;
+    }
+    if (printed_json != NULL)
+    {
+        free(printed_json);
+        printed_json = NULL;
+    }
+#if __AFL_HAVE_MANUAL_CONTROL
+    }
+#endif
+
+    return status;
 }

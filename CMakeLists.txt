@@ -1,15 +1,15 @@
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 2.8)
 
-subdirs(tests)
+subdirs(tests fuzzing)
 
 include(GNUInstallDirs)
 
 project(cJSON C)
 
 set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 3)
-set(PROJECT_VERSION_PATCH 2)
+set(PROJECT_VERSION_MINOR 4)
+set(PROJECT_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
@@ -40,6 +40,9 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wconversion
         -Wc++-compat
         -fstack-protector-strong
+        -Wcomma
+        -Wdouble-promotion
+        -Wparentheses
         )
 endif()
 
@@ -56,6 +59,16 @@ if (ENABLE_SANITIZERS)
         -01
         -fno-sanitize-recover
         )
+endif()
+
+option(ENABLE_PUBLIC_SYMBOLS "Export library symbols." On)
+if (ENABLE_PUBLIC_SYMBOLS)
+    list(APPEND custom_compiler_flags -fvisibility=hidden)
+    add_definitions(-DCJSON_EXPORT_SYMBOLS -DCJSON_API_VISIBILITY)
+endif()
+option(ENABLE_HIDDEN_SYMBOLS "Hide library symbols." Off)
+if (ENABLE_HIDDEN_SYMBOLS)
+    add_definitions(-DCJSON_HIDE_SYMBOLS -UCJSON_API_VISIBILITY)
 endif()
 
 # apply custom compiler flags

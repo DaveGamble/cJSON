@@ -1,14 +1,14 @@
 #include "cJSON.h"
 
 /* Implement RFC6901 (https://tools.ietf.org/html/rfc6901) JSON Pointer spec. */
-cJSON *cJSONUtils_GetPointer(cJSON *object, const char *pointer);
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer);
 
 /* Implement RFC6902 (https://tools.ietf.org/html/rfc6902) JSON Patch spec. */
-cJSON* cJSONUtils_GeneratePatches(cJSON *from, cJSON *to);
+CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to);
 /* Utility for generating patch array entries. */
-void cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val);
+CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val);
 /* Returns 0 for success. */
-int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches);
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches);
 
 /*
 // Note that ApplyPatches is NOT atomic on failure. To implement an atomic ApplyPatches, use:
@@ -33,12 +33,12 @@ int cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches);
 
 /* Implement RFC7386 (https://tools.ietf.org/html/rfc7396) JSON Merge Patch spec. */
 /* target will be modified by patch. return value is new ptr for target. */
-cJSON* cJSONUtils_MergePatch(cJSON *target, cJSON *patch);
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, cJSON *patch);
 /* generates a patch to move from -> to */
-cJSON *cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to);
+CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to);
 
 /* Given a root object and a target object, construct a pointer from one to the other. */
-char *cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target);
+CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target);
 
 /* Sorts the members of the object into alphabetical order. */
-void cJSONUtils_SortObject(cJSON *object);
+CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object);

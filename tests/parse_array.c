@@ -46,13 +46,13 @@ static void assert_is_array(cJSON *array_item)
 
 static void assert_not_array(const char *json)
 {
-    TEST_ASSERT_NULL(parse_array(item, (const unsigned char*)json, &error_pointer));
+    TEST_ASSERT_NULL(parse_array(item, (const unsigned char*)json, &error_pointer, &global_hooks));
     assert_is_invalid(item);
 }
 
 static void assert_parse_array(const char *json)
 {
-    TEST_ASSERT_NOT_NULL(parse_array(item, (const unsigned char*)json, &error_pointer));
+    TEST_ASSERT_NOT_NULL(parse_array(item, (const unsigned char*)json, &error_pointer, &global_hooks));
     assert_is_array(item);
 }
 
@@ -124,7 +124,7 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
                 i = 0;
                 (i < (sizeof(expected_types)/sizeof(int)))
                 && (node != NULL);
-                i++, node = node->next)
+                (void)i++, node = node->next)
         {
             TEST_ASSERT_BITS(0xFF, expected_types[i], node->type);
         }

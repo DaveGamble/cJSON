@@ -54,14 +54,14 @@ static void assert_is_child(cJSON *child_item, const char *name, int type)
 
 static void assert_not_object(const char *json)
 {
-    TEST_ASSERT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer));
+    TEST_ASSERT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer, &global_hooks));
     assert_is_invalid(item);
     reset(item);
 }
 
 static void assert_parse_object(const char *json)
 {
-    TEST_ASSERT_NOT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer));
+    TEST_ASSERT_NOT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer, &global_hooks));
     assert_is_object(item);
 }
 
@@ -76,7 +76,7 @@ static void parse_object_should_parse_empty_objects(void)
     reset(item);
 }
 
-static void parse_array_should_parse_arrays_with_one_element(void)
+static void parse_object_should_parse_objects_with_one_element(void)
 {
 
     assert_parse_object("{\"one\":1}");
@@ -134,7 +134,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
                 i = 0;
                 (i < (sizeof(expected_types)/sizeof(int)))
                 && (node != NULL);
-                i++, node = node->next)
+                (void)i++, node = node->next)
         {
             assert_is_child(node, expected_names[i], expected_types[i]);
         }
@@ -163,6 +163,6 @@ int main(void)
     RUN_TEST(parse_object_should_parse_empty_objects);
     RUN_TEST(parse_object_should_not_parse_non_objects);
     RUN_TEST(parse_object_should_parse_objects_with_multiple_elements);
-    RUN_TEST(parse_array_should_parse_arrays_with_one_element);
+    RUN_TEST(parse_object_should_parse_objects_with_one_element);
     return UNITY_END();
 }

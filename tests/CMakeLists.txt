@@ -1,6 +1,17 @@
 if(ENABLE_CJSON_TEST)
     add_library(unity unity/src/unity.c)
 
+    # Disable -Werror for Unity
+    list(FIND custom_compiler_flags "-Werror" werror_found)
+    if (werror_found)
+        target_compile_options(unity PRIVATE "-Wno-error")
+    endif()
+    # Disable -fvisibility=hidden for Unity
+    list(FIND custom_compiler_flags "-fvisibility=hidden" visibility_found)
+    if (visibility_found)
+        target_compile_options(unity PRIVATE "-fvisibility=default")
+    endif()
+
     #copy test files
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/inputs")
     file(GLOB test_files "inputs/*")
@@ -14,6 +25,12 @@ if(ENABLE_CJSON_TEST)
         parse_array
         parse_object
         parse_value
+        print_string
+        print_number
+        print_array
+        print_object
+        print_value
+        misc_tests
     )
 
     add_library(test-common common.c)
@@ -28,6 +45,11 @@ if(ENABLE_CJSON_TEST)
             set(MEMORYCHECK_COMMAND_OPTIONS --trace-children=yes --leak-check=full --error-exitcode=1)
         endif()
     endif()
+
+    #"check" target that automatically builds everything and runs the tests
+    add_custom_target(check 
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS ${unity_tests})
 
     foreach(unity_test ${unity_tests})
         add_executable("${unity_test}" "${unity_test}.c")

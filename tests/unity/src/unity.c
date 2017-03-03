@@ -669,7 +669,7 @@ void UnityAssertEqualFloatArray(UNITY_PTR_ATTRIBUTE const UNITY_FLOAT* expected,
             UnityTestResultsFailBegin(lineNumber);
             UnityPrint(UnityStrElement);
             UnityPrintNumberUnsigned(num_elements - elements - 1);
-            UNITY_PRINT_EXPECTED_AND_ACTUAL_FLOAT(*ptr_expected, *ptr_actual);
+            UNITY_PRINT_EXPECTED_AND_ACTUAL_FLOAT((UNITY_DOUBLE)*ptr_expected, (UNITY_DOUBLE)*ptr_actual);
             UnityAddMsgIfSpecified(msg);
             UNITY_FAIL_AND_BAIL;
         }
@@ -691,7 +691,7 @@ void UnityAssertFloatsWithin(const UNITY_FLOAT delta,
     if (!UnityFloatsWithin(delta, expected, actual))
     {
         UnityTestResultsFailBegin(lineNumber);
-        UNITY_PRINT_EXPECTED_AND_ACTUAL_FLOAT(expected, actual);
+        UNITY_PRINT_EXPECTED_AND_ACTUAL_FLOAT((UNITY_DOUBLE)expected, (UNITY_DOUBLE)actual);
         UnityAddMsgIfSpecified(msg);
         UNITY_FAIL_AND_BAIL;
     }
@@ -746,7 +746,7 @@ void UnityAssertFloatSpecial(const UNITY_FLOAT actual,
         UnityPrint(trait_names[trait_index]);
         UnityPrint(UnityStrWas);
 #ifndef UNITY_EXCLUDE_FLOAT_PRINT
-        UnityPrintFloat(actual);
+        UnityPrintFloat((UNITY_DOUBLE)actual);
 #else
         if (should_be_trait)
             UnityPrint(UnityStrNot);
