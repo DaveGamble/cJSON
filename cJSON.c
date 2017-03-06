@@ -619,7 +619,7 @@ static const unsigned char *parse_string(cJSON * const item, const unsigned char
 
         /* This is at most how much we need for the output */
         allocation_length = (size_t) (input_end - input) - skipped_bytes;
-        output = (unsigned char*)hooks->allocate(allocation_length + sizeof('\0'));
+        output = (unsigned char*)hooks->allocate(allocation_length + sizeof(""));
         if (output == NULL)
         {
             goto fail; /* allocation failure */
@@ -1092,7 +1092,7 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
                 return false;
             }
 
-            raw_length = strlen(item->valuestring) + sizeof('\0');
+            raw_length = strlen(item->valuestring) + sizeof("");
             output = ensure(output_buffer, raw_length, hooks);
             if (output == NULL)
             {
