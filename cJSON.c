@@ -818,15 +818,25 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
     /* set "flag" to 1 if something needs to be escaped */
     for (input_pointer = input; *input_pointer; input_pointer++)
     {
-        if (strchr("\"\\\b\f\n\r\t", *input_pointer))
+        switch (*input_pointer)
         {
-            /* one character escape sequence */
-            escape_characters++;
-        }
-        else if (*input_pointer < 32)
-        {
-            /* UTF-16 escape sequence uXXXX */
-            escape_characters += 5;
+            case '\"':
+            case '\\':
+            case '\b':
+            case '\f':
+            case '\n':
+            case '\r':
+            case '\t':
+                /* one character escape sequence */
+                escape_characters++;
+                break;
+            default:
+                if (*input_pointer < 32)
+                {
+                    /* UTF-16 escape sequence uXXXX */
+                    escape_characters += 5;
+                }
+                break;
         }
     }
     output_length = (size_t)(input_pointer - input) + escape_characters;
