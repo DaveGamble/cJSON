@@ -167,9 +167,24 @@ if(ENABLE_CJSON_TEST)
     add_executable("${TEST_CJSON}" test.c)
     target_link_libraries("${TEST_CJSON}" "${CJSON_LIB}")
 
+    add_test(NAME ${TEST_CJSON} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${TEST_CJSON}")
+    # Disable -fsanitize=float-divide-by-zero for cJSON_test
+    list(FIND custom_compiler_flags "-fsanitize=float-divide-by-zero" float_divide_by_zero_found)
+    if (float_divide_by_zero_found)
+        target_compile_options(${TEST_CJSON} PRIVATE "-fno-sanitize=float-divide-by-zero")
+    endif()
+
     if(ENABLE_CJSON_UTILS)
         set(TEST_CJSON_UTILS cJSON_test_utils)
         add_executable("${TEST_CJSON_UTILS}" test_utils.c)
         target_link_libraries("${TEST_CJSON_UTILS}" "${CJSON_UTILS_LIB}")
+
+        add_test(NAME ${TEST_CJSON_UTILS} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${TEST_CJSON_UTILS}")
     endif()
+
+    #"check" target that automatically builds everything and runs the tests
+    add_custom_target(check
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS ${unity_tests} ${TEST_CJSON} ${TEST_CJSON_UTILS})
+
 endif()
