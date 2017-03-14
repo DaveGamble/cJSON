@@ -50,7 +50,7 @@ static void assert_parse_number(const char *string, int integer, double real)
     buffer.length = strlen(string) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_NOT_NULL(parse_number(item, &buffer));
+    TEST_ASSERT_TRUE(parse_number(item, &buffer));
     assert_is_number(item);
     TEST_ASSERT_EQUAL_INT(integer, item->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);

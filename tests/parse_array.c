@@ -51,7 +51,7 @@ static void assert_not_array(const char *json)
     buffer.length = strlen(json) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_NULL(parse_array(item, &buffer, &error_pointer, &global_hooks));
+    TEST_ASSERT_FALSE(parse_array(item, &buffer, &error_pointer, &global_hooks));
     assert_is_invalid(item);
 }
 
@@ -62,7 +62,7 @@ static void assert_parse_array(const char *json)
     buffer.length = strlen(json) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_NOT_NULL(parse_array(item, &buffer, &error_pointer, &global_hooks));
+    TEST_ASSERT_TRUE(parse_array(item, &buffer, &error_pointer, &global_hooks));
     assert_is_array(item);
 }
 

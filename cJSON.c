@@ -202,7 +202,7 @@ typedef struct
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
 /* Parse the input text to generate a number, and populate the result into item. */
-static const unsigned char *parse_number(cJSON * const item, parse_buffer * const input_buffer)
+static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
     unsigned char *after_end = NULL;
@@ -212,7 +212,7 @@ static const unsigned char *parse_number(cJSON * const item, parse_buffer * cons
 
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
-        return NULL;
+        return false;
     }
 
     /* copy the number into a temporary buffer and replace '.' with the decimal point
@@ -253,7 +253,7 @@ loop_end:
     number = strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
     {
-        return NULL; /* parse_error */
+        return false; /* parse_error */
     }
 
     item->valuedouble = number;
@@ -275,7 +275,7 @@ loop_end:
     item->type = cJSON_Number;
 
     input_buffer->offset += (size_t)(after_end - number_c_string);
-    return buffer_at_offset(input_buffer);
+    return true;
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
@@ -662,7 +662,7 @@ fail:
 }
 
 /* Parse the input text into an unescaped cinput, and populate item. */
-static const unsigned char *parse_string(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
+static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
 {
     const unsigned char *input_pointer = buffer_at_offset(input_buffer) + 1;
     const unsigned char *input_end = buffer_at_offset(input_buffer) + 1;
@@ -776,7 +776,7 @@ static const unsigned char *parse_string(cJSON * const item, parse_buffer * cons
     input_buffer->offset = (size_t) (input_end - input_buffer->content);
     input_buffer->offset++;
 
-    return buffer_at_offset(input_buffer);
+    return true;
 
 fail:
     if (output != NULL)
@@ -784,7 +784,7 @@ fail:
         hooks->deallocate(output);
     }
 
-    return NULL;
+    return false;
 }
 
 /* Render the cstring provided to an escaped version that can be printed. */
@@ -916,11 +916,11 @@ static cJSON_bool print_string(const cJSON * const item, printbuffer * const p, 
 }
 
 /* Predeclare these prototypes. */
-static const unsigned char *parse_value(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const ep, const internal_hooks * const hooks);
+static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const ep, const internal_hooks * const hooks);
 static cJSON_bool print_value(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
-static const unsigned char *parse_array(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const ep, const internal_hooks * const hooks);
+static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const ep, const internal_hooks * const hooks);
 static cJSON_bool print_array(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
-static const unsigned char *parse_object(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const ep, const internal_hooks * const hooks);
+static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const ep, const internal_hooks * const hooks);
 static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 
 /* Utility to jump whitespace and cr/lf */
@@ -980,12 +980,13 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
     buffer.length = strlen((const char*)value) + sizeof("");
     buffer.offset = 0;
 
-    end = parse_value(item, buffer_skip_whitespace(&buffer), error_pointer, &global_hooks);
-    if (end == NULL)
+    if (!parse_value(item, buffer_skip_whitespace(&buffer), error_pointer, &global_hooks))
     {
         /* parse failure. ep is set. */
         goto fail;
     }
+
+    end = buffer_at_offset(&buffer);
 
     /* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
     if (require_null_terminated)
@@ -1125,12 +1126,11 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const i
 }
 
 /* Parser core - when encountering text, process appropriately. */
-static const unsigned  char *parse_value(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
+static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
 {
-    const unsigned char *content_pointer = NULL;
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
-        return NULL; /* no input */
+        return false; /* no input */
     }
 
     /* parse the different types of values */
@@ -1139,14 +1139,14 @@ static const unsigned  char *parse_value(cJSON * const item, parse_buffer * cons
     {
         item->type = cJSON_NULL;
         input_buffer->offset += 4;
-        return buffer_at_offset(input_buffer);
+        return true;
     }
     /* false */
     if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
     {
         item->type = cJSON_False;
         input_buffer->offset += 5;
-        return buffer_at_offset(input_buffer);
+        return true;
     }
     /* true */
     if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
@@ -1154,12 +1154,12 @@ static const unsigned  char *parse_value(cJSON * const item, parse_buffer * cons
         item->type = cJSON_True;
         item->valueint = 1;
         input_buffer->offset += 4;
-        return buffer_at_offset(input_buffer);
+        return true;
     }
     /* string */
     if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '\"'))
     {
-        return content_pointer = parse_string(item, input_buffer, error_pointer, hooks);
+        return parse_string(item, input_buffer, error_pointer, hooks);
     }
     /* number */
     if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
@@ -1174,14 +1174,7 @@ static const unsigned  char *parse_value(cJSON * const item, parse_buffer * cons
     /* object */
     if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '{'))
     {
-        content_pointer = parse_object(item, input_buffer, error_pointer, hooks);
-        if (content_pointer == NULL)
-        {
-            return NULL;
-        }
-
-        input_buffer->offset = (size_t)(content_pointer - input_buffer->content);
-        return buffer_at_offset(input_buffer);
+        return parse_object(item, input_buffer, error_pointer, hooks);
     }
 
     /* failure. */
@@ -1198,7 +1191,7 @@ static const unsigned  char *parse_value(cJSON * const item, parse_buffer * cons
         *error_pointer = input_buffer->content;
     }
 
-    return NULL;
+    return false;
 }
 
 /* Render a value to text. */
@@ -1280,7 +1273,7 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
 }
 
 /* Build an array from input text. */
-static const unsigned char *parse_array(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
+static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
 {
     cJSON *head = NULL; /* head of the linked list */
     cJSON *current_item = NULL;
@@ -1337,7 +1330,7 @@ static const unsigned char *parse_array(cJSON * const item, parse_buffer * const
         /* parse next value */
         input_buffer->offset++;
         buffer_skip_whitespace(input_buffer);
-        if (parse_value(current_item, input_buffer, error_pointer, hooks) == NULL)
+        if (!parse_value(current_item, input_buffer, error_pointer, hooks))
         {
             goto fail; /* failed to parse value */
         }
@@ -1357,7 +1350,7 @@ success:
 
     input_buffer->offset++;
 
-    return buffer_at_offset(input_buffer);
+    return true;
 
 fail:
     if (head != NULL)
@@ -1365,7 +1358,7 @@ fail:
         cJSON_Delete(head);
     }
 
-    return NULL;
+    return false;
 }
 
 /* Render an array to text */
@@ -1429,7 +1422,7 @@ static cJSON_bool print_array(const cJSON * const item, const size_t depth, cons
 }
 
 /* Build an object from the text. */
-static const unsigned char *parse_object(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
+static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_buffer, const unsigned char ** const error_pointer, const internal_hooks * const hooks)
 {
     cJSON *head = NULL; /* linked list head */
     cJSON *current_item = NULL;
@@ -1484,7 +1477,7 @@ static const unsigned char *parse_object(cJSON * const item, parse_buffer * cons
         /* parse the name of the child */
         input_buffer->offset++;
         buffer_skip_whitespace(input_buffer);
-        if (parse_string(current_item, input_buffer, error_pointer, hooks) == NULL)
+        if (!parse_string(current_item, input_buffer, error_pointer, hooks))
         {
             goto fail; /* faile to parse name */
         }
@@ -1503,7 +1496,7 @@ static const unsigned char *parse_object(cJSON * const item, parse_buffer * cons
         /* parse the value */
         input_buffer->offset++;
         buffer_skip_whitespace(input_buffer);
-        if (parse_value(current_item, input_buffer, error_pointer, hooks) == NULL)
+        if (!parse_value(current_item, input_buffer, error_pointer, hooks))
         {
             goto fail; /* failed to parse value */
         }
@@ -1522,7 +1515,7 @@ success:
     item->child = head;
 
     input_buffer->offset++;
-    return buffer_at_offset(input_buffer);
+    return true;
 
 fail:
     if (head != NULL)
@@ -1530,7 +1523,7 @@ fail:
         cJSON_Delete(head);
     }
 
-    return NULL;
+    return false;
 }
 
 /* Render an object to text. */
