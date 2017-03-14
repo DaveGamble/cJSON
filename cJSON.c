@@ -202,7 +202,7 @@ typedef struct
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
 /* Parse the input text to generate a number, and populate the result into item. */
-static const unsigned char *parse_number(cJSON * const item, const unsigned char * const input)
+static const unsigned char *parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
     unsigned char *after_end = NULL;
@@ -210,16 +210,17 @@ static const unsigned char *parse_number(cJSON * const item, const unsigned char
     unsigned char decimal_point = get_decimal_point();
     size_t i = 0;
 
-    if (input == NULL)
+    if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
         return NULL;
     }
 
     /* copy the number into a temporary buffer and replace '.' with the decimal point
-     * of the current locale (for strtod) */
-    for (i = 0; (i < (sizeof(number_c_string) - 1)) && (input[i] != '\0'); i++)
+     * of the current locale (for strtod)
+     * This also takes care of '\0' not necessarily being available for marking the end of the input */
+    for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
     {
-        switch (input[i])
+        switch (buffer_at_offset(input_buffer)[i])
         {
             case '0':
             case '1':
@@ -235,7 +236,7 @@ static const unsigned char *parse_number(cJSON * const item, const unsigned char
             case '-':
             case 'e':
             case 'E':
-                number_c_string[i] = input[i];
+                number_c_string[i] = buffer_at_offset(input_buffer)[i];
                 break;
 
             case '.':
@@ -273,7 +274,8 @@ loop_end:
 
     item->type = cJSON_Number;
 
-    return input + (after_end - number_c_string);
+    input_buffer->offset += (size_t)(after_end - number_c_string);
+    return buffer_at_offset(input_buffer);
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
@@ -1151,14 +1153,7 @@ static const unsigned  char *parse_value(cJSON * const item, parse_buffer * cons
     /* number */
     if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
     {
-        content_pointer = parse_number(item, buffer_at_offset(input_buffer));
-        if (content_pointer == NULL)
-        {
-            return NULL;
-        }
-
-        input_buffer->offset = (size_t)(content_pointer - input_buffer->content);
-        return buffer_at_offset(input_buffer);
+        return parse_number(item, input_buffer);
     }
     /* array */
     if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '['))
