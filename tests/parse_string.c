@@ -52,7 +52,7 @@ static void assert_parse_string(const char *string, const char *expected)
     buffer.length = strlen(string) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(parse_string(item, &buffer, &error_pointer, &global_hooks), "Couldn't parse string.");
+    TEST_ASSERT_TRUE_MESSAGE(parse_string(item, &buffer, &error_pointer, &global_hooks), "Couldn't parse string.");
     assert_is_string(item);
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, item->valuestring, "The parsed result isn't as expected.");
     global_hooks.deallocate(item->valuestring);
@@ -66,7 +66,7 @@ static void assert_not_parse_string(const char * const string)
     buffer.length = strlen(string) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_NULL_MESSAGE(parse_string(item, &buffer, &error_pointer, &global_hooks), "Malformed string should not be accepted.");
+    TEST_ASSERT_FALSE_MESSAGE(parse_string(item, &buffer, &error_pointer, &global_hooks), "Malformed string should not be accepted.");
     assert_is_invalid(item);
 }
 
