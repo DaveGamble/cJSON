@@ -53,7 +53,7 @@ static void assert_print_array(const char * const expected, const char * const i
     unformatted_buffer.noalloc = true;
 
     memset(item, 0, sizeof(item));
-    TEST_ASSERT_NOT_NULL_MESSAGE(parse_array(item, &parsebuffer, &error_pointer, &global_hooks), "Failed to parse array.");
+    TEST_ASSERT_TRUE_MESSAGE(parse_array(item, &parsebuffer, &error_pointer, &global_hooks), "Failed to parse array.");
 
     TEST_ASSERT_TRUE_MESSAGE(print_array(item, 0, false, &unformatted_buffer, &global_hooks), "Failed to print unformatted string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, printed_unformatted, "Unformatted array is not correct.");
