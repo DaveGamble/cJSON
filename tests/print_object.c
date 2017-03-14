@@ -34,6 +34,12 @@ static void assert_print_object(const char * const expected, const char * const 
 
     printbuffer formatted_buffer;
     printbuffer unformatted_buffer;
+    parse_buffer parsebuffer;
+
+    /* buffer for parsing */
+    parsebuffer.content = (const unsigned char*)input;
+    parsebuffer.length = strlen(input) + sizeof("");
+    parsebuffer.offset = 0;
 
     /* buffer for formatted printing */
     formatted_buffer.buffer = printed_formatted;
@@ -48,7 +54,7 @@ static void assert_print_object(const char * const expected, const char * const 
     unformatted_buffer.noalloc = true;
 
     memset(item, 0, sizeof(item));
-    TEST_ASSERT_NOT_NULL_MESSAGE(parse_object(item, (const unsigned char*)input, &error_pointer, &global_hooks), "Failed to parse object.");
+    TEST_ASSERT_NOT_NULL_MESSAGE(parse_object(item, &parsebuffer, &error_pointer, &global_hooks), "Failed to parse object.");
 
     TEST_ASSERT_TRUE_MESSAGE(print_object(item, 0, false, &unformatted_buffer, &global_hooks), "Failed to print unformatted string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, printed_unformatted, "Unformatted object is not correct.");
