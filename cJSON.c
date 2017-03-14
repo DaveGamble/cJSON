@@ -211,13 +211,32 @@ static const unsigned char *parse_number(cJSON * const item, parse_buffer * cons
      * and strtod only works with zero terminated strings */
     for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
     {
-        if (strchr("0123456789+-eE.", buffer_at_offset(input_buffer)[i]) == NULL)
+        switch (buffer_at_offset(input_buffer)[i])
         {
-            break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+            case '+':
+            case '-':
+            case 'e':
+            case 'E':
+            case '.':
+                break;
+
+            default:
+                goto loop_end;
         }
 
         number_c_string[i] = buffer_at_offset(input_buffer)[i];
     }
+    loop_end:
     number_c_string[i] = '\0';
 
 
@@ -778,15 +797,25 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
     /* set "flag" to 1 if something needs to be escaped */
     for (input_pointer = input; *input_pointer; input_pointer++)
     {
-        if (strchr("\"\\\b\f\n\r\t", *input_pointer))
+        switch (*input_pointer)
         {
-            /* one character escape sequence */
-            escape_characters++;
-        }
-        else if (*input_pointer < 32)
-        {
-            /* UTF-16 escape sequence uXXXX */
-            escape_characters += 5;
+            case '\"':
+            case '\\':
+            case '\b':
+            case '\f':
+            case '\n':
+            case '\r':
+            case '\t':
+                /* one character escape sequence */
+                escape_characters++;
+                break;
+            default:
+                if (*input_pointer < 32)
+                {
+                    /* UTF-16 escape sequence uXXXX */
+                    escape_characters += 5;
+                }
+                break;
         }
     }
     output_length = (size_t)(input_pointer - input) + escape_characters;
