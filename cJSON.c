@@ -194,18 +194,35 @@ typedef struct
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
 /* Parse the input text to generate a number, and populate the result into item. */
-static const unsigned char *parse_number(cJSON * const item, const unsigned char * const input)
+static const unsigned char *parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
     unsigned char *after_end = NULL;
+    unsigned char number_c_string[64];
+    size_t i = 0;
 
-    if (input == NULL)
+    if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
         return NULL;
     }
 
-    number = strtod((const char*)input, (char**)&after_end);
-    if (input == after_end)
+    /* copy the number into a temporary buffer and zero terminate the string
+     * because the number in the input buffer is not necessariliy zero terminated
+     * and strtod only works with zero terminated strings */
+    for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
+    {
+        if (strchr("0123456789+-eE.", buffer_at_offset(input_buffer)[i]) == NULL)
+        {
+            break;
+        }
+
+        number_c_string[i] = buffer_at_offset(input_buffer)[i];
+    }
+    number_c_string[i] = '\0';
+
+
+    number = strtod((const char*)number_c_string, (char**)&after_end);
+    if (number_c_string == after_end)
     {
         return NULL; /* parse_error */
     }
@@ -228,7 +245,8 @@ static const unsigned char *parse_number(cJSON * const item, const unsigned char
 
     item->type = cJSON_Number;
 
-    return after_end;
+    input_buffer->offset += (size_t)(after_end - number_c_string);
+    return buffer_at_offset(input_buffer);
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
@@ -1095,14 +1113,7 @@ static const unsigned  char *parse_value(cJSON * const item, parse_buffer * cons
     /* number */
     if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
     {
-        content_pointer = parse_number(item, buffer_at_offset(input_buffer));
-        if (content_pointer == NULL)
-        {
-            return NULL;
-        }
-
-        input_buffer->offset = (size_t)(content_pointer - input_buffer->content);
-        return buffer_at_offset(input_buffer);
+        return parse_number(item, input_buffer);
     }
     /* array */
     if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '['))
