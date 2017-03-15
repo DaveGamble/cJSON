@@ -2,13 +2,11 @@ if(ENABLE_CJSON_TEST)
     add_library(unity unity/src/unity.c)
 
     # Disable -Werror for Unity
-    list(FIND custom_compiler_flags "-Werror" werror_found)
-    if (werror_found)
+    if (FLAG_SUPPORTED_Werror)
         target_compile_options(unity PRIVATE "-Wno-error")
     endif()
     # Disable -fvisibility=hidden for Unity
-    list(FIND custom_compiler_flags "-fvisibility=hidden" visibility_found)
-    if (visibility_found)
+    if (FLAG_SUPPORTED_fvisibilityhidden)
         target_compile_options(unity PRIVATE "-fvisibility=default")
     endif()
 
@@ -57,4 +55,6 @@ if(ENABLE_CJSON_TEST)
                 COMMAND "./${unity_test}")
         endif()
     endforeach()
+
+    add_dependencies(check ${unity_tests})
 endif()

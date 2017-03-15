@@ -1,8 +1,6 @@
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 2.8)
 
-subdirs(tests fuzzing)
-
 include(GNUInstallDirs)
 
 project(cJSON C)
@@ -78,9 +76,12 @@ foreach(compiler_flag ${custom_compiler_flags})
 
     CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED_${current_variable}")
     if (FLAG_SUPPORTED_${current_variable})
+        list(APPEND supported_compiler_flags)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${compiler_flag}")
     endif()
 endforeach()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${supported_compiler_flags}")
 
 #variables for pkg-config
 set(prefix "${CMAKE_INSTALL_PREFIX}")
@@ -168,9 +169,9 @@ if(ENABLE_CJSON_TEST)
     target_link_libraries("${TEST_CJSON}" "${CJSON_LIB}")
 
     add_test(NAME ${TEST_CJSON} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${TEST_CJSON}")
+
     # Disable -fsanitize=float-divide-by-zero for cJSON_test
-    list(FIND custom_compiler_flags "-fsanitize=float-divide-by-zero" float_divide_by_zero_found)
-    if (float_divide_by_zero_found)
+    if (FLAG_SUPPORTED_fsanitizefloatdividebyzero)
         target_compile_options(${TEST_CJSON} PRIVATE "-fno-sanitize=float-divide-by-zero")
     endif()
 
@@ -185,6 +186,8 @@ if(ENABLE_CJSON_TEST)
     #"check" target that automatically builds everything and runs the tests
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        DEPENDS ${unity_tests} ${TEST_CJSON} ${TEST_CJSON_UTILS})
-
+        DEPENDS ${TEST_CJSON} ${TEST_CJSON_UTILS})
 endif()
+
+add_subdirectory(tests)
+add_subdirectory(fuzzing)
