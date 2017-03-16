@@ -3,11 +3,19 @@ if(ENABLE_CJSON_TEST)
 
     # Disable -Werror for Unity
     if (FLAG_SUPPORTED_Werror)
-        target_compile_options(unity PRIVATE "-Wno-error")
+        if ("${CMAKE_VERSION}" VERSION_LESS "2.8.12")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error")
+        else()
+            target_compile_options(unity PRIVATE "-Wno-error")
+        endif()
     endif()
     # Disable -fvisibility=hidden for Unity
     if (FLAG_SUPPORTED_fvisibilityhidden)
-        target_compile_options(unity PRIVATE "-fvisibility=default")
+        if ("${CMAKE_VERSION}" VERSION_LESS "2.8.12")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=default")
+        else()
+            target_compile_options(unity PRIVATE "-fvisibility=default")
+        endif()
     endif()
 
     #copy test files

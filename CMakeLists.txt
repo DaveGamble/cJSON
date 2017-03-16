@@ -1,5 +1,5 @@
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 include(GNUInstallDirs)
 
@@ -172,7 +172,11 @@ if(ENABLE_CJSON_TEST)
 
     # Disable -fsanitize=float-divide-by-zero for cJSON_test
     if (FLAG_SUPPORTED_fsanitizefloatdividebyzero)
-        target_compile_options(${TEST_CJSON} PRIVATE "-fno-sanitize=float-divide-by-zero")
+        if ("${CMAKE_VERSION}" VERSION_LESS "2.8.12")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-sanitize=float-divide-by-zero")
+        else()
+            target_compile_options(${TEST_CJSON} PRIVATE "-fno-sanitize=float-divide-by-zero")
+        endif()
     endif()
 
     if(ENABLE_CJSON_UTILS)
