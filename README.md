@@ -62,7 +62,7 @@ Because the entire library is only one C file and one header file, you can just 
 cJSON is written in ANSI C (C89) in order to support as many platforms and compilers as possible.
 
 #### CMake
-With CMake, cJSON supports a full blown build system. This way you get the most features. With CMake it is recommended to do an out of tree build, meaning the compiled files are put in a directory separate from the source files. So in order to build cJSON with CMake on a Unix platform, make a `build` directory and run CMake inside it.
+With CMake, cJSON supports a full blown build system. This way you get the most features. CMake with an equal or higher version than 2.8.5 is supported. With CMake it is recommended to do an out of tree build, meaning the compiled files are put in a directory separate from the source files. So in order to build cJSON with CMake on a Unix platform, make a `build` directory and run CMake inside it.
 
 ```
 mkdir build
@@ -97,10 +97,8 @@ make
 make DESTDIR=$pkgdir install
 ```
 
-CMake supports a lot of different platforms, not only UNIX Makefiles, but only UNIX Makefiles have been tested. It works on GNU/Linux and has been confirmed to compile on some versions of macOS, Cygwin, FreeBSD, Solaris and OpenIndiana.
-
 #### Makefile
-If you don't have CMake available, but still have make. You can use the makefile to build cJSON:
+If you don't have CMake available, but still have GNU make. You can use the makefile to build cJSON:
 
 Run this command in the directory with the source code and it will automatically compile static and shared libraries and a little test program.
 
