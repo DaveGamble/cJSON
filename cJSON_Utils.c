@@ -230,11 +230,11 @@ static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
 
     for (; *string; (void)s2++, string++)
     {
-        *s2 = (*string != '~')
+        *s2 = (unsigned char) ((*string != '~')
             ? (*string)
             : ((*(++string) == '0')
                     ? '~'
-                    : '/');
+                    : '/'));
     }
 
     *s2 = '\0';

@@ -1226,7 +1226,7 @@ static cJSON_bool print_array(const cJSON * const item, const size_t depth, cons
         update_offset(output_buffer);
         if (current_element->next)
         {
-            length = format ? 2 : 1;
+            length = (size_t) (format ? 2 : 1);
             output_pointer = ensure(output_buffer, length + 1, hooks);
             if (output_pointer == NULL)
             {
@@ -1362,7 +1362,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
     }
 
     /* Compose the output: */
-    length = format ? 2 : 1; /* fmt: {\n */
+    length = (size_t) (format ? 2 : 1); /* fmt: {\n */
     output_pointer = ensure(output_buffer, length + 1, hooks);
     if (output_pointer == NULL)
     {
@@ -1400,7 +1400,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
         }
         update_offset(output_buffer);
 
-        length = format ? 2 : 1;
+        length = (size_t) (format ? 2 : 1);
         output_pointer = ensure(output_buffer, length, hooks);
         if (output_pointer == NULL)
         {
@@ -1421,7 +1421,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
         update_offset(output_buffer);
 
         /* print comma if not last */
-        length = (size_t) (format ? 1 : 0) + (current_item->next ? 1 : 0);
+        length = (size_t) ((format ? 1 : 0) + (current_item->next ? 1 : 0));
         output_pointer = ensure(output_buffer, length + 1, hooks);
         if (output_pointer == NULL)
         {
