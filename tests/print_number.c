@@ -50,7 +50,7 @@ static void print_number_should_print_negative_integers(void)
 {
     assert_print_number("-1", -1);
     assert_print_number("-32768", -32768);
-    assert_print_number("-2147483648", -2147483648);
+    assert_print_number("-2147483648", -2147483648.0);
 }
 
 static void print_number_should_print_positive_integers(void)
