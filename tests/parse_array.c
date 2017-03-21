@@ -30,8 +30,6 @@
 
 static cJSON item[1];
 
-static const unsigned char *error_pointer = NULL;
-
 static void assert_is_array(cJSON *array_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(array_item, "Item is NULL.");
@@ -51,7 +49,7 @@ static void assert_not_array(const char *json)
     buffer.length = strlen(json) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_FALSE(parse_array(item, &buffer, &error_pointer, &global_hooks));
+    TEST_ASSERT_FALSE(parse_array(item, &buffer, &global_hooks));
     assert_is_invalid(item);
 }
 
@@ -62,7 +60,7 @@ static void assert_parse_array(const char *json)
     buffer.length = strlen(json) + sizeof("");
     buffer.offset = 0;
 
-    TEST_ASSERT_TRUE(parse_array(item, &buffer, &error_pointer, &global_hooks));
+    TEST_ASSERT_TRUE(parse_array(item, &buffer, &global_hooks));
     assert_is_array(item);
 }
 

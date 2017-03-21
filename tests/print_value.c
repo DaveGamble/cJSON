@@ -31,7 +31,6 @@
 static void assert_print_value(const char *input)
 {
     unsigned char printed[1024];
-    const unsigned char *error_pointer = NULL;
     cJSON item[1];
     printbuffer buffer;
     parse_buffer parsebuffer;
@@ -46,7 +45,7 @@ static void assert_print_value(const char *input)
 
     memset(item, 0, sizeof(item));
 
-    TEST_ASSERT_TRUE_MESSAGE(parse_value(item, &parsebuffer, &error_pointer, &global_hooks), "Failed to parse value.");
+    TEST_ASSERT_TRUE_MESSAGE(parse_value(item, &parsebuffer, &global_hooks), "Failed to parse value.");
 
     TEST_ASSERT_TRUE_MESSAGE(print_value(item, 0, false, &buffer, &global_hooks), "Failed to print value.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, buffer.buffer, "Printed value is not as expected.");
