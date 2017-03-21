@@ -903,16 +903,6 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
 static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 
 /* Utility to jump whitespace and cr/lf */
-static const unsigned char *skip_whitespace(const unsigned char *in)
-{
-    while (in && *in && (*in <= 32))
-    {
-        in++;
-    }
-
-    return in;
-}
-
 static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
 {
     if ((buffer == NULL) || (buffer->content == NULL))
@@ -937,7 +927,6 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
     parse_buffer buffer;
-    const unsigned char *end = NULL;
     /* use global error pointer if no specific one was given */
     const unsigned char **error_pointer = (return_parse_end != NULL) ? (const unsigned char**)return_parse_end : &global_ep;
     cJSON *item = NULL;
@@ -965,21 +954,19 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
         goto fail;
     }
 
-    end = buffer_at_offset(&buffer);
-
     /* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
     if (require_null_terminated)
     {
-        end = skip_whitespace(end);
-        if (*end != '\0')
+        buffer_skip_whitespace(&buffer);
+        if ((buffer.offset >= buffer.length) || buffer_at_offset(&buffer)[0] != '\0')
         {
-            *error_pointer = end;
+            *error_pointer = buffer_at_offset(&buffer);
             goto fail;
         }
     }
     if (return_parse_end)
     {
-        *return_parse_end = (const char*)end;
+        *return_parse_end = (const char*)buffer_at_offset(&buffer);
     }
 
     return item;
