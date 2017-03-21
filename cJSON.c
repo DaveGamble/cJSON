@@ -904,19 +904,26 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
     const unsigned char *end = NULL;
     /* use global error pointer if no specific one was given */
     const unsigned char **error_pointer = (return_parse_end != NULL) ? (const unsigned char**)return_parse_end : &global_ep;
-    cJSON *item = cJSON_New_Item(&global_hooks);
+    cJSON *item = NULL;
+
     *error_pointer = NULL;
+
+    item = cJSON_New_Item(&global_hooks);
     if (item == NULL) /* memory fail */
     {
-        return NULL;
+        goto fail;
+    }
+
+    if (value == NULL)
+    {
+        goto fail;
     }
 
     end = parse_value(item, skip_whitespace((const unsigned char*)value), error_pointer, &global_hooks);
     if (end == NULL)
     {
         /* parse failure. ep is set. */
-        cJSON_Delete(item);
-        return NULL;
+        goto fail;
     }
 
     /* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
@@ -925,9 +932,8 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
         end = skip_whitespace(end);
         if (*end != '\0')
         {
-            cJSON_Delete(item);
             *error_pointer = end;
-            return NULL;
+            goto fail;
         }
     }
     if (return_parse_end)
@@ -936,6 +942,14 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
     }
 
     return item;
+
+fail:
+    if (item != NULL)
+    {
+        cJSON_Delete(item);
+    }
+
+    return NULL;
 }
 
 /* Default options for cJSON_Parse */
