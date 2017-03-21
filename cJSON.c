@@ -556,7 +556,7 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     first_code = parse_hex4(first_sequence + 2);
 
     /* check that the code is valid */
-    if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)) || (first_code == 0))
+    if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)))
     {
         *error_pointer = first_sequence;
         goto fail;
