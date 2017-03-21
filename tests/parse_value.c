@@ -29,7 +29,6 @@
 #include "common.h"
 
 static cJSON item[1];
-const unsigned char *error_pointer = NULL;
 
 static void assert_is_value(cJSON *value_item, int type)
 {
@@ -44,7 +43,11 @@ static void assert_is_value(cJSON *value_item, int type)
 
 static void assert_parse_value(const char *string, int type)
 {
-    TEST_ASSERT_NOT_NULL(parse_value(item, (const unsigned char*)string, &error_pointer, &global_hooks));
+    parse_buffer buffer;
+    buffer.content = (const unsigned char*) string;
+    buffer.length = strlen(string) + sizeof("");
+    buffer.offset = 0;
+    TEST_ASSERT_TRUE(parse_value(item, &buffer, &global_hooks));
     assert_is_value(item, type);
 }
 

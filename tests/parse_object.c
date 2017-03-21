@@ -30,8 +30,6 @@
 
 static cJSON item[1];
 
-static const unsigned char *error_pointer = NULL;
-
 static void assert_is_object(cJSON *object_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(object_item, "Item is NULL.");
@@ -54,14 +52,24 @@ static void assert_is_child(cJSON *child_item, const char *name, int type)
 
 static void assert_not_object(const char *json)
 {
-    TEST_ASSERT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer, &global_hooks));
+    parse_buffer parsebuffer;
+    parsebuffer.content = (const unsigned char*)json;
+    parsebuffer.length = strlen(json) + sizeof("");
+    parsebuffer.offset = 0;
+
+    TEST_ASSERT_FALSE(parse_object(item, &parsebuffer, &global_hooks));
     assert_is_invalid(item);
     reset(item);
 }
 
 static void assert_parse_object(const char *json)
 {
-    TEST_ASSERT_NOT_NULL(parse_object(item, (const unsigned char*)json, &error_pointer, &global_hooks));
+    parse_buffer parsebuffer;
+    parsebuffer.content = (const unsigned char*)json;
+    parsebuffer.length = strlen(json) + sizeof("");
+    parsebuffer.offset = 0;
+
+    TEST_ASSERT_TRUE(parse_object(item, &parsebuffer, &global_hooks));
     assert_is_object(item);
 }
 
