@@ -40,11 +40,15 @@
 #define true ((cJSON_bool)1)
 #define false ((cJSON_bool)0)
 
-static const unsigned char *global_ep = NULL;
+typedef struct {
+    const unsigned char *json;
+    size_t position;
+} error;
+static error global_error = { NULL, 0 };
 
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 {
-    return (const char*) global_ep;
+    return (const char*) (global_error.json + global_error.position);
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
@@ -945,10 +949,11 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
     parse_buffer buffer;
-    /* use global error pointer if no specific one was given */
-    const unsigned char **error_pointer = (return_parse_end != NULL) ? (const unsigned char**)return_parse_end : &global_ep;
     cJSON *item = NULL;
-    *error_pointer = NULL;
+
+    /* reset error position */
+    global_error.json = NULL;
+    global_error.position = 0;
 
     if (value == NULL)
     {
@@ -995,13 +1000,26 @@ fail:
 
     if (value != NULL)
     {
+        error local_error;
+        local_error.json = (const unsigned char*)value;
+        local_error.position = 0;
+
         if (buffer.offset < buffer.length)
         {
-            *error_pointer = buffer_at_offset(&buffer);
+            local_error.position = buffer.offset;
         }
         else if (buffer.length > 0)
         {
-            *error_pointer = buffer.content + buffer.length - 1;
+            local_error.position = buffer.length - 1;
+        }
+
+        if (return_parse_end != NULL)
+        {
+            *return_parse_end = (const char*)local_error.json + local_error.position;
+        }
+        else
+        {
+            global_error = local_error;
         }
     }
 
