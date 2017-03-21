@@ -45,6 +45,7 @@ if(ENABLE_CJSON_TEST)
         print_object
         print_value
         misc_tests
+        parse_with_opts
     )
 
     add_library(test-common common.c)
