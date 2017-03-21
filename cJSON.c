@@ -847,19 +847,19 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
 {
     const unsigned char *end = NULL;
     /* use global error pointer if no specific one was given */
-    const unsigned char **ep = return_parse_end ? (const unsigned char**)return_parse_end : &global_ep;
-    cJSON *c = cJSON_New_Item(&global_hooks);
-    *ep = NULL;
-    if (!c) /* memory fail */
+    const unsigned char **error_pointer = (return_parse_end != NULL) ? (const unsigned char**)return_parse_end : &global_ep;
+    cJSON *item = cJSON_New_Item(&global_hooks);
+    *error_pointer = NULL;
+    if (item == NULL) /* memory fail */
     {
         return NULL;
     }
 
-    end = parse_value(c, skip_whitespace((const unsigned char*)value), ep, &global_hooks);
-    if (!end)
+    end = parse_value(item, skip_whitespace((const unsigned char*)value), error_pointer, &global_hooks);
+    if (end == NULL)
     {
         /* parse failure. ep is set. */
-        cJSON_Delete(c);
+        cJSON_Delete(item);
         return NULL;
     }
 
@@ -867,10 +867,10 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
     if (require_null_terminated)
     {
         end = skip_whitespace(end);
-        if (*end)
+        if (*end != '\0')
         {
-            cJSON_Delete(c);
-            *ep = end;
+            cJSON_Delete(item);
+            *error_pointer = end;
             return NULL;
         }
     }
@@ -879,7 +879,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
         *return_parse_end = (const char*)end;
     }
 
-    return c;
+    return item;
 }
 
 /* Default options for cJSON_Parse */
