@@ -1025,17 +1025,28 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     }
     update_offset(buffer);
 
-    /* copy the buffer over to a new one */
-    printed = (unsigned char*) hooks->allocate(buffer->offset + 1);
-    if (printed == NULL)
+    /* check if reallocate is available */
+    if (hooks->reallocate != NULL)
     {
-        goto fail;
+        printed = (unsigned char*) hooks->reallocate(buffer->buffer, buffer->length);
+        buffer->buffer = NULL;
+        if (printed == NULL) {
+            goto fail;
+        }
     }
-    strncpy((char*)printed, (char*)buffer->buffer, min(buffer->length, buffer->offset + 1));
-    printed[buffer->offset] = '\0'; /* just to be sure */
+    else /* otherwise copy the JSON over to a new buffer */
+    {
+        printed = (unsigned char*) hooks->allocate(buffer->offset + 1);
+        if (printed == NULL)
+        {
+            goto fail;
+        }
+        memcpy(printed, buffer->buffer, min(buffer->length, buffer->offset + 1));
+        printed[buffer->offset] = '\0'; /* just to be sure */
 
-    /* free the buffer */
-    hooks->deallocate(buffer->buffer);
+        /* free the buffer */
+        hooks->deallocate(buffer->buffer);
+    }
 
     return printed;
 
