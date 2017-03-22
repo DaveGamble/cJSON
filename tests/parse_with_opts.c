@@ -58,6 +58,17 @@ static void parse_with_opts_should_require_null_if_requested(void)
     TEST_ASSERT_NULL(cJSON_ParseWithOpts("{}x", NULL, true));
 }
 
+static void parse_with_opts_should_return_parse_end(void)
+{
+    const char json[] = "[] empty array XD";
+    const char *parse_end = NULL;
+
+    cJSON *item = cJSON_ParseWithOpts(json, &parse_end, false);
+    TEST_ASSERT_NOT_NULL(item);
+    TEST_ASSERT_EQUAL_INT(2, parse_end - json);
+    cJSON_Delete(item);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -65,6 +76,7 @@ int main(void)
     RUN_TEST(parse_with_opts_should_handle_null);
     RUN_TEST(parse_with_opts_should_handle_empty_strings);
     RUN_TEST(parse_with_opts_should_require_null_if_requested);
+    RUN_TEST(parse_with_opts_should_return_parse_end);
 
     return UNITY_END();
 }
