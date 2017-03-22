@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2009 Dave Gamble
+  Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
