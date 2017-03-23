@@ -303,7 +303,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
         }
         if (newbuffer)
         {
-            memcpy(newbuffer, p->buffer, p->offset + 1);
+            memcpy(newbuffer, p->buffer, p->offset);
         }
         hooks->deallocate(p->buffer);
     }
