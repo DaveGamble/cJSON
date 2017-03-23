@@ -47,7 +47,7 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
-#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 4) || (CJSON_VERSION_PATCH != 3)
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 4) || (CJSON_VERSION_PATCH != 4)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
