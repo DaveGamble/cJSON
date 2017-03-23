@@ -270,8 +270,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
     }
 
     /* calculate new buffer size */
-    newsize = needed * 2;
-    if (newsize > INT_MAX)
+    if (newsize > (INT_MAX / 2))
     {
         /* overflow of int, use INT_MAX if possible */
         if (needed <= INT_MAX)
@@ -282,6 +281,10 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
         {
             return NULL;
         }
+    }
+    else
+    {
+        newsize = needed * 2;
     }
 
     if (hooks->reallocate != NULL)
