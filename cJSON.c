@@ -253,6 +253,12 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
         return NULL;
     }
 
+    if ((p->length > 0) && (p->offset >= p->length))
+    {
+        /* make sure that offset is valid */
+        return NULL;
+    }
+
     if (needed > INT_MAX)
     {
         /* sizes bigger than INT_MAX are currently not supported */
