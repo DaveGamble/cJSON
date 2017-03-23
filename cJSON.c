@@ -259,7 +259,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
         return NULL;
     }
 
-    needed += p->offset;
+    needed += p->offset + 1;
     if (needed <= p->length)
     {
         return p->buffer + p->offset;
