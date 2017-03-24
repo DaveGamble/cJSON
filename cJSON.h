@@ -51,6 +51,8 @@ extern "C"
 
 typedef int cJSON_num;
 typedef int cJSON_bool;
+#define CJSON_NUM_MAX INT_MAX
+#define CJSON_NUM_MIN INT_MIN
 
 /* The cJSON structure: */
 typedef struct cJSON
