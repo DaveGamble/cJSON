@@ -49,7 +49,7 @@ extern "C"
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
-typedef long cJSON_num;
+typedef int cJSON_num;
 typedef int cJSON_bool;
 
 /* The cJSON structure: */
