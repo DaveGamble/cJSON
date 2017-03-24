@@ -2047,7 +2047,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void)
 }
 
 /* Create Arrays: */
-CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
+CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const cJSON_num *numbers, int count)
 {
     size_t i = 0;
     cJSON *n = NULL;
