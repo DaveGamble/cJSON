@@ -49,6 +49,9 @@ extern "C"
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
+typedef long cJSON_num;
+typedef int cJSON_bool;
+
 /* The cJSON structure: */
 typedef struct cJSON
 {
@@ -64,7 +67,7 @@ typedef struct cJSON
     /* The item's string, if type==cJSON_String  and type == cJSON_Raw */
     char *valuestring;
     /* The item's number, if type==cJSON_Number */
-    int valueint;
+    cJSON_num valueint;
     /* The item's number, if type==cJSON_Number */
     double valuedouble;
 
@@ -77,8 +80,6 @@ typedef struct cJSON_Hooks
       void *(*malloc_fn)(size_t sz);
       void (*free_fn)(void *ptr);
 } cJSON_Hooks;
-
-typedef int cJSON_bool;
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 #define __WINDOWS__
@@ -173,7 +174,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateArray(void);
 CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void);
 
 /* These utilities create an Array of count items. */
-CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count);
+CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const cJSON_num *numbers, int count);
 CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count);
 CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count);
 CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char **strings, int count);

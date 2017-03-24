@@ -263,7 +263,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     }
     else
     {
-        item->valueint = (int)number;
+        item->valueint = (cJSON_num)number;
     }
 
     item->type = cJSON_Number;
@@ -1983,7 +1983,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         }
         else
         {
-            item->valueint = (int)num;
+            item->valueint = (cJSON_num)num;
         }
     }
 
