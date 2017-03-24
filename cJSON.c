@@ -310,12 +310,6 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
         return NULL;
     }
 
-    if ((p->length > 0) && (p->offset >= p->length))
-    {
-        /* make sure that offset is valid */
-        return NULL;
-    }
-
     if (needed > CJSON_NUM_MAX)
     {
         /* sizes bigger than CJSON_NUM_MAX are currently not supported */
