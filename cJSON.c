@@ -103,22 +103,22 @@ typedef struct internal_hooks
 
 static internal_hooks global_hooks = { malloc, free, realloc };
 
-static unsigned char* cJSON_strdup(const unsigned char* str, const internal_hooks * const hooks)
+static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hooks)
 {
-    size_t len = 0;
+    size_t length = 0;
     unsigned char *copy = NULL;
 
-    if (str == NULL)
+    if (string == NULL)
     {
         return NULL;
     }
 
-    len = strlen((const char*)str) + sizeof("");
-    if (!(copy = (unsigned char*)hooks->allocate(len)))
+    length = strlen((const char*)string) + sizeof("");
+    if (!(copy = (unsigned char*)hooks->allocate(length)))
     {
         return NULL;
     }
-    memcpy(copy, str, len);
+    memcpy(copy, string, length);
 
     return copy;
 }
