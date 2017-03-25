@@ -65,25 +65,33 @@ CJSON_PUBLIC(const char*) cJSON_Version(void)
 }
 
 /* case insensitive strcmp */
-static int cJSON_strcasecmp(const unsigned char *s1, const unsigned char *s2)
+static int cJSON_strcasecmp(const unsigned char *string1, const unsigned char *string2)
 {
-    if (!s1)
+    if (string1 == NULL)
     {
-        return (s1 == s2) ? 0 : 1; /* both NULL? */
+        if (string2 == NULL)
+        {
+            /* both NULL */
+            return 0;
+        }
+
+        return 1;
     }
-    if (!s2)
+
+    if (string2 == NULL)
     {
         return 1;
     }
-    for(; tolower(*s1) == tolower(*s2); (void)++s1, ++s2)
+
+    for(; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
     {
-        if (*s1 == '\0')
+        if (*string1 == '\0')
         {
             return 0;
         }
     }
 
-    return tolower(*s1) - tolower(*s2);
+    return tolower(string1[0]) - tolower(string2[0]);
 }
 
 typedef struct internal_hooks
