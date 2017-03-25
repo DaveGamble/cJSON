@@ -166,26 +166,26 @@ static cJSON *cJSON_New_Item(const internal_hooks * const hooks)
 }
 
 /* Delete a cJSON structure. */
-CJSON_PUBLIC(void) cJSON_Delete(cJSON *c)
+CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
 {
     cJSON *next = NULL;
-    while (c)
+    while (item != NULL)
     {
-        next = c->next;
-        if (!(c->type & cJSON_IsReference) && c->child)
+        next = item->next;
+        if (!(item->type & cJSON_IsReference) && (item->child != NULL))
         {
-            cJSON_Delete(c->child);
+            cJSON_Delete(item->child);
         }
-        if (!(c->type & cJSON_IsReference) && c->valuestring)
+        if (!(item->type & cJSON_IsReference) && (item->valuestring != NULL))
         {
-            global_hooks.deallocate(c->valuestring);
+            global_hooks.deallocate(item->valuestring);
         }
-        if (!(c->type & cJSON_StringIsConst) && c->string)
+        if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
         {
-            global_hooks.deallocate(c->string);
+            global_hooks.deallocate(item->string);
         }
-        global_hooks.deallocate(c);
-        c = next;
+        global_hooks.deallocate(item);
+        item = next;
     }
 }
 
