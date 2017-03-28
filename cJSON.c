@@ -228,7 +228,7 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
     }
     else
     {
-        object->valueint = cJSON_Number;
+        object->valueint = (int)number;
     }
 
     return object->valuedouble = number;
