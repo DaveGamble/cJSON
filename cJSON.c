@@ -23,7 +23,10 @@
 /* cJSON */
 /* JSON parser in C. */
 
+#ifdef __GNUC__
 #pragma GCC visibility push(default)
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -31,7 +34,10 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+
+#ifdef __GNUC__
 #pragma GCC visibility pop
+#endif
 
 #include "cJSON.h"
 
@@ -935,7 +941,7 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
 /* Parse an object - create a new root, and populate. */
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    parse_buffer buffer;
+    parse_buffer buffer = { 0 };
     cJSON *item = NULL;
 
     /* reset error position */
@@ -1019,7 +1025,9 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
+#ifndef min
 #define min(a, b) ((a < b) ? a : b)
+#endif
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
 {
@@ -1666,7 +1674,7 @@ CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *strin
     return c;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * object, const char * string)
 {
     cJSON *current_element = NULL;
 
@@ -1750,7 +1758,10 @@ CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSO
 #if defined (__clang__) || ((__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
     #pragma GCC diagnostic push
 #endif
+#ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
+
 /* Add an item to an object with constant string as key */
 CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
 {
