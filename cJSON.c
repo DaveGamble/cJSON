@@ -23,7 +23,10 @@
 /* cJSON */
 /* JSON parser in C. */
 
+#ifdef __GNUC__
 #pragma GCC visibility push(default)
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -31,7 +34,10 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+
+#ifdef __GNUC__
 #pragma GCC visibility pop
+#endif
 
 #include "cJSON.h"
 
@@ -935,7 +941,7 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
 /* Parse an object - create a new root, and populate. */
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    parse_buffer buffer;
+    parse_buffer buffer = { 0 };
     cJSON *item = NULL;
 
     /* reset error position */
@@ -1019,7 +1025,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
-#define min(a, b) ((a < b) ? a : b)
+#define cjson_min(a, b) ((a < b) ? a : b)
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
 {
@@ -1058,7 +1064,7 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
         {
             goto fail;
         }
-        memcpy(printed, buffer->buffer, min(buffer->length, buffer->offset + 1));
+        memcpy(printed, buffer->buffer, cjson_min(buffer->length, buffer->offset + 1));
         printed[buffer->offset] = '\0'; /* just to be sure */
 
         /* free the buffer */
@@ -1750,7 +1756,10 @@ CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSO
 #if defined (__clang__) || ((__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
     #pragma GCC diagnostic push
 #endif
+#ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
+
 /* Add an item to an object with constant string as key */
 CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
 {
