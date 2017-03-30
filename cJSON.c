@@ -1695,7 +1695,7 @@ CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *strin
     return c;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * object, const char * string)
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
 {
     cJSON *current_element = NULL;
 
