@@ -23,6 +23,7 @@ Contributors
 * Mike Pontillo
 * [Mike Jerris](https://github.com/mjerris)
 * Paulo Antonio Alvarez
+* [Pawel Winogrodzki](https://github.com/PawelWMS)
 * [Rafael Leal Dias](https://github.com/rafaeldias)
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)
