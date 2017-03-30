@@ -1046,9 +1046,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
-#ifndef min
-#define min(a, b) ((a < b) ? a : b)
-#endif
+#define cjson_min(a, b) ((a < b) ? a : b)
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
 {
@@ -1087,7 +1085,7 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
         {
             goto fail;
         }
-        memcpy(printed, buffer->buffer, min(buffer->length, buffer->offset + 1));
+        memcpy(printed, buffer->buffer, cjson_min(buffer->length, buffer->offset + 1));
         printed[buffer->offset] = '\0'; /* just to be sure */
 
         /* free the buffer */
