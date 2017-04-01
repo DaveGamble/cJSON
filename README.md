@@ -136,13 +136,19 @@ What's the framerate?
 
 ```c
 cJSON *format = cJSON_GetObjectItem(root, "format");
-int framerate = cJSON_GetObjectItem(format, "frame rate")->valueint;
+cJSON *framerate_item = cJSON_GetObjectItem(format, "frame rate");
+double framerate = 0;
+if (cJSON_IsNumber(framerate_item))
+{
+  framerate = framerate_item->valuedouble;
+}
 ```
 
 Want to change the framerate?
 
 ```c
-cJSON_GetObjectItem(format, "frame rate")->valueint = 25;
+cJSON *framerate_item = cJSON_GetObjectItem(format, "frame rate");
+cJSON_SetNumberValue(framerate_item, 25);
 ```
 
 Back to disk?
@@ -201,7 +207,7 @@ typedef struct cJSON {
     int type;
 
     char *valuestring;
-    int valueint;
+    int valueint; /* DEPRECATED, please use valudouble instead */
     double valuedouble;
 
     char *string;
@@ -217,8 +223,7 @@ A `child` entry will have `prev == 0`, but next potentially points on. The last 
 The type expresses *Null*/*True*/*False*/*Number*/*String*/*Array*/*Object*, all of which are `#defined` in
 `cJSON.h`.
 
-A *Number* has `valueint` and `valuedouble`. If you're expecting an `int`, read `valueint`, if not read
-`valuedouble`.
+A *Number* has `valueint` and `valuedouble`. `valueint` is a relict of the past, so always use `valuedouble`.
 
 Any entry which is in the linked list which is the child of an object will have a `string`
 which is the "name" of the entry. When I said "name" in the above example, that's `string`.
