@@ -259,22 +259,22 @@ int callback(const char *name, int type, cJSON *item)
     {
         /* populate name */
     }
-    else if (!strcmp(name, "format/type")
+    else if (!strcmp(name, "format/type"))
     {
         /* handle "rect" */ }
-    else if (!strcmp(name, "format/width")
+    else if (!strcmp(name, "format/width"))
     {
         /* 800 */
     }
-    else if (!strcmp(name, "format/height")
+    else if (!strcmp(name, "format/height"))
     {
         /* 600 */
     }
-    else if (!strcmp(name, "format/interlace")
+    else if (!strcmp(name, "format/interlace"))
     {
         /* false */
     }
-    else if (!strcmp(name, "format/frame rate")
+    else if (!strcmp(name, "format/frame rate"))
     {
         /* 24 */
     }
