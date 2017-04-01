@@ -63,7 +63,7 @@ typedef struct cJSON
 
     /* The item's string, if type==cJSON_String  and type == cJSON_Raw */
     char *valuestring;
-    /* The item's number, if type==cJSON_Number */
+    /* DEPRECATED, use valuedouble instead */
     int valueint;
     /* The item's number, if type==cJSON_Number */
     double valuedouble;
