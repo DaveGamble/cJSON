@@ -207,7 +207,7 @@ typedef struct cJSON {
     int type;
 
     char *valuestring;
-    int valueint; /* DEPRECATED, please use valudouble instead */
+    int valueint; /* writing to valueint is DEPRECATED, please use cJSON_SetNumberValue instead */
     double valuedouble;
 
     char *string;
