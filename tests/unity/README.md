@@ -2,7 +2,7 @@ Unity Test API
 ==============
 
 [![Unity Build Status](https://api.travis-ci.org/ThrowTheSwitch/Unity.png?branch=master)](https://travis-ci.org/ThrowTheSwitch/Unity)
-__Copyright (c) 2007 - 2014 Unity Project by Mike Karlesky, Mark VanderVoord, and Greg Williams__
+__Copyright (c) 2007 - 2017 Unity Project by Mike Karlesky, Mark VanderVoord, and Greg Williams__
 
 Running Tests
 -------------
@@ -109,14 +109,6 @@ Compares two integers for equality and display errors as hexadecimal.  Like the 
 you can specify the size... here the size will also effect how many nibbles are shown (for example, `HEX16`
 will show 4 nibbles).
 
-    _ARRAY
-
-You can append `_ARRAY` to any of these macros to make an array comparison of that type.  Here you will
-need to care a bit more about the actual size of the value being checked.  You will also specify an
-additional argument which is the number of elements to compare.  For example:
-
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, actual, elements)
-
     TEST_ASSERT_EQUAL(expected, actual)
 
 Another way of calling TEST_ASSERT_EQUAL_INT
@@ -126,6 +118,23 @@ Another way of calling TEST_ASSERT_EQUAL_INT
 Asserts that the actual value is within plus or minus delta of the expected value.  This also comes in
 size specific variants.
 
+Arrays
+------
+
+    _ARRAY
+
+You can append `_ARRAY` to any of these macros to make an array comparison of that type.  Here you will
+need to care a bit more about the actual size of the value being checked.  You will also specify an
+additional argument which is the number of elements to compare.  For example:
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, actual, elements)
+
+    _EACH_EQUAL
+
+Another array comparison option is to check that EVERY element of an array is equal to a single expected
+value. You do this by specifying the EACH_EQUAL macro. For example:
+
+    TEST_ASSERT_EACH_EQUAL_INT32(expected, actual, elements)
 
 Numerical Assertions: Bitwise
 -----------------------------
