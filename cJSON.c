@@ -1677,32 +1677,42 @@ CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int item)
     return c;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *string)
-{
-    cJSON *c = object ? object->child : NULL;
-    while (c && !case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string))
-    {
-        c = c->next;
-    }
-    return c;
-}
-
-CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_bool case_sensitive)
 {
     cJSON *current_element = NULL;
 
-    if ((object == NULL) || (string == NULL))
+    if ((object == NULL) || (name == NULL))
     {
         return NULL;
     }
 
     current_element = object->child;
-    while ((current_element != NULL) && (strcmp(string, current_element->string) != 0))
+    if (case_sensitive)
     {
-        current_element = current_element->next;
+        while ((current_element != NULL) && (strcmp(name, current_element->string) != 0))
+        {
+            current_element = current_element->next;
+        }
+    }
+    else
+    {
+        while ((current_element != NULL) && (case_insensitive_strcmp((const unsigned char*)name, (const unsigned char*)(current_element->string)) != 0))
+        {
+            current_element = current_element->next;
+        }
     }
 
     return current_element;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *string)
+{
+    return get_object_item(object, string, false);
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+{
+    return get_object_item(object, string, true);
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string)
@@ -1854,7 +1864,7 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *stri
 {
     size_t i = 0;
     cJSON *c = object->child;
-    while (c && !case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string))
+    while (c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
     {
         i++;
         c = c->next;
@@ -1942,7 +1952,7 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object, const char *string, 
 {
     size_t i = 0;
     cJSON *c = object->child;
-    while(c && !case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string))
+    while(c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
     {
         i++;
         c = c->next;
