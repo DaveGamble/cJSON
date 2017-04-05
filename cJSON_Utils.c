@@ -468,7 +468,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     cJSONUtils_InplaceDecodePointerString(childptr);
 
     /* add, remove, replace, move, copy, test. */
-    if (!parent)
+    if ((parent == NULL) || (childptr == NULL))
     {
         /* Couldn't find object to add to. */
         free(parentptr);
