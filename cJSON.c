@@ -276,7 +276,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
     }
 
     /* calculate new buffer size */
-    if (newsize > (INT_MAX / 2))
+    if (needed > (INT_MAX / 2))
     {
         /* overflow of int, use INT_MAX if possible */
         if (needed <= INT_MAX)
