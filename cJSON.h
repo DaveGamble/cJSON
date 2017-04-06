@@ -212,6 +212,10 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse);
 /* Duplicate will create a new, identical cJSON item to the one you pass, in new memory that will
 need to be released. With recurse!=0, it will duplicate any children connected to the item.
 The item->next and ->prev pointers are always zero on return from Duplicate. */
+/* Recursively compare two cJSON items for equality. If either a or b is NULL or invalid, they will be considered unequal.
+ * case_sensitive determines if object keys are treated case sensitive (1) or case insensitive (0) */
+CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive);
+
 
 /* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
 /* If you supply a ptr in return_parse_end and parsing fails, then return_parse_end will contain a pointer to the error. If not, then cJSON_GetErrorPtr() does the job. */
