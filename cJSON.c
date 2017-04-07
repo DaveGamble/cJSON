@@ -267,17 +267,17 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     item->valuedouble = number;
 
     /* use saturation in case of overflow */
-    if (number >= INT_MAX)
+    if (number >= CJSON_NUM_MAX)
     {
-        item->valueint = INT_MAX;
+        item->valueint = CJSON_NUM_MAX;
     }
-    else if (number <= INT_MIN)
+    else if (number <= CJSON_NUM_MIN)
     {
-        item->valueint = INT_MIN;
+        item->valueint = CJSON_NUM_MIN;
     }
     else
     {
-        item->valueint = (int)number;
+        item->valueint = (cJSON_num)number;
     }
 
     item->type = cJSON_Number;
@@ -289,13 +289,13 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 {
-    if (number >= INT_MAX)
+    if (number >= CJSON_NUM_MAX)
     {
-        object->valueint = INT_MAX;
+        object->valueint = CJSON_NUM_MAX;
     }
-    else if (number <= INT_MIN)
+    else if (number <= CJSON_NUM_MIN)
     {
-        object->valueint = INT_MIN;
+        object->valueint = CJSON_NUM_MIN;
     }
     else
     {
@@ -330,9 +330,9 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
         return NULL;
     }
 
-    if (needed > INT_MAX)
+    if (needed > CJSON_NUM_MAX)
     {
-        /* sizes bigger than INT_MAX are currently not supported */
+        /* sizes bigger than CJSON_NUM_MAX are currently not supported */
         return NULL;
     }
 
@@ -347,12 +347,12 @@ static unsigned char* ensure(printbuffer * const p, size_t needed, const interna
     }
 
     /* calculate new buffer size */
-    if (newsize > (INT_MAX / 2))
+    if (newsize > (CJSON_NUM_MAX / 2))
     {
-        /* overflow of int, use INT_MAX if possible */
-        if (needed <= INT_MAX)
+        /* overflow of int, use CJSON_NUM_MAX if possible */
+        if (needed <= CJSON_NUM_MAX)
         {
-            newsize = INT_MAX;
+            newsize = CJSON_NUM_MAX;
         }
         else
         {
@@ -1999,17 +1999,17 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         item->valuedouble = num;
 
         /* use saturation in case of overflow */
-        if (num >= INT_MAX)
+        if (num >= CJSON_NUM_MAX)
         {
-            item->valueint = INT_MAX;
+            item->valueint = CJSON_NUM_MAX;
         }
-        else if (num <= INT_MIN)
+        else if (num <= CJSON_NUM_MIN)
         {
-            item->valueint = INT_MIN;
+            item->valueint = CJSON_NUM_MIN;
         }
         else
         {
-            item->valueint = (int)num;
+            item->valueint = (cJSON_num)num;
         }
     }
 
