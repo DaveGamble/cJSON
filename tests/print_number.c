@@ -89,17 +89,11 @@ static void print_number_should_print_non_number(void)
 
 static void trim_trailing_zeroes_should_trim_trailing_zeroes(void)
 {
-    printbuffer buffer;
-    unsigned char number[100];
-    buffer.length = sizeof(number);
-    buffer.buffer = number;
-
-    strcpy((char*)number, "10.00");
-    buffer.offset = sizeof("10.00") - 1;
-    TEST_ASSERT_TRUE(trim_trailing_zeroes(&buffer));
-    TEST_ASSERT_EQUAL_UINT8('\0', buffer.buffer[buffer.offset]);
-    TEST_ASSERT_EQUAL_STRING("10", number);
-    TEST_ASSERT_EQUAL_UINT(sizeof("10") - 1, buffer.offset);
+    TEST_ASSERT_EQUAL_INT(2, trim_trailing_zeroes((const unsigned char*)"10.00", (int)(sizeof("10.00") - 1), '.'));
+    TEST_ASSERT_EQUAL_INT(0, trim_trailing_zeroes((const unsigned char*)".00", (int)(sizeof(".00") - 1), '.'));
+    TEST_ASSERT_EQUAL_INT(0, trim_trailing_zeroes((const unsigned char*)"00", (int)(sizeof("00") - 1), '.'));
+    TEST_ASSERT_EQUAL_INT(-1, trim_trailing_zeroes(NULL, 10, '.'));
+    TEST_ASSERT_EQUAL_INT(-1, trim_trailing_zeroes((const unsigned char*)"", 0, '.'));
 }
 
 int main(void)

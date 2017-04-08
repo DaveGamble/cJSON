@@ -381,34 +381,24 @@ static void update_offset(printbuffer * const buffer)
 }
 
 /* Removes trailing zeroes from the end of a printed number */
-static cJSON_bool trim_trailing_zeroes(printbuffer * const buffer)
+static int trim_trailing_zeroes(const unsigned char * const number, int length, const unsigned char decimal_point)
 {
-    size_t offset = 0;
-    unsigned char *content = NULL;
-
-    if ((buffer == NULL) || (buffer->buffer == NULL) || (buffer->offset < 1))
+    if ((number == NULL) || (length <= 0))
     {
-        return false;
+        return -1;
     }
 
-    offset = buffer->offset - 1;
-    content = buffer->buffer;
-
-    while ((offset > 0) && (content[offset] == '0'))
+    while ((length > 0) && (number[length - 1] == '0'))
     {
-        offset--;
+        length--;
     }
-    if ((offset > 0) && (content[offset] == '.'))
+    if ((length > 0) && (number[length - 1] == decimal_point))
     {
-        offset--;
+        /* remove trailing decimal_point */
+        length--;
     }
 
-    offset++;
-    content[offset] = '\0';
-
-    buffer->offset = offset;
-
-    return true;
+    return length;
 }
 
 /* Render the number nicely from the given item into a string. */
@@ -417,16 +407,12 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
     int length = 0;
+    size_t i = 0;
     cJSON_bool trim_zeroes = true; /* should zeroes at the end be removed? */
+    unsigned char number_buffer[64]; /* temporary buffer to print the number into */
+    unsigned char decimal_point = get_decimal_point();
 
     if (output_buffer == NULL)
-    {
-        return false;
-    }
-
-    /* This is a nice tradeoff. */
-    output_pointer = ensure(output_buffer, 64, hooks);
-    if (output_pointer == NULL)
     {
         return false;
     }
@@ -434,36 +420,61 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     /* This checks for NaN and Infinity */
     if ((d * 0) != 0)
     {
-        length = sprintf((char*)output_pointer, "null");
+        length = sprintf((char*)number_buffer, "null");
     }
     else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
     {
         /* integer */
-        length = sprintf((char*)output_pointer, "%.0f", d);
+        length = sprintf((char*)number_buffer, "%.0f", d);
         trim_zeroes = false; /* don't remove zeroes for "big integers" */
     }
     else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
     {
-        length = sprintf((char*)output_pointer, "%e", d);
+        length = sprintf((char*)number_buffer, "%e", d);
         trim_zeroes = false; /* don't remove zeroes in engineering notation */
     }
     else
     {
-        length = sprintf((char*)output_pointer, "%f", d);
+        length = sprintf((char*)number_buffer, "%f", d);
     }
 
-    /* sprintf failed */
-    if (length < 0)
+    /* sprintf failed or buffer overrun occured */
+    if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
     {
         return false;
     }
 
-    output_buffer->offset += (size_t)length;
-
     if (trim_zeroes)
     {
-        return trim_trailing_zeroes(output_buffer);
+        length = trim_trailing_zeroes(number_buffer, length, decimal_point);
+        if (length <= 0)
+        {
+            return false;
+        }
     }
+
+    /* reserve appropriate space in the output */
+    output_pointer = ensure(output_buffer, (size_t)length, hooks);
+    if (output_pointer == NULL)
+    {
+        return false;
+    }
+
+    /* copy the printed number to the output and replace locale
+     * dependent decimal point with '.' */
+    for (i = 0; i < ((size_t)length); i++)
+    {
+        if (number_buffer[i] == decimal_point)
+        {
+            output_pointer[i] = '.';
+            continue;
+        }
+
+        output_pointer[i] = number_buffer[i];
+    }
+    output_pointer[i] = '\0';
+
+    output_buffer->offset += (size_t)length;
 
     return true;
 }
