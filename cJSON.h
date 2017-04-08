@@ -88,9 +88,10 @@ typedef int cJSON_bool;
 /* When compiling for windows, we specify a specific calling convention to avoid issues where we are being called from a project with a different default calling convention.  For windows you have 2 define options:
 
 CJSON_HIDE_SYMBOLS - Define this in the case where you don't want to ever dllexport symbols
-CJSON_EXPORT_SYMBOLS - Define this on library build when you want to dllexport symbols
+CJSON_EXPORT_SYMBOLS - Define this on library build when you want to dllexport symbols (default)
+CJSON_IMPORT_SYMBOLS - Define this if you want to dllimport symbol
 
-For *nix builds that support visibility attribute, you can define similar behavior by 
+For *nix builds that support visibility attribute, you can define similar behavior by
 
 setting default visibility to hidden by adding
 -fvisibility=hidden (for gcc)
@@ -102,11 +103,16 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 
 */
 
+/* export symbols by default, this is necessary for copy pasting the C and header file */
+#if !defined(CJSON_HIDE_SYMBOLS) && !defined(CJSON_IMPORT_SYMBOLS)
+#define CJSON_EXPORT_SYMBOLS
+#endif
+
 #if defined(CJSON_HIDE_SYMBOLS)
 #define CJSON_PUBLIC(type)   type __stdcall
 #elif defined(CJSON_EXPORT_SYMBOLS)
 #define CJSON_PUBLIC(type)   __declspec(dllexport) type __stdcall
-#else
+#elif defined(CJSON_IMPORT_SYMBOLS)
 #define CJSON_PUBLIC(type)   __declspec(dllimport) type __stdcall
 #endif
 #else /* !WIN32 */
