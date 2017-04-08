@@ -31,6 +31,7 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+#include <locale.h>
 #pragma GCC visibility pop
 
 #include "cJSON.h"
@@ -177,19 +178,63 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *c)
     }
 }
 
+/* get the decimal point character of the current locale */
+static unsigned char get_decimal_point(void)
+{
+    struct lconv *lconv = localeconv();
+    return (unsigned char) lconv->decimal_point[0];
+}
+
 /* Parse the input text to generate a number, and populate the result into item. */
 static const unsigned char *parse_number(cJSON * const item, const unsigned char * const input)
 {
     double number = 0;
     unsigned char *after_end = NULL;
+    unsigned char number_c_string[64];
+    unsigned char decimal_point = get_decimal_point();
+    size_t i = 0;
 
     if (input == NULL)
     {
         return NULL;
     }
 
-    number = strtod((const char*)input, (char**)&after_end);
-    if (input == after_end)
+    /* copy the number into a temporary buffer and replace '.' with the decimal point
+     * of the current locale (for strtod) */
+    for (i = 0; (i < (sizeof(number_c_string) - 1)) && (input[i] != '\0'); i++)
+    {
+        switch (input[i])
+        {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+            case '+':
+            case '-':
+            case 'e':
+            case 'E':
+                number_c_string[i] = input[i];
+                break;
+
+            case '.':
+                number_c_string[i] = decimal_point;
+                break;
+
+            default:
+                goto loop_end;
+        }
+    }
+loop_end:
+    number_c_string[i] = '\0';
+
+    number = strtod((const char*)number_c_string, (char**)&after_end);
+    if (number_c_string == after_end)
     {
         return NULL; /* parse_error */
     }
@@ -212,7 +257,7 @@ static const unsigned char *parse_number(cJSON * const item, const unsigned char
 
     item->type = cJSON_Number;
 
-    return after_end;
+    return input + (after_end - number_c_string);
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
