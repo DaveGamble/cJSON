@@ -392,8 +392,9 @@ The maximum length of a floating point literal that cJSON supports is currently 
 In general cJSON is **not thread safe**.
 
 However it is thread safe under the following conditions:
-* You don't use `cJSON_GetErrorPtr` (you can use the `return_parse_end` parameter of `cJSON_ParseWithOpts` instead)
-* You only ever call `cJSON_InitHooks` before using cJSON in any threads.
+* `cJSON_GetErrorPtr` is never used (the `return_parse_end` parameter of `cJSON_ParseWithOpts` can be used instead)
+* `cJSON_InitHooks` is only ever called before using cJSON in any threads.
+* `setlocale` is never called before all calls to cJSON functions have returned.
 
 # Enjoy cJSON!
 

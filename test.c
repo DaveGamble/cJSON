@@ -53,8 +53,8 @@ static int print_preallocated(cJSON *root)
     out = cJSON_Print(root);
 
     /* create buffer to succeed */
-    /* the extra 64 bytes are in case a floating point value is printed */
-    len = strlen(out) + 64;
+    /* the extra 5 bytes are because of inaccuracies when reserving memory */
+    len = strlen(out) + 5;
     buf = (char*)malloc(len);
     if (buf == NULL)
     {
