@@ -417,7 +417,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
     int length = 0;
-    cJSON_bool trim_zeroes = true; /* should at the end be removed? */
+    cJSON_bool trim_zeroes = true; /* should zeroes at the end be removed? */
 
     if (output_buffer == NULL)
     {
