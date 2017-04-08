@@ -9,6 +9,7 @@ Ultralightweight JSON parser in ANSI C.
   * [Building](#building)
   * [Some JSON](#some-json)
   * [Here's the structure](#heres-the-structure)
+  * [Caveats](#caveats)
   * [Enjoy cJSON!](#enjoy-cjson)
 
 ## License
@@ -371,6 +372,28 @@ As soon as you call `cJSON_Print`, it renders the structure to text.
 The `test.c` code shows how to handle a bunch of typical cases. If you uncomment
 the code, it'll load, parse and print a bunch of test files, also from [json.org](http://json.org),
 which are more complex than I'd care to try and stash into a `const char array[]`.
+
+### Caveats
+
+#### C Standard
+
+cJSON is written in ANSI C (or C89, C90). If your compiler or C library doesn't follow this standard, correct behavior is not guaranteed.
+
+NOTE: ANSI C is not C++ therefore it shouldn't be compiled by a C++ compiler. You can compile it with a C compiler and link it with your C++ code however. Although compiling with a C++ compiler might work, correct behavior is not guaranteed.
+
+#### Floating Point Numbers
+
+cJSON does not officially support any `double` implementations other than IEE754 double precision floating point numbers. It might still work with other implementations but bugs with these will be considered invalid.
+
+The maximum length of a floating point literal that cJSON supports is currently 63 characters.
+
+#### Thread Safety
+
+In general cJSON is **not thread safe**.
+
+However it is thread safe under the following conditions:
+* You don't use `cJSON_GetErrorPtr` (you can use the `return_parse_end` parameter of `cJSON_ParseWithOpts` instead)
+* You only ever call `cJSON_InitHooks` before using cJSON in any threads.
 
 # Enjoy cJSON!
 
