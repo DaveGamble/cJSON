@@ -364,6 +364,44 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
     return 0;
 }
 
+/* non broken version of cJSON_InsertItemInArray */
+static cJSON_bool insert_item_in_array(cJSON *array, size_t which, cJSON *newitem)
+{
+    cJSON *child = array->child;
+    while (child && (which > 0))
+    {
+        child = child->next;
+        which--;
+    }
+    if (which > 0)
+    {
+        /* item is after the end of the array */
+        return 0;
+    }
+    if (child == NULL)
+    {
+        cJSON_AddItemToArray(array, newitem);
+        return 1;
+    }
+
+    /* insert into the linked list */
+    newitem->next = child;
+    newitem->prev = child->prev;
+    child->prev = newitem;
+
+    /* was it at the beginning */
+    if (child == array->child)
+    {
+        array->child = newitem;
+    }
+    else
+    {
+        newitem->prev->next = newitem;
+    }
+
+    return 1;
+}
+
 static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 {
     cJSON *op = NULL;
@@ -505,7 +543,12 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         }
         else
         {
-            cJSON_InsertItemInArray(parent, atoi((char*)childptr), value);
+            if (!insert_item_in_array(parent, (size_t)atoi((char*)childptr), value))
+            {
+                free(parentptr);
+                cJSON_Delete(value);
+                return 10;
+            }
         }
     }
     else if (cJSON_IsObject(parent))
