@@ -70,23 +70,17 @@ CJSON_PUBLIC(const char*) cJSON_Version(void)
     return version;
 }
 
-/* case insensitive strcmp */
-static int cJSON_strcasecmp(const unsigned char *string1, const unsigned char *string2)
+/* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
+static int case_insensitive_strcmp(const unsigned char *string1, const unsigned char *string2)
 {
-    if (string1 == NULL)
+    if ((string1 == NULL) || (string2 == NULL))
     {
-        if (string2 == NULL)
-        {
-            /* both NULL */
-            return 0;
-        }
-
         return 1;
     }
 
-    if (string2 == NULL)
+    if (string1 == string2)
     {
-        return 1;
+        return 0;
     }
 
     for(; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
@@ -97,7 +91,7 @@ static int cJSON_strcasecmp(const unsigned char *string1, const unsigned char *s
         }
     }
 
-    return tolower(string1[0]) - tolower(string2[0]);
+    return tolower(*string1) - tolower(*string2);
 }
 
 typedef struct internal_hooks
@@ -1683,32 +1677,42 @@ CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int item)
     return c;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *string)
-{
-    cJSON *c = object ? object->child : NULL;
-    while (c && cJSON_strcasecmp((unsigned char*)c->string, (const unsigned char*)string))
-    {
-        c = c->next;
-    }
-    return c;
-}
-
-CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_bool case_sensitive)
 {
     cJSON *current_element = NULL;
 
-    if ((object == NULL) || (string == NULL))
+    if ((object == NULL) || (name == NULL))
     {
         return NULL;
     }
 
     current_element = object->child;
-    while ((current_element != NULL) && (strcmp(string, current_element->string) != 0))
+    if (case_sensitive)
     {
-        current_element = current_element->next;
+        while ((current_element != NULL) && (strcmp(name, current_element->string) != 0))
+        {
+            current_element = current_element->next;
+        }
+    }
+    else
+    {
+        while ((current_element != NULL) && (case_insensitive_strcmp((const unsigned char*)name, (const unsigned char*)(current_element->string)) != 0))
+        {
+            current_element = current_element->next;
+        }
     }
 
     return current_element;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON *object, const char *string)
+{
+    return get_object_item(object, string, false);
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
+{
+    return get_object_item(object, string, true);
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string)
@@ -1860,7 +1864,7 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *stri
 {
     size_t i = 0;
     cJSON *c = object->child;
-    while (c && cJSON_strcasecmp((unsigned char*)c->string, (const unsigned char*)string))
+    while (c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
     {
         i++;
         c = c->next;
@@ -1948,7 +1952,7 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object, const char *string, 
 {
     size_t i = 0;
     cJSON *c = object->child;
-    while(c && cJSON_strcasecmp((unsigned char*)c->string, (const unsigned char*)string))
+    while(c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
     {
         i++;
         c = c->next;
@@ -2479,4 +2483,105 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     }
 
     return (item->type & 0xFF) == cJSON_Raw;
+}
+
+CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+{
+    if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)) || cJSON_IsInvalid(a))
+    {
+        return false;
+    }
+
+    /* check if type is valid */
+    switch (a->type & 0xFF)
+    {
+        case cJSON_False:
+        case cJSON_True:
+        case cJSON_NULL:
+        case cJSON_Number:
+        case cJSON_String:
+        case cJSON_Raw:
+        case cJSON_Array:
+        case cJSON_Object:
+            break;
+
+        default:
+            return false;
+    }
+
+    /* identical objects are equal */
+    if (a == b)
+    {
+        return true;
+    }
+
+    switch (a->type & 0xFF)
+    {
+        /* in these cases and equal type is enough */
+        case cJSON_False:
+        case cJSON_True:
+        case cJSON_NULL:
+            return true;
+
+        case cJSON_Number:
+            if (a->valuedouble == b->valuedouble)
+            {
+                return true;
+            }
+            return false;
+
+        case cJSON_String:
+        case cJSON_Raw:
+            if ((a->valuestring == NULL) || (b->valuestring == NULL))
+            {
+                return false;
+            }
+            if (strcmp(a->valuestring, b->valuestring) == 0)
+            {
+                return true;
+            }
+
+            return false;
+
+        case cJSON_Array:
+        {
+            cJSON *a_element = NULL;
+            cJSON *b_element = NULL;
+            for (a_element = a->child, b_element = b->child;
+                    (a_element != NULL) && (b_element != NULL);
+                    a_element = a_element->next, b_element = b_element->next)
+            {
+                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        case cJSON_Object:
+        {
+            cJSON *a_element = NULL;
+            cJSON_ArrayForEach(a_element, a)
+            {
+                /* TODO This has O(n^2) runtime, which is horrible! */
+                cJSON *b_element = get_object_item(b, a_element->string, case_sensitive);
+                if (b_element == NULL)
+                {
+                    return false;
+                }
+
+                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        default:
+            return false;
+    }
 }
