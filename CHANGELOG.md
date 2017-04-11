@@ -1,3 +1,9 @@
+1.4.7
+=====
+Fixes:
+------
+* Fix `cJSONUtils_ApplyPatches`, it was completely broken and apparently nobody noticed (or at least reported it) (075a06f40bdc4f836c7dd7cad690d253a57cfc50)
+
 1.4.6
 =====
 Fixes:
