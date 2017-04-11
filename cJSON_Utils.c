@@ -543,7 +543,25 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         }
         else
         {
-            if (!insert_item_in_array(parent, (size_t)atoi((char*)childptr), value))
+            char *end_pointer = NULL;
+            long int index = strtol((char*)childptr, &end_pointer, 10);
+            if ((unsigned char*)end_pointer == childptr)
+            {
+                /* failed to parse numeric array index */
+                free(parentptr);
+                cJSON_Delete(value);
+                return 11;
+            }
+
+            if ((index < 0) || (*end_pointer != '\0'))
+            {
+                /* array index is invalid */
+                free(parentptr);
+                cJSON_Delete(value);
+                return 12;
+            }
+
+            if (!insert_item_in_array(parent, (size_t)index, value))
             {
                 free(parentptr);
                 cJSON_Delete(value);
