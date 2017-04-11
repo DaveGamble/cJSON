@@ -526,12 +526,7 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
     int err = 0;
 
-    if (patches == NULL)
-    {
-        return 1;
-    }
-
-    if (cJSON_IsArray(patches))
+    if (!cJSON_IsArray(patches))
     {
         /* malformed patches. */
         return 1;
