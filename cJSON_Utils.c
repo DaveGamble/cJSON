@@ -36,7 +36,7 @@ static unsigned char* cJSONUtils_strdup(const unsigned char* str)
     unsigned char *copy = NULL;
 
     len = strlen((const char*)str) + 1;
-    if (!(copy = (unsigned char*)malloc(len)))
+    if (!(copy = (unsigned char*)cJSON_malloc(len)))
     {
         return NULL;
     }
@@ -159,33 +159,33 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *ta
             if (cJSON_IsArray(object))
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
-                unsigned char *ret = (unsigned char*)malloc(strlen((char*)found) + 23);
+                unsigned char *ret = (unsigned char*)cJSON_malloc(strlen((char*)found) + 23);
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
                 if (c > ULONG_MAX)
                 {
-                    free(found);
+                    cJSON_free(found);
                     return NULL;
                 }
                 sprintf((char*)ret, "/%lu%s", (unsigned long)c, found); /* /<array_index><path> */
-                free(found);
+                cJSON_free(found);
 
                 return (char*)ret;
             }
             else if (cJSON_IsObject(object))
             {
-                unsigned char *ret = (unsigned char*)malloc(strlen((char*)found) + cJSONUtils_PointerEncodedstrlen((unsigned char*)obj->string) + 2);
+                unsigned char *ret = (unsigned char*)cJSON_malloc(strlen((char*)found) + cJSONUtils_PointerEncodedstrlen((unsigned char*)obj->string) + 2);
                 *ret = '/';
                 cJSONUtils_PointerEncodedstrcpy(ret + 1, (unsigned char*)obj->string);
                 strcat((char*)ret, (char*)found);
-                free(found);
+                cJSON_free(found);
 
                 return (char*)ret;
             }
 
             /* reached leaf of the tree, found nothing */
-            free(found);
+            cJSON_free(found);
             return NULL;
         }
     }
@@ -342,7 +342,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
     childptr = (unsigned char*)strrchr((char*)parentptr, '/'); /* last '/' */
     if (childptr == NULL)
     {
-        free(parentptr);
+        cJSON_free(parentptr);
         return NULL;
     }
     /* split strings */
@@ -361,7 +361,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
         size_t index = 0;
         if (!decode_array_index_from_pointer(childptr, &index))
         {
-            free(parentptr);
+            cJSON_free(parentptr);
             return NULL;
         }
         ret = detach_item_from_array(parent, index);
@@ -370,7 +370,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
     {
         ret = cJSON_DetachItemFromObject(parent, (char*)childptr);
     }
-    free(parentptr);
+    cJSON_free(parentptr);
 
     /* return the detachted item */
     return ret;
@@ -753,7 +753,7 @@ static void cJSONUtils_GeneratePatch(cJSON *patches, const unsigned char *op, co
     cJSON_AddItemToObject(patch, "op", cJSON_CreateString((const char*)op));
     if (suffix)
     {
-        unsigned char *newpath = (unsigned char*)malloc(strlen((const char*)path) + cJSONUtils_PointerEncodedstrlen(suffix) + 2);
+        unsigned char *newpath = (unsigned char*)cJSON_malloc(strlen((const char*)path) + cJSONUtils_PointerEncodedstrlen(suffix) + 2);
         cJSONUtils_PointerEncodedstrcpy(newpath + sprintf((char*)newpath, "%s/", (const char*)path), suffix);
         cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)newpath));
         free(newpath);
@@ -806,7 +806,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
         case cJSON_Array:
         {
             size_t c = 0;
-            unsigned char *newpath = (unsigned char*)malloc(strlen((const char*)path) + 23); /* Allow space for 64bit int. */
+            unsigned char *newpath = (unsigned char*)cJSON_malloc(strlen((const char*)path) + 23); /* Allow space for 64bit int. */
             /* generate patches for all array elements that exist in "from" and "to" */
             for ((void)(c = 0), (void)(from = from->child), to = to->child; from && to; (void)(from = from->next), (void)(to = to->next), c++)
             {
@@ -860,7 +860,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
                 if (!diff)
                 {
                     /* both object keys are the same */
-                    unsigned char *newpath = (unsigned char*)malloc(strlen((const char*)path) + cJSONUtils_PointerEncodedstrlen((unsigned char*)a->string) + 2);
+                    unsigned char *newpath = (unsigned char*)cJSON_malloc(strlen((const char*)path) + cJSONUtils_PointerEncodedstrlen((unsigned char*)a->string) + 2);
                     cJSONUtils_PointerEncodedstrcpy(newpath + sprintf((char*)newpath, "%s/", path), (unsigned char*)a->string);
                     /* create a patch for the element */
                     cJSONUtils_CompareToPatch(patches, newpath, a, b);
