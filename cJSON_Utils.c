@@ -486,7 +486,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 
     op = cJSON_GetObjectItem(patch, "op");
     path = cJSON_GetObjectItem(patch, "path");
-    if (!op || !path)
+    if (!cJSON_IsString(op) || !cJSON_IsString(path))
     {
         /* malformed patch. */
         return 2;
@@ -522,6 +522,81 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     {
         /* unknown opcode. */
         return 3;
+    }
+
+    /* special case for replacing the root */
+    if (path->valuestring[0] == '\0')
+    {
+        if (opcode == REMOVE)
+        {
+            /* remove possible children */
+            if (object->child != NULL)
+            {
+                cJSON_Delete(object->child);
+            }
+
+            /* remove other allocated resources */
+            if (object->string != NULL)
+            {
+                cJSON_free(object->string);
+            }
+            if (object->valuestring != NULL)
+            {
+                cJSON_free(object->valuestring);
+            }
+
+            /* make it invalid */
+            memset(object, '\0', sizeof(cJSON));
+
+            return 0;
+        }
+
+        if ((opcode == REPLACE) || (opcode == ADD))
+        {
+            /* remove possible children */
+            if (object->child != NULL)
+            {
+                cJSON_Delete(object->child);
+            }
+
+            /* remove other allocated resources */
+            if (object->string != NULL)
+            {
+                cJSON_free(object->string);
+            }
+            if (object->valuestring != NULL)
+            {
+                cJSON_free(object->valuestring);
+            }
+
+            value = cJSON_GetObjectItem(patch, "value");
+            if (value == NULL)
+            {
+                /* missing "value" for add/replace. */
+                return 7;
+            }
+
+            value = cJSON_Duplicate(value, 1);
+            if (value == NULL)
+            {
+                /* out of memory for add/replace. */
+                return 8;
+            }
+            /* the string "value" isn't needed */
+            if (value->string != NULL)
+            {
+                cJSON_free(value->string);
+                value->string = NULL;
+            }
+
+            /* copy over the value object */
+            memcpy(object, value, sizeof(cJSON));
+
+            /* delete the duplicated value */
+            cJSON_free(value);
+
+            return 0;
+        }
     }
 
     if ((opcode == REMOVE) || (opcode == REPLACE))
