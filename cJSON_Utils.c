@@ -194,6 +194,19 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *ta
     return NULL;
 }
 
+/* non broken version of cJSON_GetArrayItem */
+static cJSON *get_array_item(const cJSON *array, size_t item)
+{
+    cJSON *child = array ? array->child : NULL;
+    while ((child != NULL) && (item > 0))
+    {
+        item--;
+        child = child->next;
+    }
+
+    return child;
+}
+
 CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 {
     /* follow path of the pointer */
@@ -201,22 +214,18 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
     {
         if (cJSON_IsArray(object))
         {
-            size_t which = 0;
+            size_t index = 0;
             /* parse array index */
             while ((*pointer >= '0') && (*pointer <= '9'))
             {
-                which = (10 * which) + (size_t)(*pointer++ - '0');
+                index = (10 * index) + (size_t)(*pointer++ - '0');
             }
             if (*pointer && (*pointer != '/'))
             {
                 /* not end of string or new path token */
                 return NULL;
             }
-            if (which > INT_MAX)
-            {
-                return NULL;
-            }
-            object = cJSON_GetArrayItem(object, (int)which);
+            object = get_array_item(object, index);
         }
         else if (cJSON_IsObject(object))
         {
