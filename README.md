@@ -375,6 +375,10 @@ which are more complex than I'd care to try and stash into a `const char array[]
 
 ### Caveats
 
+#### Character Encoding
+
+cJSON only supports UTF-8 encoded input and will always produce UTF-8 as output (If the input contained invalid UTF-8, it will most likely propagate it through to the output, thereby making the output non-valid UTF-8).
+
 #### C Standard
 
 cJSON is written in ANSI C (or C89, C90). If your compiler or C library doesn't follow this standard, correct behavior is not guaranteed.
