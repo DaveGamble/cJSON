@@ -278,6 +278,39 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
     return 1;
 }
 
+/* non-broken cJSON_DetachItemFromArray */
+static cJSON *detach_item_from_array(cJSON *array, size_t which)
+{
+    cJSON *c = array->child;
+    while (c && (which > 0))
+    {
+        c = c->next;
+        which--;
+    }
+    if (!c)
+    {
+        /* item doesn't exist */
+        return NULL;
+    }
+    if (c->prev)
+    {
+        /* not the first element */
+        c->prev->next = c->next;
+    }
+    if (c->next)
+    {
+        c->next->prev = c->prev;
+    }
+    if (c==array->child)
+    {
+        array->child = c->next;
+    }
+    /* make sure the detached item doesn't point anywhere anymore */
+    c->prev = c->next = NULL;
+
+    return c;
+}
+
 static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
 {
     unsigned char *parentptr = NULL;
@@ -310,7 +343,13 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
     }
     else if (cJSON_IsArray(parent))
     {
-        ret = cJSON_DetachItemFromArray(parent, atoi((char*)childptr));
+        size_t index = 0;
+        if (!decode_array_index_from_pointer(childptr, &index))
+        {
+            free(parentptr);
+            return NULL;
+        }
+        ret = detach_item_from_array(parent, index);
     }
     else if (cJSON_IsObject(parent))
     {
