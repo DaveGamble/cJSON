@@ -262,6 +262,22 @@ static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
     *s2 = '\0';
 }
 
+static cJSON_bool decode_array_index_from_pointer(const unsigned char * const pointer, size_t * const index)
+{
+    char *end_pointer = NULL;
+    long int parsed_index = strtol((const char*)pointer, &end_pointer, 10);
+
+    if (((unsigned char*)end_pointer == pointer) || (parsed_index < 0) || (*end_pointer != '\0'))
+    {
+        /* array index is invalid */
+        return 0;
+    }
+
+    *index = (size_t)parsed_index;
+
+    return 1;
+}
+
 static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
 {
     unsigned char *parentptr = NULL;
@@ -548,25 +564,15 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         }
         else
         {
-            char *end_pointer = NULL;
-            long int index = strtol((char*)childptr, &end_pointer, 10);
-            if ((unsigned char*)end_pointer == childptr)
+            size_t index = 0;
+            if (!decode_array_index_from_pointer(childptr, &index))
             {
-                /* failed to parse numeric array index */
                 free(parentptr);
                 cJSON_Delete(value);
                 return 11;
             }
 
-            if ((index < 0) || (*end_pointer != '\0'))
-            {
-                /* array index is invalid */
-                free(parentptr);
-                cJSON_Delete(value);
-                return 12;
-            }
-
-            if (!insert_item_in_array(parent, (size_t)index, value))
+            if (!insert_item_in_array(parent, index, value))
             {
                 free(parentptr);
                 cJSON_Delete(value);
