@@ -194,6 +194,46 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *ta
     return NULL;
 }
 
+/* non broken version of cJSON_GetArrayItem */
+static cJSON *get_array_item(const cJSON *array, size_t item)
+{
+    cJSON *child = array ? array->child : NULL;
+    while ((child != NULL) && (item > 0))
+    {
+        item--;
+        child = child->next;
+    }
+
+    return child;
+}
+
+static cJSON_bool decode_array_index_from_pointer(const unsigned char * const pointer, size_t * const index)
+{
+    size_t parsed_index = 0;
+    size_t position = 0;
+
+    if ((pointer[0] == '0') && ((pointer[1] != '\0') && (pointer[1] != '/')))
+    {
+        /* leading zeroes are not permitted */
+        return 0;
+    }
+
+    for (position = 0; (pointer[position] >= '0') && (*pointer <= '9'); position++)
+    {
+        parsed_index = (10 * parsed_index) + (size_t)(pointer[position] - '0');
+
+    }
+
+    if ((pointer[position] != '\0') && (pointer[position] != '/'))
+    {
+        return 0;
+    }
+
+    *index = parsed_index;
+
+    return 1;
+}
+
 CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 {
     /* follow path of the pointer */
@@ -201,22 +241,13 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
     {
         if (cJSON_IsArray(object))
         {
-            size_t which = 0;
-            /* parse array index */
-            while ((*pointer >= '0') && (*pointer <= '9'))
-            {
-                which = (10 * which) + (size_t)(*pointer++ - '0');
-            }
-            if (*pointer && (*pointer != '/'))
-            {
-                /* not end of string or new path token */
-                return NULL;
-            }
-            if (which > INT_MAX)
+            size_t index = 0;
+            if (!decode_array_index_from_pointer((const unsigned char*)pointer, &index))
             {
                 return NULL;
             }
-            object = cJSON_GetArrayItem(object, (int)which);
+
+            object = get_array_item(object, index);
         }
         else if (cJSON_IsObject(object))
         {
@@ -262,6 +293,39 @@ static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
     *s2 = '\0';
 }
 
+/* non-broken cJSON_DetachItemFromArray */
+static cJSON *detach_item_from_array(cJSON *array, size_t which)
+{
+    cJSON *c = array->child;
+    while (c && (which > 0))
+    {
+        c = c->next;
+        which--;
+    }
+    if (!c)
+    {
+        /* item doesn't exist */
+        return NULL;
+    }
+    if (c->prev)
+    {
+        /* not the first element */
+        c->prev->next = c->next;
+    }
+    if (c->next)
+    {
+        c->next->prev = c->prev;
+    }
+    if (c==array->child)
+    {
+        array->child = c->next;
+    }
+    /* make sure the detached item doesn't point anywhere anymore */
+    c->prev = c->next = NULL;
+
+    return c;
+}
+
 static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
 {
     unsigned char *parentptr = NULL;
@@ -294,7 +358,13 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
     }
     else if (cJSON_IsArray(parent))
     {
-        ret = cJSON_DetachItemFromArray(parent, atoi((char*)childptr));
+        size_t index = 0;
+        if (!decode_array_index_from_pointer(childptr, &index))
+        {
+            free(parentptr);
+            return NULL;
+        }
+        ret = detach_item_from_array(parent, index);
     }
     else if (cJSON_IsObject(parent))
     {
@@ -364,19 +434,59 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
     return 0;
 }
 
+/* non broken version of cJSON_InsertItemInArray */
+static cJSON_bool insert_item_in_array(cJSON *array, size_t which, cJSON *newitem)
+{
+    cJSON *child = array->child;
+    while (child && (which > 0))
+    {
+        child = child->next;
+        which--;
+    }
+    if (which > 0)
+    {
+        /* item is after the end of the array */
+        return 0;
+    }
+    if (child == NULL)
+    {
+        cJSON_AddItemToArray(array, newitem);
+        return 1;
+    }
+
+    /* insert into the linked list */
+    newitem->next = child;
+    newitem->prev = child->prev;
+    child->prev = newitem;
+
+    /* was it at the beginning */
+    if (child == array->child)
+    {
+        array->child = newitem;
+    }
+    else
+    {
+        newitem->prev->next = newitem;
+    }
+
+    return 1;
+}
+
+enum patch_operation { INVALID, ADD, REMOVE, REPLACE, MOVE, COPY, TEST };
+
 static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 {
     cJSON *op = NULL;
     cJSON *path = NULL;
     cJSON *value = NULL;
     cJSON *parent = NULL;
-    int opcode = 0;
+    enum patch_operation opcode = INVALID;
     unsigned char *parentptr = NULL;
     unsigned char *childptr = NULL;
 
     op = cJSON_GetObjectItem(patch, "op");
     path = cJSON_GetObjectItem(patch, "path");
-    if (!op || !path)
+    if (!cJSON_IsString(op) || !cJSON_IsString(path))
     {
         /* malformed patch. */
         return 2;
@@ -385,23 +495,23 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     /* decode operation */
     if (!strcmp(op->valuestring, "add"))
     {
-        opcode = 0;
+        opcode = ADD;
     }
     else if (!strcmp(op->valuestring, "remove"))
     {
-        opcode = 1;
+        opcode = REMOVE;
     }
     else if (!strcmp(op->valuestring, "replace"))
     {
-        opcode = 2;
+        opcode = REPLACE;
     }
     else if (!strcmp(op->valuestring, "move"))
     {
-        opcode = 3;
+        opcode = MOVE;
     }
     else if (!strcmp(op->valuestring, "copy"))
     {
-        opcode = 4;
+        opcode = COPY;
     }
     else if (!strcmp(op->valuestring, "test"))
     {
@@ -414,20 +524,99 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         return 3;
     }
 
-    /* Remove/Replace */
-    if ((opcode == 1) || (opcode == 2))
+    /* special case for replacing the root */
+    if (path->valuestring[0] == '\0')
+    {
+        if (opcode == REMOVE)
+        {
+            /* remove possible children */
+            if (object->child != NULL)
+            {
+                cJSON_Delete(object->child);
+            }
+
+            /* remove other allocated resources */
+            if (object->string != NULL)
+            {
+                cJSON_free(object->string);
+            }
+            if (object->valuestring != NULL)
+            {
+                cJSON_free(object->valuestring);
+            }
+
+            /* make it invalid */
+            memset(object, '\0', sizeof(cJSON));
+
+            return 0;
+        }
+
+        if ((opcode == REPLACE) || (opcode == ADD))
+        {
+            /* remove possible children */
+            if (object->child != NULL)
+            {
+                cJSON_Delete(object->child);
+            }
+
+            /* remove other allocated resources */
+            if (object->string != NULL)
+            {
+                cJSON_free(object->string);
+            }
+            if (object->valuestring != NULL)
+            {
+                cJSON_free(object->valuestring);
+            }
+
+            value = cJSON_GetObjectItem(patch, "value");
+            if (value == NULL)
+            {
+                /* missing "value" for add/replace. */
+                return 7;
+            }
+
+            value = cJSON_Duplicate(value, 1);
+            if (value == NULL)
+            {
+                /* out of memory for add/replace. */
+                return 8;
+            }
+            /* the string "value" isn't needed */
+            if (value->string != NULL)
+            {
+                cJSON_free(value->string);
+                value->string = NULL;
+            }
+
+            /* copy over the value object */
+            memcpy(object, value, sizeof(cJSON));
+
+            /* delete the duplicated value */
+            cJSON_free(value);
+
+            return 0;
+        }
+    }
+
+    if ((opcode == REMOVE) || (opcode == REPLACE))
     {
         /* Get rid of old. */
-        cJSON_Delete(cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring));
-        if (opcode == 1)
+        cJSON *old_item = cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring);
+        if (old_item == NULL)
         {
-            /* For Remove, this is job done. */
+            return 13;
+        }
+        cJSON_Delete(old_item);
+        if (opcode == REMOVE)
+        {
+            /* For Remove, this job is done. */
             return 0;
         }
     }
 
     /* Copy/Move uses "from". */
-    if ((opcode == 3) || (opcode == 4))
+    if ((opcode == MOVE) || (opcode == COPY))
     {
         cJSON *from = cJSON_GetObjectItem(patch, "from");
         if (!from)
@@ -436,14 +625,12 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             return 4;
         }
 
-        if (opcode == 3)
+        if (opcode == MOVE)
         {
-            /* move */
             value = cJSONUtils_PatchDetach(object, (unsigned char*)from->valuestring);
         }
-        if (opcode == 4)
+        if (opcode == COPY)
         {
-            /* copy */
             value = cJSONUtils_GetPointer(object, from->valuestring);
         }
         if (!value)
@@ -451,7 +638,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             /* missing "from" for copy/move. */
             return 5;
         }
-        if (opcode == 4)
+        if (opcode == COPY)
         {
             value = cJSON_Duplicate(value, 1);
         }
@@ -505,7 +692,20 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         }
         else
         {
-            cJSON_InsertItemInArray(parent, atoi((char*)childptr), value);
+            size_t index = 0;
+            if (!decode_array_index_from_pointer(childptr, &index))
+            {
+                free(parentptr);
+                cJSON_Delete(value);
+                return 11;
+            }
+
+            if (!insert_item_in_array(parent, index, value))
+            {
+                free(parentptr);
+                cJSON_Delete(value);
+                return 10;
+            }
         }
     }
     else if (cJSON_IsObject(parent))
@@ -526,12 +726,7 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
 {
     int err = 0;
 
-    if (patches == NULL)
-    {
-        return 1;
-    }
-
-    if (cJSON_IsArray(patches))
+    if (!cJSON_IsArray(patches))
     {
         /* malformed patches. */
         return 1;
