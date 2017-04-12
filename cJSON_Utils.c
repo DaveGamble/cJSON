@@ -207,6 +207,33 @@ static cJSON *get_array_item(const cJSON *array, size_t item)
     return child;
 }
 
+static cJSON_bool decode_array_index_from_pointer(const unsigned char * const pointer, size_t * const index)
+{
+    size_t parsed_index = 0;
+    size_t position = 0;
+
+    if ((pointer[0] == '0') && ((pointer[1] != '\0') && (pointer[1] != '/')))
+    {
+        /* leading zeroes are not permitted */
+        return 0;
+    }
+
+    for (position = 0; (pointer[position] >= '0') && (*pointer <= '9'); position++)
+    {
+        parsed_index = (10 * parsed_index) + (size_t)(pointer[position] - '0');
+
+    }
+
+    if ((pointer[position] != '\0') && (pointer[position] != '/'))
+    {
+        return 0;
+    }
+
+    *index = parsed_index;
+
+    return 1;
+}
+
 CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
 {
     /* follow path of the pointer */
@@ -215,16 +242,11 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
         if (cJSON_IsArray(object))
         {
             size_t index = 0;
-            /* parse array index */
-            while ((*pointer >= '0') && (*pointer <= '9'))
+            if (!decode_array_index_from_pointer((const unsigned char*)pointer, &index))
             {
-                index = (10 * index) + (size_t)(*pointer++ - '0');
-            }
-            if (*pointer && (*pointer != '/'))
-            {
-                /* not end of string or new path token */
                 return NULL;
             }
+
             object = get_array_item(object, index);
         }
         else if (cJSON_IsObject(object))
@@ -269,22 +291,6 @@ static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
     }
 
     *s2 = '\0';
-}
-
-static cJSON_bool decode_array_index_from_pointer(const unsigned char * const pointer, size_t * const index)
-{
-    char *end_pointer = NULL;
-    long int parsed_index = strtol((const char*)pointer, &end_pointer, 10);
-
-    if (((unsigned char*)end_pointer == pointer) || (parsed_index < 0) || (*end_pointer != '\0'))
-    {
-        /* array index is invalid */
-        return 0;
-    }
-
-    *index = (size_t)parsed_index;
-
-    return 1;
 }
 
 /* non-broken cJSON_DetachItemFromArray */
