@@ -456,10 +456,15 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     if ((opcode == 1) || (opcode == 2))
     {
         /* Get rid of old. */
-        cJSON_Delete(cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring));
+        cJSON *old_item = cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring);
+        if (old_item == NULL)
+        {
+            return 13;
+        }
+        cJSON_Delete(old_item);
         if (opcode == 1)
         {
-            /* For Remove, this is job done. */
+            /* For Remove, this job is done. */
             return 0;
         }
     }
