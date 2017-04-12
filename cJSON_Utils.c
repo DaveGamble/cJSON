@@ -466,13 +466,15 @@ static cJSON_bool insert_item_in_array(cJSON *array, size_t which, cJSON *newite
     return 1;
 }
 
+enum patch_operation { INVALID, ADD, REMOVE, REPLACE, MOVE, COPY, TEST };
+
 static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
 {
     cJSON *op = NULL;
     cJSON *path = NULL;
     cJSON *value = NULL;
     cJSON *parent = NULL;
-    int opcode = 0;
+    enum patch_operation opcode = INVALID;
     unsigned char *parentptr = NULL;
     unsigned char *childptr = NULL;
 
@@ -487,23 +489,23 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     /* decode operation */
     if (!strcmp(op->valuestring, "add"))
     {
-        opcode = 0;
+        opcode = ADD;
     }
     else if (!strcmp(op->valuestring, "remove"))
     {
-        opcode = 1;
+        opcode = REMOVE;
     }
     else if (!strcmp(op->valuestring, "replace"))
     {
-        opcode = 2;
+        opcode = REPLACE;
     }
     else if (!strcmp(op->valuestring, "move"))
     {
-        opcode = 3;
+        opcode = MOVE;
     }
     else if (!strcmp(op->valuestring, "copy"))
     {
-        opcode = 4;
+        opcode = COPY;
     }
     else if (!strcmp(op->valuestring, "test"))
     {
@@ -516,8 +518,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         return 3;
     }
 
-    /* Remove/Replace */
-    if ((opcode == 1) || (opcode == 2))
+    if ((opcode == REMOVE) || (opcode == REPLACE))
     {
         /* Get rid of old. */
         cJSON *old_item = cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring);
@@ -526,7 +527,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             return 13;
         }
         cJSON_Delete(old_item);
-        if (opcode == 1)
+        if (opcode == REMOVE)
         {
             /* For Remove, this job is done. */
             return 0;
@@ -534,7 +535,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     }
 
     /* Copy/Move uses "from". */
-    if ((opcode == 3) || (opcode == 4))
+    if ((opcode == MOVE) || (opcode == COPY))
     {
         cJSON *from = cJSON_GetObjectItem(patch, "from");
         if (!from)
@@ -543,14 +544,12 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             return 4;
         }
 
-        if (opcode == 3)
+        if (opcode == MOVE)
         {
-            /* move */
             value = cJSONUtils_PatchDetach(object, (unsigned char*)from->valuestring);
         }
-        if (opcode == 4)
+        if (opcode == COPY)
         {
-            /* copy */
             value = cJSONUtils_GetPointer(object, from->valuestring);
         }
         if (!value)
@@ -558,7 +557,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
             /* missing "from" for copy/move. */
             return 5;
         }
-        if (opcode == 4)
+        if (opcode == COPY)
         {
             value = cJSON_Duplicate(value, 1);
         }
