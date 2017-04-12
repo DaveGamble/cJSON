@@ -103,7 +103,7 @@ if (NOT WIN32)
     target_link_libraries("${CJSON_LIB}" m)
 endif()
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson.pc.in"
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
 
 install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
@@ -130,7 +130,7 @@ if(ENABLE_CJSON_UTILS)
     add_library("${CJSON_UTILS_LIB}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
     target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
 
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson_utils.pc.in"
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson_utils.pc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
     install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_UTILS_LIB}")
@@ -149,10 +149,10 @@ endif()
 
 # create the other package config files
 configure_file(
-    cJSONConfig.cmake.in
+    "${CMAKE_CURRENT_SOURCE_DIR}/library_config/cJSONConfig.cmake.in"
     ${PROJECT_BINARY_DIR}/cJSONConfig.cmake @ONLY)
 configure_file(
-    cJSONConfigVersion.cmake.in
+    "${CMAKE_CURRENT_SOURCE_DIR}/library_config/cJSONConfigVersion.cmake.in"
     ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake @ONLY)
 
 # Install package config files
