@@ -151,12 +151,29 @@ static void cjson_utils_should_pass_json_patch_test_spec_tests(void)
     TEST_ASSERT_FALSE_MESSAGE(failed, "Some tests failed.");
 }
 
+static void cjson_utils_should_pass_json_patch_test_cjson_utils_tests(void)
+{
+    cJSON *tests = parse_test_file("json-patch-tests/cjson-utils-tests.json");
+    cJSON *test = NULL;
+
+    cJSON_bool failed = false;
+    cJSON_ArrayForEach(test, tests)
+    {
+        failed |= !test_apply_patch(test);
+    }
+
+    cJSON_Delete(tests);
+
+    TEST_ASSERT_FALSE_MESSAGE(failed, "Some tests failed.");
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_should_pass_json_patch_test_tests);
     RUN_TEST(cjson_utils_should_pass_json_patch_test_spec_tests);
+    RUN_TEST(cjson_utils_should_pass_json_patch_test_cjson_utils_tests);
 
     return UNITY_END();
 }

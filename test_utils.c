@@ -114,21 +114,6 @@ int main(void)
     }
     cJSON_Delete(root);
 
-
-    printf("JSON Apply Patch Tests\n");
-    for (i = 0; i < 15; i++)
-    {
-        cJSON *object_to_be_patched = cJSON_Parse(patches[i][0]);
-        cJSON *patch = cJSON_Parse(patches[i][1]);
-        int err = cJSONUtils_ApplyPatches(object_to_be_patched, patch);
-        char *output = cJSON_Print(object_to_be_patched);
-        printf("Test %d (err %d):\n%s\n\n", i + 1, err, output);
-
-        free(output);
-        cJSON_Delete(object_to_be_patched);
-        cJSON_Delete(patch);
-    }
-
     /* JSON Generate Patch tests: */
     printf("JSON Generate Patch Tests\n");
     for (i = 0; i < 15; i++)
