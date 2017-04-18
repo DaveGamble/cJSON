@@ -83,7 +83,8 @@ if(ENABLE_CJSON_TEST)
         file(COPY ${test_files} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/json-patch-tests/")
 
         set (cjson_utils_tests
-            json_patch_tests)
+            json_patch_tests
+            old_utils_tests)
 
         foreach (cjson_utils_test ${cjson_utils_tests})
             add_executable("${cjson_utils_test}" "${cjson_utils_test}.c")
