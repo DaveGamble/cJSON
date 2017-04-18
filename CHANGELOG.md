@@ -3,6 +3,7 @@
 Fixes:
 ------
 * Fix `cJSONUtils_ApplyPatches`, it was completely broken and apparently nobody noticed (or at least reported it) (075a06f40bdc4f836c7dd7cad690d253a57cfc50)
+* Fix inconsistent prototype for `cJSON_GetObjectItemCaseSensitive` (51d3df6c9f7b56b860c8fb24abe7bab255cd4fa9) thanks @PawelWMS
 
 1.4.6
 =====
