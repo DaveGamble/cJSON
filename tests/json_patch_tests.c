@@ -119,6 +119,67 @@ static cJSON_bool test_apply_patch(const cJSON * const test)
     return successful;
 }
 
+static cJSON_bool test_generate_test(cJSON *test __attribute__((unused)))
+{
+    cJSON *doc = NULL;
+    cJSON *patch = NULL;
+    cJSON *expected = NULL;
+    cJSON *disabled = NULL;
+
+    cJSON *object = NULL;
+    cJSON_bool successful = false;
+
+    char *printed_patch = NULL;
+
+    disabled = cJSON_GetObjectItem(test, "disabled");
+    if (cJSON_IsTrue(disabled))
+    {
+        printf("SKIPPED\n");
+        return true;
+    }
+
+    doc = cJSON_GetObjectItem(test, "doc");
+    TEST_ASSERT_NOT_NULL_MESSAGE(doc, "No \"doc\" in the test.");
+
+    /* Make a working copy of 'doc' */
+    object = cJSON_Duplicate(doc, true);
+    TEST_ASSERT_NOT_NULL(object);
+
+    expected = cJSON_GetObjectItem(test, "expected");
+    if (expected == NULL)
+    {
+        cJSON_Delete(object);
+        /* if there is no expected output, this test doesn't make sense */
+        return true;
+    }
+
+    patch = cJSONUtils_GeneratePatches(doc, expected);
+    TEST_ASSERT_NOT_NULL_MESSAGE(patch, "Failed to generate patches.");
+
+    printed_patch = cJSON_Print(patch);
+    printf("%s\n", printed_patch);
+    free(printed_patch);
+
+    /* apply the generated patch */
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, cJSONUtils_ApplyPatches(object, patch), "Failed to apply generated patch.");
+
+    successful = cJSON_Compare(object, expected, true);
+
+    cJSON_Delete(patch);
+    cJSON_Delete(object);
+
+    if (successful)
+    {
+        printf("generated patch: OK\n");
+    }
+    else
+    {
+        printf("generated patch: FAILED\n");
+    }
+
+    return successful;
+}
+
 static void cjson_utils_should_pass_json_patch_test_tests(void)
 {
     cJSON *tests = parse_test_file("json-patch-tests/tests.json");
@@ -128,6 +189,7 @@ static void cjson_utils_should_pass_json_patch_test_tests(void)
     cJSON_ArrayForEach(test, tests)
     {
         failed |= !test_apply_patch(test);
+        failed |= !test_generate_test(test);
     }
 
     cJSON_Delete(tests);
@@ -144,6 +206,7 @@ static void cjson_utils_should_pass_json_patch_test_spec_tests(void)
     cJSON_ArrayForEach(test, tests)
     {
         failed |= !test_apply_patch(test);
+        failed |= !test_generate_test(test);
     }
 
     cJSON_Delete(tests);
@@ -160,6 +223,7 @@ static void cjson_utils_should_pass_json_patch_test_cjson_utils_tests(void)
     cJSON_ArrayForEach(test, tests)
     {
         failed |= !test_apply_patch(test);
+        failed |= !test_generate_test(test);
     }
 
     cJSON_Delete(tests);
