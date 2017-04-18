@@ -375,6 +375,10 @@ which are more complex than I'd care to try and stash into a `const char array[]
 
 ### Caveats
 
+#### Zero Character
+
+cJSON doesn't support strings that contain the zero character `'\0'` or `\u0000`. This is impossible with the current API because strings are zero terminated.
+
 #### Character Encoding
 
 cJSON only supports UTF-8 encoded input and will always produce UTF-8 as output (If the input contained invalid UTF-8, it will most likely propagate it through to the output, thereby making the output non-valid UTF-8).
