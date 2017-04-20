@@ -410,27 +410,6 @@ static void update_offset(printbuffer * const buffer)
     buffer->offset += strlen((const char*)buffer_pointer);
 }
 
-/* Removes trailing zeroes from the end of a printed number */
-static int trim_trailing_zeroes(const unsigned char * const number, int length, const unsigned char decimal_point)
-{
-    if ((number == NULL) || (length <= 0))
-    {
-        return -1;
-    }
-
-    while ((length > 0) && (number[length - 1] == '0'))
-    {
-        length--;
-    }
-    if ((length > 0) && (number[length - 1] == decimal_point))
-    {
-        /* remove trailing decimal_point */
-        length--;
-    }
-
-    return length;
-}
-
 /* Render the number nicely from the given item into a string. */
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
@@ -438,9 +417,9 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     double d = item->valuedouble;
     int length = 0;
     size_t i = 0;
-    cJSON_bool trim_zeroes = true; /* should zeroes at the end be removed? */
-    unsigned char number_buffer[64]; /* temporary buffer to print the number into */
+    unsigned char number_buffer[26]; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
+    double test;
 
     if (output_buffer == NULL)
     {
@@ -452,35 +431,28 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-    else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
+    /* This checks for negative zero */
+    else if (d == 0)
     {
-        /* integer */
-        length = sprintf((char*)number_buffer, "%.0f", d);
-        trim_zeroes = false; /* don't remove zeroes for "big integers" */
-    }
-    else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
-    {
-        length = sprintf((char*)number_buffer, "%e", d);
-        trim_zeroes = false; /* don't remove zeroes in engineering notation */
+        length = sprintf((char*)number_buffer, "0");
     }
     else
     {
-        length = sprintf((char*)number_buffer, "%f", d);
+        /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
+        length = sprintf((char*)number_buffer, "%1.15g", d);
+
+        /* Check whether the original double can be recovered */
+        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || ((double)test != d))
+        {
+            /* If not, print with 17 decimal places of precision */
+            length = sprintf((char*)number_buffer, "%1.17g", d);
+        }
     }
 
     /* sprintf failed or buffer overrun occured */
     if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
     {
         return false;
-    }
-
-    if (trim_zeroes)
-    {
-        length = trim_trailing_zeroes(number_buffer, length, decimal_point);
-        if (length <= 0)
-        {
-            return false;
-        }
     }
 
     /* reserve appropriate space in the output */
