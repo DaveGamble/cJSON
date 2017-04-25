@@ -132,17 +132,19 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
 /* Supply a block of JSON, and this returns a cJSON object you can interrogate. Call cJSON_Delete when finished. */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value);
-/* Render a cJSON entity to text for transfer/storage. Free the char* when finished. */
+/* Render a cJSON entity to text for transfer/storage. Call cJSON_Free when finished. */
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item);
-/* Render a cJSON entity to text for transfer/storage without any formatting. Free the char* when finished. */
+/* Render a cJSON entity to text for transfer/storage without any formatting. Call cJSON_Free when finished. */
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item);
-/* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
+/* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. Guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted. Call cJSON_Free when finished. */
 CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt);
 /* Render a cJSON entity to text using a buffer already allocated in memory with given length. Returns 1 on success and 0 on failure. */
 /* NOTE: cJSON is not always 100% accurate in estimating how much memory it will use, so to be safe allocate 5 bytes more than you actually need */
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format);
 /* Delete a cJSON entity and all subentities. */
 CJSON_PUBLIC(void) cJSON_Delete(cJSON *c);
+/* Free a string rendered by cJSON_Print[Unformatted|Buffered]. */
+CJSON_PUBLIC(void) cJSON_Free(void *s);
 
 /* Returns the number of items in an array (or object). */
 CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array);

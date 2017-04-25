@@ -190,6 +190,12 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
     }
 }
 
+/* Free a string rendered by cJSON_Print[Unformatted|Buffered]. */
+CJSON_PUBLIC(void) cJSON_Free(void *s)
+{
+    global_hooks.deallocate(s);
+}
+
 /* get the decimal point character of the current locale */
 static unsigned char get_decimal_point(void)
 {
