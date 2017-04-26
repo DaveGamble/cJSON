@@ -34,10 +34,9 @@ static void assert_print_array(const char * const expected, const char * const i
     printbuffer formatted_buffer;
     printbuffer unformatted_buffer;
 
-    parse_buffer parsebuffer;
+    parse_buffer parsebuffer = { 0, 0, 0, 0 };
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.offset = 0;
 
     /* buffer for formatted printing */
     formatted_buffer.buffer = printed_formatted;

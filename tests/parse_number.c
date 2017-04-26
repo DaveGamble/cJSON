@@ -45,10 +45,9 @@ static void assert_is_number(cJSON *number_item)
 
 static void assert_parse_number(const char *string, int integer, double real)
 {
-    parse_buffer buffer;
+    parse_buffer buffer = { 0, 0, 0, 0 };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
-    buffer.offset = 0;
 
     TEST_ASSERT_TRUE(parse_number(item, &buffer));
     assert_is_number(item);

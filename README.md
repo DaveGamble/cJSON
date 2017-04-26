@@ -389,6 +389,10 @@ cJSON does not officially support any `double` implementations other than IEE754
 
 The maximum length of a floating point literal that cJSON supports is currently 63 characters.
 
+#### Deep Nesting Of Arrays And Objects
+
+cJSON doesn't support arrays and objects that are nested too deeply because this would result in a stack overflow. To prevent this cJSON limits the depth to `CJSON_NESTING_LIMIT` which is 1000 by default but can be changed at compile time.
+
 #### Thread Safety
 
 In general cJSON is **not thread safe**.

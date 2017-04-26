@@ -33,7 +33,7 @@ static void assert_print_value(const char *input)
     unsigned char printed[1024];
     cJSON item[1];
     printbuffer buffer;
-    parse_buffer parsebuffer;
+    parse_buffer parsebuffer = { 0, 0, 0, 0 };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
@@ -41,7 +41,6 @@ static void assert_print_value(const char *input)
 
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.offset = 0;
 
     memset(item, 0, sizeof(item));
 

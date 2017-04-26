@@ -183,6 +183,20 @@ static void typecheck_functions_should_check_type(void)
     TEST_ASSERT_TRUE(cJSON_IsRaw(item));
 }
 
+static void cjson_should_not_parse_to_deeply_nested_jsons(void)
+{
+    char deep_json[CJSON_NESTING_LIMIT + 1];
+    size_t position = 0;
+
+    for (position = 0; position < sizeof(deep_json); position++)
+    {
+        deep_json[position] = '[';
+    }
+    deep_json[sizeof(deep_json) - 1] = '\0';
+
+    TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(deep_json), "To deep JSONs should not be parsed.");
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -192,6 +206,7 @@ int main(void)
     RUN_TEST(cjson_get_object_item_should_get_object_items);
     RUN_TEST(cjson_get_object_item_case_sensitive_should_get_object_items);
     RUN_TEST(typecheck_functions_should_check_type);
+    RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
 
     return UNITY_END();
 }

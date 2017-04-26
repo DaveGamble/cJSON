@@ -45,10 +45,9 @@ static void assert_is_string(cJSON *string_item)
 
 static void assert_parse_string(const char *string, const char *expected)
 {
-    parse_buffer buffer;
+    parse_buffer buffer = { 0, 0, 0, 0 };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
-    buffer.offset = 0;
 
     TEST_ASSERT_TRUE_MESSAGE(parse_string(item, &buffer, &global_hooks), "Couldn't parse string.");
     assert_is_string(item);
@@ -59,10 +58,9 @@ static void assert_parse_string(const char *string, const char *expected)
 
 static void assert_not_parse_string(const char * const string)
 {
-    parse_buffer buffer;
+    parse_buffer buffer = { 0, 0, 0, 0 };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
-    buffer.offset = 0;
 
     TEST_ASSERT_FALSE_MESSAGE(parse_string(item, &buffer, &global_hooks), "Malformed string should not be accepted.");
     assert_is_invalid(item);

@@ -202,6 +202,7 @@ typedef struct
     const unsigned char *content;
     size_t length;
     size_t offset;
+    size_t depth; /* How deeply nested (in arrays/objects) is the input at the current offset. */
 } parse_buffer;
 
 /* check if the given size is left to read in a given parse buffer (starting with 1) */
@@ -956,7 +957,7 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
 /* Parse an object - create a new root, and populate. */
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    parse_buffer buffer = { 0, 0, 0 };
+    parse_buffer buffer = { 0, 0, 0, 0 };
     cJSON *item = NULL;
 
     /* reset error position */
@@ -1296,6 +1297,12 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
     cJSON *head = NULL; /* head of the linked list */
     cJSON *current_item = NULL;
 
+    if (input_buffer->depth >= CJSON_NESTING_LIMIT)
+    {
+        return false; /* to deeply nested */
+    }
+    input_buffer->depth++;
+
     if (buffer_at_offset(input_buffer)[0] != '[')
     {
         /* not an array */
@@ -1360,6 +1367,8 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
     }
 
 success:
+    input_buffer->depth--;
+
     item->type = cJSON_Array;
     item->child = head;
 
@@ -1442,6 +1451,12 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
     cJSON *head = NULL; /* linked list head */
     cJSON *current_item = NULL;
 
+    if (input_buffer->depth >= CJSON_NESTING_LIMIT)
+    {
+        return false; /* to deeply nested */
+    }
+    input_buffer->depth++;
+
     if (cannot_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != '{'))
     {
         goto fail; /* not an object */
@@ -1522,6 +1537,8 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
     }
 
 success:
+    input_buffer->depth--;
+
     item->type = cJSON_Object;
     item->child = head;
 
