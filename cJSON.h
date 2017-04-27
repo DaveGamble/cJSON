@@ -132,8 +132,13 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
 /* Supply a block of JSON, and this returns a cJSON object you can interrogate. Call cJSON_Delete when finished. */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value);
+/* Wrapper for cJSON_Parse() to be used when JSON is needed to be read from a file */
+CJSON_PUBLIC(cJSON *) cJSON_Parse_File(const char *file_name, int *error);
 /* Render a cJSON entity to text for transfer/storage. Free the char* when finished. */
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item);
+/* Wrapper for cJSON_Print() to be used when JSON is needed to be written to a file */
+/* return false on error */
+CJSON_PUBLIC(cJSON_bool) cJSON_Print_To_File(const cJSON *item, const char *file_name);
 /* Render a cJSON entity to text for transfer/storage without any formatting. Free the char* when finished. */
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item);
 /* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */

@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <locale.h>
+#include <errno.h>
 #pragma GCC visibility pop
 
 #include "cJSON.h"
@@ -886,6 +887,8 @@ static const unsigned char *parse_array(cJSON * const item, const unsigned char 
 static cJSON_bool print_array(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 static const unsigned char *parse_object(cJSON * const item, const unsigned char *input, const unsigned char ** const ep, const internal_hooks * const hooks);
 static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
+static unsigned long get_file_size(const char *file_name);
+
 
 /* Utility to jump whitespace and cr/lf */
 static const unsigned char *skip_whitespace(const unsigned char *in)
@@ -944,6 +947,54 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
+/* Wrapper to be used when using a file for cJSON_Parse */
+CJSON_PUBLIC(cJSON *) cJSON_Parse_File(const char *file_name, int *error)
+{
+    FILE *fin;
+    char *data;
+    cJSON *json = NULL;
+    unsigned long len;
+    
+    errno = 0;
+    len = get_file_size(file_name);
+    
+    if ( (len <= 0) || (NULL == file_name) || (NULL == (fin = fopen(file_name, "r"))) ) 
+    {
+        if (NULL != error) {
+            *error = errno;
+        } 
+        return NULL; 
+    }
+    
+    data = (char *) global_hooks.allocate(len);
+    if (data) 
+    {
+     if (fread(data, sizeof(unsigned char), len, fin) == len) 
+     {
+         json = cJSON_Parse(data);
+     }
+     global_hooks.deallocate(data);
+    }
+    
+    fclose(fin);
+    return json;
+}
+
+static unsigned long get_file_size(const char *file_name)
+{
+    unsigned long file_size = 0;
+    FILE *f;
+    f = fopen(file_name, "r");
+    if (NULL != f) {
+        fseek(f, 0, SEEK_END);
+        file_size = (unsigned long ) ftell(f);
+        fclose(f);
+    }
+    return file_size;
+}
+
+
+
 #define min(a, b) ((a < b) ? a : b)
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
@@ -999,6 +1050,37 @@ fail:
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)
 {
     return (char*)print(item, true, &global_hooks);
+}
+
+/* Wrapper for cJSON_Print() to be used when JSON is needed to be written to a file */
+CJSON_PUBLIC(cJSON_bool) cJSON_Print_To_File(const cJSON *item, const char *file_name)
+{
+    cJSON_bool ret_value = false;
+    char *cp;
+    size_t str_len;
+    FILE *fout;
+    
+    fout = fopen(file_name, "w");
+    if (NULL == fout) 
+    {
+        return ret_value;
+    }
+    
+    cp = cJSON_Print(item);
+    
+    if (NULL != cp) 
+    {
+        str_len = strlen(cp);
+        if (fwrite(cp, sizeof(unsigned char), str_len, fout) == str_len)
+        {
+            ret_value = true;
+        }
+        global_hooks.deallocate(cp);
+    }
+       
+    fclose(fout);
+    
+    return ret_value;
 }
 
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
