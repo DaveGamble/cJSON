@@ -822,7 +822,7 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
                 cJSONUtils_CompareToPatch(patches, newpath, from, to);
             }
             /* remove leftover elements from 'from' that are not in 'to' */
-            for (; from; (void)(from = from->next), c++)
+            for (; from; (void)(from = from->next))
             {
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
