@@ -315,6 +315,7 @@ typedef struct
     unsigned char *buffer;
     size_t length;
     size_t offset;
+    size_t depth; /* current nesting depth (for formatted printing) */
     cJSON_bool noalloc;
 } printbuffer;
 
@@ -927,11 +928,11 @@ static cJSON_bool print_string(const cJSON * const item, printbuffer * const p, 
 
 /* Predeclare these prototypes. */
 static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buffer, const internal_hooks * const hooks);
-static cJSON_bool print_value(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
+static cJSON_bool print_value(const cJSON * const item, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buffer, const internal_hooks * const hooks);
-static cJSON_bool print_array(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
+static cJSON_bool print_array(const cJSON * const item, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_buffer, const internal_hooks * const hooks);
-static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
+static cJSON_bool print_object(const cJSON * const item, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks);
 
 /* Utility to jump whitespace and cr/lf */
 static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
@@ -1058,7 +1059,7 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     }
 
     /* print the value */
-    if (!print_value(item, 0, format, buffer, hooks))
+    if (!print_value(item, format, buffer, hooks))
     {
         goto fail;
     }
@@ -1116,7 +1117,7 @@ CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
 
 CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)
 {
-    printbuffer p;
+    printbuffer p = { 0, 0, 0, 0, 0 };
 
     if (prebuffer < 0)
     {
@@ -1133,7 +1134,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
     p.offset = 0;
     p.noalloc = false;
 
-    if (!print_value(item, 0, fmt, &p, &global_hooks))
+    if (!print_value(item, fmt, &p, &global_hooks))
     {
         return NULL;
     }
@@ -1143,7 +1144,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const int len, const cJSON_bool fmt)
 {
-    printbuffer p;
+    printbuffer p = { 0, 0, 0, 0, 0 };
 
     if (len < 0)
     {
@@ -1154,7 +1155,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const i
     p.length = (size_t)len;
     p.offset = 0;
     p.noalloc = true;
-    return print_value(item, 0, fmt, &p, &global_hooks);
+    return print_value(item, fmt, &p, &global_hooks);
 }
 
 /* Parser core - when encountering text, process appropriately. */
@@ -1214,7 +1215,7 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
 }
 
 /* Render a value to text. */
-static cJSON_bool print_value(const cJSON * const item, const size_t depth, const cJSON_bool format,  printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_value(const cJSON * const item, const cJSON_bool format,  printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     unsigned char *output = NULL;
 
@@ -1281,10 +1282,10 @@ static cJSON_bool print_value(const cJSON * const item, const size_t depth, cons
             return print_string(item, output_buffer, hooks);
 
         case cJSON_Array:
-            return print_array(item, depth, format, output_buffer, hooks);
+            return print_array(item, format, output_buffer, hooks);
 
         case cJSON_Object:
-            return print_object(item, depth, format, output_buffer, hooks);
+            return print_object(item, format, output_buffer, hooks);
 
         default:
             return false;
@@ -1386,7 +1387,7 @@ fail:
 }
 
 /* Render an array to text */
-static cJSON_bool print_array(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_array(const cJSON * const item, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     unsigned char *output_pointer = NULL;
     size_t length = 0;
@@ -1407,10 +1408,11 @@ static cJSON_bool print_array(const cJSON * const item, const size_t depth, cons
 
     *output_pointer = '[';
     output_buffer->offset++;
+    output_buffer->depth++;
 
     while (current_element != NULL)
     {
-        if (!print_value(current_element, depth + 1, format, output_buffer, hooks))
+        if (!print_value(current_element, format, output_buffer, hooks))
         {
             return false;
         }
@@ -1441,6 +1443,7 @@ static cJSON_bool print_array(const cJSON * const item, const size_t depth, cons
     }
     *output_pointer++ = ']';
     *output_pointer = '\0';
+    output_buffer->depth--;
 
     return true;
 }
@@ -1555,7 +1558,7 @@ fail:
 }
 
 /* Render an object to text. */
-static cJSON_bool print_object(const cJSON * const item, const size_t depth, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks)
+static cJSON_bool print_object(const cJSON * const item, const cJSON_bool format, printbuffer * const output_buffer, const internal_hooks * const hooks)
 {
     unsigned char *output_pointer = NULL;
     size_t length = 0;
@@ -1575,6 +1578,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
     }
 
     *output_pointer++ = '{';
+    output_buffer->depth++;
     if (format)
     {
         *output_pointer++ = '\n';
@@ -1586,16 +1590,16 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
         if (format)
         {
             size_t i;
-            output_pointer = ensure(output_buffer, depth + 1, hooks);
+            output_pointer = ensure(output_buffer, output_buffer->depth, hooks);
             if (output_pointer == NULL)
             {
                 return false;
             }
-            for (i = 0; i < depth + 1; i++)
+            for (i = 0; i < output_buffer->depth; i++)
             {
                 *output_pointer++ = '\t';
             }
-            output_buffer->offset += depth + 1;
+            output_buffer->offset += output_buffer->depth;
         }
 
         /* print key */
@@ -1619,7 +1623,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
         output_buffer->offset += length;
 
         /* print value */
-        if (!print_value(current_item, depth + 1, format, output_buffer, hooks))
+        if (!print_value(current_item, format, output_buffer, hooks))
         {
             return false;
         }
@@ -1647,7 +1651,7 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
         current_item = current_item->next;
     }
 
-    output_pointer = ensure(output_buffer, format ? (depth + 2) : 2, hooks);
+    output_pointer = ensure(output_buffer, format ? (output_buffer->depth + 1) : 2, hooks);
     if (output_pointer == NULL)
     {
         return false;
@@ -1655,13 +1659,14 @@ static cJSON_bool print_object(const cJSON * const item, const size_t depth, con
     if (format)
     {
         size_t i;
-        for (i = 0; i < (depth); i++)
+        for (i = 0; i < (output_buffer->depth - 1); i++)
         {
             *output_pointer++ = '\t';
         }
     }
     *output_pointer++ = '}';
     *output_pointer = '\0';
+    output_buffer->depth--;
 
     return true;
 }
