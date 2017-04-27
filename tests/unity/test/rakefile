@@ -32,7 +32,7 @@ configure_toolchain(DEFAULT_CONFIG_FILE)
 
 desc "Test unity with its own unit tests"
 task :unit => [:prepare_for_tests] do
-  run_tests get_unit_test_files
+  run_tests unit_test_files
 end
 
 desc "Test unity's helper scripts"
@@ -53,7 +53,7 @@ task :summary do
 end
 
 desc "Build and test Unity"
-task :all => [:clean, :prepare_for_tests, :scripts, :unit, :summary]
+task :all => [:clean, :prepare_for_tests, :scripts, :unit, :style, :summary]
 task :default => [:clobber, :all]
 task :ci => [:no_color, :default]
 task :cruise => [:no_color, :default]
@@ -70,3 +70,56 @@ end
 task :verbose do
   $verbose = true
 end
+
+namespace :style do
+  desc "Check style"
+  task :check do
+    report "\nVERIFYING RUBY STYLE"
+    report execute("rubocop ../auto ../examples ../extras --config .rubocop.yml", true)
+    report "Styling Ruby:PASS"
+  end
+
+  namespace :check do
+    Dir['../**/*.rb'].each do |f|
+      filename = File.basename(f, '.rb')
+      desc "Check Style of #{filename}"
+      task filename.to_sym => ['style:clean'] do
+        report execute("rubocop #{f} --color --config .rubocop.yml", true)
+        report "Style Checked for #{f}"
+      end
+    end
+  end
+
+  desc "Fix Style of all C Code"
+  task :c do
+    run_astyle("../src/*.* ../extras/fixture/src/*.*")
+  end
+
+  namespace :c do
+    Dir['../{src,extras/**}/*.{c,h}'].each do |f|
+      filename = File.basename(f)[0..-3]
+      desc "Check Style of #{filename}"
+      task filename.to_sym do
+        run_astyle f
+      end
+    end
+  end
+
+  desc "Attempt to Autocorrect style"
+  task :auto  => ['style:clean'] do
+    execute("rubocop ../auto ../examples ../extras --auto-correct --config .rubocop.yml")
+    report "Autocorrected What We Could."
+  end
+
+  desc "Update style todo list"
+  task :todo  => ['style:clean'] do
+    execute("rubocop ../auto ../examples ../extras --auto-gen-config --config .rubocop.yml")
+    report "Updated Style TODO List."
+  end
+
+  task :clean do
+    File.delete(".rubocop_todo.yml") if File.exists?(".rubocop_todo.yml")
+  end
+end
+
+task :style => ['style:check']
