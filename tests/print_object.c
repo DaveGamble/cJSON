@@ -31,8 +31,8 @@ static void assert_print_object(const char * const expected, const char * const 
 
     cJSON item[1];
 
-    printbuffer formatted_buffer = { 0, 0, 0, 0, 0 };
-    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0 };
+    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, 0 };
+    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, 0 };
     parse_buffer parsebuffer = { 0, 0, 0, 0 };
 
     /* buffer for parsing */
@@ -54,10 +54,12 @@ static void assert_print_object(const char * const expected, const char * const 
     memset(item, 0, sizeof(item));
     TEST_ASSERT_TRUE_MESSAGE(parse_object(item, &parsebuffer, &global_hooks), "Failed to parse object.");
 
-    TEST_ASSERT_TRUE_MESSAGE(print_object(item, false, &unformatted_buffer, &global_hooks), "Failed to print unformatted string.");
+    unformatted_buffer.format = false;
+    TEST_ASSERT_TRUE_MESSAGE(print_object(item, &unformatted_buffer, &global_hooks), "Failed to print unformatted string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, printed_unformatted, "Unformatted object is not correct.");
 
-    TEST_ASSERT_TRUE_MESSAGE(print_object(item, true, &formatted_buffer, &global_hooks), "Failed to print formatted string.");
+    formatted_buffer.format = true;
+    TEST_ASSERT_TRUE_MESSAGE(print_object(item, &formatted_buffer, &global_hooks), "Failed to print formatted string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed_formatted, "Formatted ojbect is not correct.");
 
     reset(item);
