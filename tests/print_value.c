@@ -32,21 +32,23 @@ static void assert_print_value(const char *input)
 {
     unsigned char printed[1024];
     cJSON item[1];
-    printbuffer buffer = { 0, 0, 0, 0, 0, 0 };
-    parse_buffer parsebuffer = { 0, 0, 0, 0 };
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
+    buffer.hooks = global_hooks;
 
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
+    parsebuffer.hooks = global_hooks;
 
     memset(item, 0, sizeof(item));
 
-    TEST_ASSERT_TRUE_MESSAGE(parse_value(item, &parsebuffer, &global_hooks), "Failed to parse value.");
+    TEST_ASSERT_TRUE_MESSAGE(parse_value(item, &parsebuffer), "Failed to parse value.");
 
-    TEST_ASSERT_TRUE_MESSAGE(print_value(item, &buffer, &global_hooks), "Failed to print value.");
+    TEST_ASSERT_TRUE_MESSAGE(print_value(item, &buffer), "Failed to print value.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, buffer.buffer, "Printed value is not as expected.");
 
     reset(item);

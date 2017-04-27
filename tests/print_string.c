@@ -27,13 +27,14 @@
 static void assert_print_string(const char *expected, const char *input)
 {
     unsigned char printed[1024];
-    printbuffer buffer = { 0, 0, 0, 0, 0, 0 };
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
+    buffer.hooks = global_hooks;
 
-    TEST_ASSERT_TRUE_MESSAGE(print_string_ptr((const unsigned char*)input, &buffer, &global_hooks), "Failed to print string.");
+    TEST_ASSERT_TRUE_MESSAGE(print_string_ptr((const unsigned char*)input, &buffer), "Failed to print string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed, "The printed string isn't as expected.");
 }
 

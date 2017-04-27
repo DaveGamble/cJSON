@@ -28,16 +28,17 @@ static void assert_print_number(const char *expected, double input)
 {
     unsigned char printed[1024];
     cJSON item[1];
-    printbuffer buffer = { 0, 0, 0, 0, 0, 0 };
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
+    buffer.hooks = global_hooks;
 
     memset(item, 0, sizeof(item));
     cJSON_SetNumberValue(item, input);
 
-    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer, &global_hooks), "Failed to print number.");
+    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
 }
 
