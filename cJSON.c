@@ -958,7 +958,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse_File(const char *file_name, int *error)
     errno = 0;
     len = get_file_size(file_name);
     
-    if ( (len <= 0) || (NULL == file_name) || (NULL == (fin = fopen(file_name, "r"))) ) 
+    if ( (len <= 0) || (NULL == file_name) || (NULL == (fin = fopen(file_name, "rb"))) ) 
     {
         if (NULL != error) {
             *error = errno;
