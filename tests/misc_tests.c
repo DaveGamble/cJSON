@@ -197,6 +197,27 @@ static void cjson_should_not_parse_to_deeply_nested_jsons(void)
     TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(deep_json), "To deep JSONs should not be parsed.");
 }
 
+static void cjson_set_number_value_should_set_numbers(void)
+{
+    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
+
+    cJSON_SetNumberValue(number, 1.5);
+    TEST_ASSERT_EQUAL(1, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(1.5, number->valuedouble);
+
+    cJSON_SetNumberValue(number, -1.5);
+    TEST_ASSERT_EQUAL(-1, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
+
+    cJSON_SetNumberValue(number, 1 + (double)INT_MAX);
+    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(1 + (double)INT_MAX, number->valuedouble);
+
+    cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
+    TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -207,6 +228,7 @@ int main(void)
     RUN_TEST(cjson_get_object_item_case_sensitive_should_get_object_items);
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
+    RUN_TEST(cjson_set_number_value_should_set_numbers);
 
     return UNITY_END();
 }
