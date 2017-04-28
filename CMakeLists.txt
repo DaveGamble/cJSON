@@ -179,18 +179,10 @@ if(ENABLE_CJSON_TEST)
         endif()
     endif()
 
-    if(ENABLE_CJSON_UTILS)
-        set(TEST_CJSON_UTILS cJSON_test_utils)
-        add_executable("${TEST_CJSON_UTILS}" test_utils.c)
-        target_link_libraries("${TEST_CJSON_UTILS}" "${CJSON_UTILS_LIB}")
-
-        add_test(NAME ${TEST_CJSON_UTILS} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${TEST_CJSON_UTILS}")
-    endif()
-
     #"check" target that automatically builds everything and runs the tests
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        DEPENDS ${TEST_CJSON} ${TEST_CJSON_UTILS})
+        DEPENDS ${TEST_CJSON})
 endif()
 
 add_subdirectory(tests)
