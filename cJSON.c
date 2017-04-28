@@ -966,11 +966,12 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse_File(const char *file_name, int *error)
         return NULL; 
     }
     
-    data = (char *) global_hooks.allocate(len);
+    data = (char *) global_hooks.allocate(len + + sizeof(""));
     if (data) 
     {
      if (fread(data, sizeof(unsigned char), len, fin) == len) 
      {
+         data[len] = '\0';
          json = cJSON_Parse(data);
      }
      global_hooks.deallocate(data);
