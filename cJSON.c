@@ -431,11 +431,6 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-    /* This checks for negative zero */
-    else if (d == 0)
-    {
-        length = sprintf((char*)number_buffer, "0");
-    }
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
