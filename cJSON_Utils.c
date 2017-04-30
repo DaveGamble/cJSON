@@ -848,7 +848,7 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
     return 0;
 }
 
-static void cJSONUtils_GeneratePatch(cJSON * const patches, const unsigned char * const operation, const unsigned char * const path, const unsigned char *suffix, const cJSON * const value)
+static void compose_patch(cJSON * const patches, const unsigned char * const operation, const unsigned char * const path, const unsigned char *suffix, const cJSON * const value)
 {
     cJSON *patch = cJSON_CreateObject();
     if (patch == NULL)
@@ -883,7 +883,7 @@ static void cJSONUtils_GeneratePatch(cJSON * const patches, const unsigned char 
 
 CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * const operation, const char * const path, const cJSON * const value)
 {
-    cJSONUtils_GeneratePatch(array, (const unsigned char*)operation, (const unsigned char*)path, NULL, value);
+    compose_patch(array, (const unsigned char*)operation, (const unsigned char*)path, NULL, value);
 }
 
 static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char * const path, cJSON * const from, cJSON * const to)
@@ -895,7 +895,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
 
     if ((from->type & 0xFF) != (to->type & 0xFF))
     {
-        cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, 0, to);
+        compose_patch(patches, (const unsigned char*)"replace", path, 0, to);
         return;
     }
 
@@ -904,14 +904,14 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
         case cJSON_Number:
             if ((from->valueint != to->valueint) || (from->valuedouble != to->valuedouble))
             {
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, NULL, to);
+                compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
             return;
 
         case cJSON_String:
             if (strcmp(from->valuestring, to->valuestring) != 0)
             {
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, NULL, to);
+                compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
             return;
 
@@ -949,12 +949,12 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                     return;
                 }
                 sprintf((char*)new_path, "%lu", (unsigned long)index);
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, new_path, NULL);
+                compose_patch(patches, (const unsigned char*)"remove", path, new_path, NULL);
             }
             /* add new elements in 'to' that were not in 'from' */
             for (; (to_child != NULL); (void)(to_child = to_child->next), index++)
             {
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to_child);
+                compose_patch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to_child);
             }
             free(new_path);
             return;
@@ -1006,14 +1006,14 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                 else if (diff < 0)
                 {
                     /* object element doesn't exist in 'to' --> remove it */
-                    cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, (unsigned char*)from_child->string, NULL);
+                    compose_patch(patches, (const unsigned char*)"remove", path, (unsigned char*)from_child->string, NULL);
 
                     from_child = from_child->next;
                 }
                 else
                 {
                     /* object element doesn't exist in 'from' --> add it */
-                    cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (unsigned char*)to_child->string, to_child);
+                    compose_patch(patches, (const unsigned char*)"add", path, (unsigned char*)to_child->string, to_child);
 
                     to_child = to_child->next;
                 }
