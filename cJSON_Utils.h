@@ -64,4 +64,4 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to);
 CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const object, const cJSON * const target);
 
 /* Sorts the members of the object into alphabetical order. */
-CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object);
+CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object);

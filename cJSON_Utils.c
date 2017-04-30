@@ -1140,7 +1140,7 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     return result;
 }
 
-CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object)
+CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object)
 {
     object->child = cJSONUtils_SortList(object->child);
 }
