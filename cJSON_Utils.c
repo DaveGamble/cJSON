@@ -410,12 +410,12 @@ cleanup:
     return detached_item;
 }
 
-static int cJSONUtils_Compare(cJSON *a, cJSON *b)
+static cJSON_bool compare_json(cJSON *a, cJSON *b)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
     {
         /* mismatched type. */
-        return -1;
+        return false;
     }
     switch (a->type & 0xFF)
     {
@@ -423,42 +423,42 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
             /* numeric mismatch. */
             if ((a->valueint != b->valueint) || (a->valuedouble != b->valuedouble))
             {
-                return -2;
+                return false;
             }
             else
             {
-                return 0;
+                return true;
             }
 
         case cJSON_String:
             /* string mismatch. */
             if (strcmp(a->valuestring, b->valuestring) != 0)
             {
-                return -3;
+                return false;
             }
             else
             {
-                return 0;
+                return true;
             }
 
         case cJSON_Array:
             for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
-                int status = cJSONUtils_Compare(a, b);
-                if (status != 0)
+                cJSON_bool identical = compare_json(a, b);
+                if (!identical)
                 {
-                    return status;
+                    return false;
                 }
             }
 
             /* array size mismatch? (one of both children is not NULL) */
             if ((a != NULL) || (b != NULL))
             {
-                return -4;
+                return false;
             }
             else
             {
-                return 0;
+                return true;
             }
 
         case cJSON_Object:
@@ -466,28 +466,28 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
             cJSONUtils_SortObject(b);
             for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
-                int status = 0;
+                cJSON_bool identical = false;
                 /* compare object keys */
                 if (case_insensitive_strcmp((unsigned char*)a->string, (unsigned char*)b->string))
                 {
                     /* missing member */
-                    return -6;
+                    return false;
                 }
-                status = cJSONUtils_Compare(a, b);
-                if (status != 0)
+                identical = compare_json(a, b);
+                if (!identical)
                 {
-                    return status;
+                    return false;
                 }
             }
 
             /* object length mismatch (one of both children is not null) */
             if ((a != NULL) || (b != NULL))
             {
-                return -5;
+                return false;
             }
             else
             {
-                return 0;
+                return true;
             }
 
         default:
@@ -495,7 +495,7 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
     }
 
     /* null, true or false */
-    return 0;
+    return true;
 }
 
 /* non broken version of cJSON_InsertItemInArray */
@@ -630,7 +630,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, const cJSON *patch)
     else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        status = cJSONUtils_Compare(cJSONUtils_GetPointer(object, path->valuestring), cJSON_GetObjectItem(patch, "value"));
+        status = !compare_json(cJSONUtils_GetPointer(object, path->valuestring), cJSON_GetObjectItem(patch, "value"));
         goto cleanup;
     }
 
@@ -1242,7 +1242,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * 
         else
         {
             /* object key exists in both objects */
-            if (cJSONUtils_Compare(from_child, to_child))
+            if (!compare_json(from_child, to_child))
             {
                 /* not identical --> generate a patch */
                 cJSON_AddItemToObject(patch, to_child->string, cJSONUtils_GenerateMergePatch(from_child, to_child));
