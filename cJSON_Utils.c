@@ -30,6 +30,10 @@
 
 #include "cJSON_Utils.h"
 
+/* define our own boolean type */
+#define true ((cJSON_bool)1)
+#define false ((cJSON_bool)0)
+
 static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
 {
     size_t length = 0;
