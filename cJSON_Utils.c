@@ -356,7 +356,8 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
     return c;
 }
 
-static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
+/* detach an item at the given path */
+static cJSON *detach_path(cJSON *object, const unsigned char *path)
 {
     unsigned char *parent_pointer = NULL;
     unsigned char *child_pointer = NULL;
@@ -685,7 +686,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, const cJSON *patch)
     if ((opcode == REMOVE) || (opcode == REPLACE))
     {
         /* Get rid of old. */
-        cJSON *old_item = cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring);
+        cJSON *old_item = detach_path(object, (unsigned char*)path->valuestring);
         if (old_item == NULL)
         {
             status = 13;
@@ -713,7 +714,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, const cJSON *patch)
 
         if (opcode == MOVE)
         {
-            value = cJSONUtils_PatchDetach(object, (unsigned char*)from->valuestring);
+            value = detach_path(object, (unsigned char*)from->valuestring);
         }
         if (opcode == COPY)
         {
