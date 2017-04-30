@@ -425,6 +425,122 @@ cleanup:
     return detached_item;
 }
 
+/* sort lists using mergesort */
+static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
+{
+    cJSON *first = list;
+    cJSON *second = list;
+    cJSON *current_item = list;
+    cJSON *result = list;
+    cJSON *result_tail = NULL;
+
+    if ((list == NULL) || (list->next == NULL))
+    {
+        /* One entry is sorted already. */
+        return result;
+    }
+
+    while ((current_item != NULL) && (current_item->next != NULL) && (compare_strings((unsigned char*)current_item->string, (unsigned char*)current_item->next->string, case_sensitive) < 0))
+    {
+        /* Test for list sorted. */
+        current_item = current_item->next;
+    }
+    if ((current_item == NULL) || (current_item->next == NULL))
+    {
+        /* Leave sorted lists unmodified. */
+        return result;
+    }
+
+    /* reset pointer to the beginning */
+    current_item = list;
+    while (current_item != NULL)
+    {
+        /* Walk two pointers to find the middle. */
+        second = second->next;
+        current_item = current_item->next;
+        /* advances current_item two steps at a time */
+        if (current_item != NULL)
+        {
+            current_item = current_item->next;
+        }
+    }
+    if ((second != NULL) && (second->prev != NULL))
+    {
+        /* Split the lists */
+        second->prev->next = NULL;
+    }
+
+    /* Recursively sort the sub-lists. */
+    first = sort_list(first, case_sensitive);
+    second = sort_list(second, case_sensitive);
+    result = NULL;
+
+    /* Merge the sub-lists */
+    while ((first != NULL) && (second != NULL))
+    {
+        cJSON *smaller = NULL;
+        if (compare_strings((unsigned char*)first->string, (unsigned char*)second->string, false) < 0)
+        {
+            smaller = first;
+        }
+        else
+        {
+            smaller = second;
+        }
+
+        if (result == NULL)
+        {
+            /* start merged list with the smaller element */
+            result_tail = smaller;
+            result = smaller;
+        }
+        else
+        {
+            /* add smaller element to the list */
+            result_tail->next = smaller;
+            smaller->prev = result_tail;
+            result_tail = smaller;
+        }
+
+        if (first == smaller)
+        {
+            first = first->next;
+        }
+        else
+        {
+            second = second->next;
+        }
+    }
+
+    if (first != NULL)
+    {
+        /* Append rest of first list. */
+        if (result == NULL)
+        {
+            return first;
+        }
+        result_tail->next = first;
+        first->prev = result_tail;
+    }
+    if (second != NULL)
+    {
+        /* Append rest of second list */
+        if (result == NULL)
+        {
+            return second;
+        }
+        result_tail->next = second;
+        second->prev = result_tail;
+    }
+
+    return result;
+}
+
+static void sort_object(cJSON * const object, const cJSON_bool case_sensitive)
+{
+    object->child = sort_list(object->child, case_sensitive);
+}
+
 static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensitive)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
@@ -477,8 +593,8 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
             }
 
         case cJSON_Object:
-            cJSONUtils_SortObject(a);
-            cJSONUtils_SortObject(b);
+            sort_object(a, case_sensitive);
+            sort_object(b, case_sensitive);
             for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
                 cJSON_bool identical = false;
@@ -1018,8 +1134,8 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
         {
             cJSON *from_child = NULL;
             cJSON *to_child = NULL;
-            cJSONUtils_SortObject(from);
-            cJSONUtils_SortObject(to);
+            sort_object(from, case_sensitive);
+            sort_object(to, case_sensitive);
 
             from_child = from->child;
             to_child = to->child;
@@ -1096,120 +1212,14 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatchesCaseSensitive(cJSON * const from
     return patches;
 }
 
-/* sort lists using mergesort */
-static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
-{
-    cJSON *first = list;
-    cJSON *second = list;
-    cJSON *current_item = list;
-    cJSON *result = list;
-    cJSON *result_tail = NULL;
-
-    if ((list == NULL) || (list->next == NULL))
-    {
-        /* One entry is sorted already. */
-        return result;
-    }
-
-    while ((current_item != NULL) && (current_item->next != NULL) && (compare_strings((unsigned char*)current_item->string, (unsigned char*)current_item->next->string, case_sensitive) < 0))
-    {
-        /* Test for list sorted. */
-        current_item = current_item->next;
-    }
-    if ((current_item == NULL) || (current_item->next == NULL))
-    {
-        /* Leave sorted lists unmodified. */
-        return result;
-    }
-
-    /* reset pointer to the beginning */
-    current_item = list;
-    while (current_item != NULL)
-    {
-        /* Walk two pointers to find the middle. */
-        second = second->next;
-        current_item = current_item->next;
-        /* advances current_item two steps at a time */
-        if (current_item != NULL)
-        {
-            current_item = current_item->next;
-        }
-    }
-    if ((second != NULL) && (second->prev != NULL))
-    {
-        /* Split the lists */
-        second->prev->next = NULL;
-    }
-
-    /* Recursively sort the sub-lists. */
-    first = sort_list(first, case_sensitive);
-    second = sort_list(second, case_sensitive);
-    result = NULL;
-
-    /* Merge the sub-lists */
-    while ((first != NULL) && (second != NULL))
-    {
-        cJSON *smaller = NULL;
-        if (compare_strings((unsigned char*)first->string, (unsigned char*)second->string, false) < 0)
-        {
-            smaller = first;
-        }
-        else
-        {
-            smaller = second;
-        }
-
-        if (result == NULL)
-        {
-            /* start merged list with the smaller element */
-            result_tail = smaller;
-            result = smaller;
-        }
-        else
-        {
-            /* add smaller element to the list */
-            result_tail->next = smaller;
-            smaller->prev = result_tail;
-            result_tail = smaller;
-        }
-
-        if (first == smaller)
-        {
-            first = first->next;
-        }
-        else
-        {
-            second = second->next;
-        }
-    }
-
-    if (first != NULL)
-    {
-        /* Append rest of first list. */
-        if (result == NULL)
-        {
-            return first;
-        }
-        result_tail->next = first;
-        first->prev = result_tail;
-    }
-    if (second != NULL)
-    {
-        /* Append rest of second list */
-        if (result == NULL)
-        {
-            return second;
-        }
-        result_tail->next = second;
-        second->prev = result_tail;
-    }
-
-    return result;
-}
-
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object)
 {
-    object->child = sort_list(object->child, false);
+    sort_object(object, false);
+}
+
+CJSON_PUBLIC(void) cJSONUtils_SortObjectCaseSensitive(cJSON * const object)
+{
+    sort_object(object, true);
 }
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
@@ -1262,8 +1272,8 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
         return cJSON_Duplicate(to, 1);
     }
 
-    cJSONUtils_SortObject(from);
-    cJSONUtils_SortObject(to);
+    sort_object(from, case_sensitive);
+    sort_object(to, case_sensitive);
 
     from_child = from->child;
     to_child = to->child;

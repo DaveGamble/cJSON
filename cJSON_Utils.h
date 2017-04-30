@@ -70,3 +70,4 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
 
 /* Sorts the members of the object into alphabetical order. */
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object);
+CJSON_PUBLIC(void) cJSONUtils_SortObjectCaseSensitive(cJSON * const object);
