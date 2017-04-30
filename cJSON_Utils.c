@@ -1034,39 +1034,41 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
 {
     cJSON *first = list;
     cJSON *second = list;
-    cJSON *ptr = list;
+    cJSON *current_item = list;
+    cJSON *result = list;
+    cJSON *result_tail = NULL;
 
-    if (!list || !list->next)
+    if ((list == NULL) || (list->next == NULL))
     {
         /* One entry is sorted already. */
-        return list;
+        return result;
     }
 
-    while (ptr && ptr->next && (cJSONUtils_strcasecmp((unsigned char*)ptr->string, (unsigned char*)ptr->next->string) < 0))
+    while ((current_item != NULL) && (current_item->next != NULL) && (cJSONUtils_strcasecmp((unsigned char*)current_item->string, (unsigned char*)current_item->next->string) < 0))
     {
         /* Test for list sorted. */
-        ptr = ptr->next;
+        current_item = current_item->next;
     }
-    if (!ptr || !ptr->next)
+    if ((current_item == NULL) || (current_item->next == NULL))
     {
         /* Leave sorted lists unmodified. */
-        return list;
+        return result;
     }
 
-    /* reset ptr to the beginning */
-    ptr = list;
-    while (ptr)
+    /* reset pointer to the beginning */
+    current_item = list;
+    while (current_item != NULL)
     {
         /* Walk two pointers to find the middle. */
         second = second->next;
-        ptr = ptr->next;
-        /* advances ptr two steps at a time */
-        if (ptr)
+        current_item = current_item->next;
+        /* advances current_item two steps at a time */
+        if (current_item != NULL)
         {
-            ptr = ptr->next;
+            current_item = current_item->next;
         }
     }
-    if (second && second->prev)
+    if ((second != NULL) && (second->prev != NULL))
     {
         /* Split the lists */
         second->prev->next = NULL;
@@ -1075,65 +1077,67 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     /* Recursively sort the sub-lists. */
     first = cJSONUtils_SortList(first);
     second = cJSONUtils_SortList(second);
-    list = ptr = NULL;
+    result = NULL;
 
-    while (first && second) /* Merge the sub-lists */
+    /* Merge the sub-lists */
+    while ((first != NULL) && (second != NULL))
     {
+        cJSON *smaller = NULL;
         if (cJSONUtils_strcasecmp((unsigned char*)first->string, (unsigned char*)second->string) < 0)
         {
-            if (!list)
-            {
-                /* start merged list with the first element of the first list */
-                list = ptr = first;
-            }
-            else
-            {
-                /* add first element of first list to merged list */
-                ptr->next = first;
-                first->prev = ptr;
-                ptr = first;
-            }
+            smaller = first;
+        }
+        else
+        {
+            smaller = second;
+        }
+
+        if (result == NULL)
+        {
+            /* start merged list with the smaller element */
+            result_tail = smaller;
+            result = smaller;
+        }
+        else
+        {
+            /* add smaller element to the list */
+            result_tail->next = smaller;
+            smaller->prev = result_tail;
+            result_tail = smaller;
+        }
+
+        if (first == smaller)
+        {
             first = first->next;
         }
         else
         {
-            if (!list)
-            {
-                /* start merged list with the first element of the second list */
-                list = ptr = second;
-            }
-            else
-            {
-                /* add first element of second list to merged list */
-                ptr->next = second;
-                second->prev = ptr;
-                ptr = second;
-            }
             second = second->next;
         }
     }
-    if (first)
+
+    if (first != NULL)
     {
         /* Append rest of first list. */
-        if (!list)
+        if (result == NULL)
         {
             return first;
         }
-        ptr->next = first;
-        first->prev = ptr;
+        result_tail->next = first;
+        first->prev = result_tail;
     }
-    if (second)
+    if (second != NULL)
     {
         /* Append rest of second list */
-        if (!list)
+        if (result == NULL)
         {
             return second;
         }
-        ptr->next = second;
-        second->prev = ptr;
+        result_tail->next = second;
+        second->prev = result_tail;
     }
 
-    return list;
+    return result;
 }
 
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object)
