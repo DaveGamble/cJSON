@@ -914,7 +914,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             return;
 
         case cJSON_String:
-            if (strcmp((unsigned char*)from->valuestring, (unsigned char*)to->valuestring) != 0)
+            if (strcmp(from->valuestring, to->valuestring) != 0)
             {
                 compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
