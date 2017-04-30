@@ -613,9 +613,8 @@ static void overwrite_item(cJSON * const root, const cJSON replacement)
     memcpy(root, &replacement, sizeof(cJSON));
 }
 
-static int apply_patch(cJSON *object, const cJSON *patch)
+static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_sensitive)
 {
-    cJSON_bool case_sensitive = false;
     cJSON *path = NULL;
     cJSON *value = NULL;
     cJSON *parent = NULL;
@@ -848,7 +847,7 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
 
     while (current_patch != NULL)
     {
-        status = apply_patch(object, current_patch);
+        status = apply_patch(object, current_patch, false);
         if (status != 0)
         {
             return status;
