@@ -70,34 +70,35 @@ static int cJSONUtils_strcasecmp(const unsigned char *string1, const unsigned ch
     return tolower(*string1) - tolower(*string2);
 }
 
-/* JSON Pointer implementation: */
-static int cJSONUtils_Pstrcasecmp(const unsigned char *a, const unsigned char *e)
+/* Compare the next path element of two JSON pointers, two NULL pointers are considered unequal: */
+static int cJSONUtils_Pstrcasecmp(const unsigned char *name, const unsigned char *pointer)
 {
-    if (!a || !e)
+    if ((name == NULL) || (pointer == NULL))
     {
-        return (a == e) ? 0 : 1; /* both NULL? */
+        return 1;
     }
-    for (; *a && *e && (*e != '/'); (void)a++, e++) /* compare until next '/' */
+
+    for (; (*name != '\0') && (*pointer != '\0') && (*pointer != '/'); (void)name++, pointer++) /* compare until next '/' */
     {
-        if (*e == '~')
+        if (*pointer == '~')
         {
             /* check for escaped '~' (~0) and '/' (~1) */
-            if (!((e[1] == '0') && (*a == '~')) && !((e[1] == '1') && (*a == '/')))
+            if (((pointer[1] != '0') || (*name != '~')) && ((pointer[1] != '1') || (*name != '/')))
             {
-                /* invalid escape sequence or wrong character in *a */
+                /* invalid escape sequence or wrong character in *name */
                 return 1;
             }
             else
             {
-                e++;
+                pointer++;
             }
         }
-        else if (tolower(*a) != tolower(*e))
+        else if (tolower(*name) != tolower(*pointer))
         {
             return 1;
         }
     }
-    if (((*e != 0) && (*e != '/')) != (*a != 0))
+    if (((*pointer != 0) && (*pointer != '/')) != (*name != 0))
     {
         /* one string has ended, the other not */
         return 1;
