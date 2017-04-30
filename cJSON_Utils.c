@@ -886,7 +886,7 @@ CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * 
     compose_patch(array, (const unsigned char*)operation, (const unsigned char*)path, NULL, value);
 }
 
-static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char * const path, cJSON * const from, cJSON * const to)
+static void create_patches(cJSON * const patches, const unsigned char * const path, cJSON * const from, cJSON * const to)
 {
     if ((from == NULL) || (to == NULL))
     {
@@ -934,7 +934,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                     return;
                 }
                 sprintf((char*)new_path, "%s/%lu", path, (unsigned long)index); /* path of the current array element */
-                cJSONUtils_CompareToPatch(patches, new_path, from_child, to_child);
+                create_patches(patches, new_path, from_child, to_child);
             }
 
             /* remove leftover elements from 'from' that are not in 'to' */
@@ -997,7 +997,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                     encode_string_as_pointer(new_path + path_length + 1, (unsigned char*)from_child->string);
 
                     /* create a patch for the element */
-                    cJSONUtils_CompareToPatch(patches, new_path, from_child, to_child);
+                    create_patches(patches, new_path, from_child, to_child);
                     free(new_path);
 
                     from_child = from_child->next;
@@ -1029,7 +1029,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
 CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * const to)
 {
     cJSON *patches = cJSON_CreateArray();
-    cJSONUtils_CompareToPatch(patches, (const unsigned char*)"", from, to);
+    create_patches(patches, (const unsigned char*)"", from, to);
 
     return patches;
 }
