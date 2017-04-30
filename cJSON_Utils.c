@@ -80,7 +80,7 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
 }
 
 /* Compare the next path element of two JSON pointers, two NULL pointers are considered unequal: */
-static cJSON_bool case_insensitive_pointer_comparison(const unsigned char *name, const unsigned char *pointer)
+static cJSON_bool compare_pointers(const unsigned char *name, const unsigned char *pointer, const cJSON_bool case_sensitive)
 {
     if ((name == NULL) || (pointer == NULL))
     {
@@ -102,7 +102,7 @@ static cJSON_bool case_insensitive_pointer_comparison(const unsigned char *name,
                 pointer++;
             }
         }
-        else if (tolower(*name) != tolower(*pointer))
+        else if ((!case_sensitive && (tolower(*name) != tolower(*pointer))) || (case_sensitive && (*name != *pointer)))
         {
             return false;
         }
@@ -275,7 +275,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
         {
             current_element = current_element->child;
             /* GetObjectItem. */
-            while ((current_element != NULL) && !case_insensitive_pointer_comparison((unsigned char*)current_element->string, (const unsigned char*)pointer))
+            while ((current_element != NULL) && !compare_pointers((unsigned char*)current_element->string, (const unsigned char*)pointer, false))
             {
                 current_element = current_element->next;
             }
