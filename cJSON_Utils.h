@@ -60,7 +60,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, cJSON *patch);
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to);
 
 /* Given a root object and a target object, construct a pointer from one to the other. */
-CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target);
+CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const object, const cJSON * const target);
 
 /* Sorts the members of the object into alphabetical order. */
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON *object);

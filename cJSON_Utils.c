@@ -148,10 +148,10 @@ static void cJSONUtils_PointerEncodedstrcpy(unsigned char *destination, const un
     destination[0] = '\0';
 }
 
-CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
+CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const object, const cJSON * const target)
 {
-    size_t c = 0;
-    cJSON *obj = 0;
+    size_t child_index = 0;
+    cJSON *current_child = 0;
 
     if (object == target)
     {
@@ -159,42 +159,44 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *ta
         return (char*)cJSONUtils_strdup((const unsigned char*)"");
     }
 
-    /* recursively search all children of the object */
-    for (obj = object->child; obj; (void)(obj = obj->next), c++)
+    /* recursively search all children of the object or array */
+    for (current_child = object->child; current_child != NULL; (void)(current_child = current_child->next), child_index++)
     {
-        unsigned char *found = (unsigned char*)cJSONUtils_FindPointerFromObjectTo(obj, target);
-        if (found)
+        unsigned char *target_pointer = (unsigned char*)cJSONUtils_FindPointerFromObjectTo(current_child, target);
+        /* found the target? */
+        if (target_pointer != NULL)
         {
             if (cJSON_IsArray(object))
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
-                unsigned char *ret = (unsigned char*)cJSON_malloc(strlen((char*)found) + 23);
+                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + 20 + sizeof("/"));
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
-                if (c > ULONG_MAX)
+                if (child_index > ULONG_MAX)
                 {
-                    cJSON_free(found);
+                    cJSON_free(target_pointer);
                     return NULL;
                 }
-                sprintf((char*)ret, "/%lu%s", (unsigned long)c, found); /* /<array_index><path> */
-                cJSON_free(found);
+                sprintf((char*)full_pointer, "/%lu%s", (unsigned long)child_index, target_pointer); /* /<array_index><path> */
+                cJSON_free(target_pointer);
 
-                return (char*)ret;
+                return (char*)full_pointer;
             }
-            else if (cJSON_IsObject(object))
-            {
-                unsigned char *ret = (unsigned char*)cJSON_malloc(strlen((char*)found) + cJSONUtils_PointerEncodedstrlen((unsigned char*)obj->string) + 2);
-                *ret = '/';
-                cJSONUtils_PointerEncodedstrcpy(ret + 1, (unsigned char*)obj->string);
-                strcat((char*)ret, (char*)found);
-                cJSON_free(found);
 
-                return (char*)ret;
+            if (cJSON_IsObject(object))
+            {
+                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + cJSONUtils_PointerEncodedstrlen((unsigned char*)current_child->string) + 2);
+                full_pointer[0] = '/';
+                cJSONUtils_PointerEncodedstrcpy(full_pointer + 1, (unsigned char*)current_child->string);
+                strcat((char*)full_pointer, (char*)target_pointer);
+                cJSON_free(target_pointer);
+
+                return (char*)full_pointer;
             }
 
             /* reached leaf of the tree, found nothing */
-            cJSON_free(found);
+            cJSON_free(target_pointer);
             return NULL;
         }
     }
