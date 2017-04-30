@@ -254,7 +254,7 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
     return 1;
 }
 
-CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *pointer)
+static cJSON *get_item_from_pointer(cJSON * const object, const char * pointer, const cJSON_bool case_sensitive)
 {
     cJSON *current_element = object;
     /* follow path of the pointer */
@@ -275,7 +275,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
         {
             current_element = current_element->child;
             /* GetObjectItem. */
-            while ((current_element != NULL) && !compare_pointers((unsigned char*)current_element->string, (const unsigned char*)pointer, false))
+            while ((current_element != NULL) && !compare_pointers((unsigned char*)current_element->string, (const unsigned char*)pointer, case_sensitive))
             {
                 current_element = current_element->next;
             }
@@ -292,6 +292,11 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
     }
 
     return current_element;
+}
+
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *pointer)
+{
+    return get_item_from_pointer(object, pointer, false);
 }
 
 /* JSON Patch implementation. */
@@ -364,6 +369,7 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
 /* detach an item at the given path */
 static cJSON *detach_path(cJSON *object, const unsigned char *path)
 {
+    cJSON_bool case_sensitive = false;
     unsigned char *parent_pointer = NULL;
     unsigned char *child_pointer = NULL;
     cJSON *parent = NULL;
@@ -384,7 +390,7 @@ static cJSON *detach_path(cJSON *object, const unsigned char *path)
     child_pointer[0] = '\0';
     child_pointer++;
 
-    parent = cJSONUtils_GetPointer(object, (char*)parent_pointer);
+    parent = get_item_from_pointer(object, (char*)parent_pointer, case_sensitive);
     decode_pointer_inplace(child_pointer);
 
     if (cJSON_IsArray(parent))
@@ -610,6 +616,7 @@ static void overwrite_item(cJSON * const root, const cJSON replacement)
 
 static int apply_patch(cJSON *object, const cJSON *patch)
 {
+    cJSON_bool case_sensitive = false;
     cJSON *path = NULL;
     cJSON *value = NULL;
     cJSON *parent = NULL;
@@ -635,7 +642,7 @@ static int apply_patch(cJSON *object, const cJSON *patch)
     else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        status = !compare_json(cJSONUtils_GetPointer(object, path->valuestring), cJSON_GetObjectItem(patch, "value"));
+        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), cJSON_GetObjectItem(patch, "value"));
         goto cleanup;
     }
 
@@ -723,7 +730,7 @@ static int apply_patch(cJSON *object, const cJSON *patch)
         }
         if (opcode == COPY)
         {
-            value = cJSONUtils_GetPointer(object, from->valuestring);
+            value = get_item_from_pointer(object, from->valuestring, case_sensitive);
         }
         if (value == NULL)
         {
@@ -770,7 +777,7 @@ static int apply_patch(cJSON *object, const cJSON *patch)
         child_pointer[0] = '\0';
         child_pointer++;
     }
-    parent = cJSONUtils_GetPointer(object, (char*)parent_pointer);
+    parent = get_item_from_pointer(object, (char*)parent_pointer, case_sensitive);
     decode_pointer_inplace(child_pointer);
 
     /* add, remove, replace, move, copy, test. */
