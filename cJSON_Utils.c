@@ -876,9 +876,9 @@ static void cJSONUtils_GeneratePatch(cJSON * const patches, const unsigned char 
     cJSON_AddItemToArray(patches, patch);
 }
 
-CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val)
+CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * const operation, const char * const path, const cJSON * const value)
 {
-    cJSONUtils_GeneratePatch(array, (const unsigned char*)op, (const unsigned char*)path, 0, val);
+    cJSONUtils_GeneratePatch(array, (const unsigned char*)operation, (const unsigned char*)path, NULL, value);
 }
 
 static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path, cJSON *from, cJSON *to)
