@@ -881,7 +881,7 @@ CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * 
     cJSONUtils_GeneratePatch(array, (const unsigned char*)operation, (const unsigned char*)path, NULL, value);
 }
 
-static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path, cJSON *from, cJSON *to)
+static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char * const path, cJSON * const from, cJSON * const to)
 {
     if ((from == NULL) || (to == NULL))
     {
@@ -894,98 +894,123 @@ static void cJSONUtils_CompareToPatch(cJSON *patches, const unsigned char *path,
         return;
     }
 
-    switch ((from->type & 0xFF))
+    switch (from->type & 0xFF)
     {
         case cJSON_Number:
             if ((from->valueint != to->valueint) || (from->valuedouble != to->valuedouble))
             {
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, 0, to);
+                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
             return;
 
         case cJSON_String:
             if (strcmp(from->valuestring, to->valuestring) != 0)
             {
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, 0, to);
+                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
             return;
 
         case cJSON_Array:
         {
-            size_t c = 0;
-            unsigned char *newpath = (unsigned char*)cJSON_malloc(strlen((const char*)path) + 23); /* Allow space for 64bit int. */
-            /* generate patches for all array elements that exist in "from" and "to" */
-            for ((void)(c = 0), (void)(from = from->child), to = to->child; from && to; (void)(from = from->next), (void)(to = to->next), c++)
+            size_t index = 0;
+            cJSON *from_child = from->child;
+            cJSON *to_child = to->child;
+            unsigned char *new_path = (unsigned char*)cJSON_malloc(strlen((const char*)path) + 20 + sizeof("/")); /* Allow space for 64bit int. log10(2^64) = 20 */
+
+            /* generate patches for all array elements that exist in both "from" and "to" */
+            for (index = 0; (from_child != NULL) && (to_child != NULL); (void)(from_child = from_child->next), (void)(to_child = to_child->next), index++)
             {
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
-                if (c > ULONG_MAX)
+                if (index > ULONG_MAX)
                 {
-                    free(newpath);
+                    free(new_path);
                     return;
                 }
-                sprintf((char*)newpath, "%s/%lu", path, (unsigned long)c); /* path of the current array element */
-                cJSONUtils_CompareToPatch(patches, newpath, from, to);
+                sprintf((char*)new_path, "%s/%lu", path, (unsigned long)index); /* path of the current array element */
+                cJSONUtils_CompareToPatch(patches, new_path, from_child, to_child);
             }
+
             /* remove leftover elements from 'from' that are not in 'to' */
-            for (; from; (void)(from = from->next))
+            for (; (from_child != NULL); (void)(from_child = from_child->next))
             {
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
-                if (c > ULONG_MAX)
+                if (index > ULONG_MAX)
                 {
-                    free(newpath);
+                    free(new_path);
                     return;
                 }
-                sprintf((char*)newpath, "%lu", (unsigned long)c);
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, newpath, 0);
+                sprintf((char*)new_path, "%lu", (unsigned long)index);
+                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, new_path, NULL);
             }
             /* add new elements in 'to' that were not in 'from' */
-            for (; to; (void)(to = to->next), c++)
+            for (; (to_child != NULL); (void)(to_child = to_child->next), index++)
             {
-                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to);
+                cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to_child);
             }
-            free(newpath);
+            free(new_path);
             return;
         }
 
         case cJSON_Object:
         {
-            cJSON *a = NULL;
-            cJSON *b = NULL;
+            cJSON *from_child = NULL;
+            cJSON *to_child = NULL;
             cJSONUtils_SortObject(from);
             cJSONUtils_SortObject(to);
 
-            a = from->child;
-            b = to->child;
+            from_child = from->child;
+            to_child = to->child;
             /* for all object values in the object with more of them */
-            while (a || b)
+            while ((from_child != NULL) || (to_child != NULL))
             {
-                int diff = (!a) ? 1 : ((!b) ? -1 : cJSONUtils_strcasecmp((unsigned char*)a->string, (unsigned char*)b->string));
-                if (!diff)
+                int diff;
+                if (from_child == NULL)
+                {
+                    diff = 1;
+                }
+                else if (to_child == NULL)
+                {
+                    diff = -1;
+                }
+                else
+                {
+                    diff = cJSONUtils_strcasecmp((unsigned char*)from_child->string, (unsigned char*)to_child->string);
+                }
+
+                if (diff == 0)
                 {
                     /* both object keys are the same */
-                    unsigned char *newpath = (unsigned char*)cJSON_malloc(strlen((const char*)path) + cJSONUtils_PointerEncodedstrlen((unsigned char*)a->string) + 2);
-                    cJSONUtils_PointerEncodedstrcpy(newpath + sprintf((char*)newpath, "%s/", path), (unsigned char*)a->string);
+                    size_t path_length = strlen((const char*)path);
+                    size_t from_child_name_length = cJSONUtils_PointerEncodedstrlen((unsigned char*)from_child->string);
+                    unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + sizeof("/"));
+
+                    sprintf((char*)new_path, "%s/", path);
+                    cJSONUtils_PointerEncodedstrcpy(new_path + path_length + 1, (unsigned char*)from_child->string);
+
                     /* create a patch for the element */
-                    cJSONUtils_CompareToPatch(patches, newpath, a, b);
-                    free(newpath);
-                    a = a->next;
-                    b = b->next;
+                    cJSONUtils_CompareToPatch(patches, new_path, from_child, to_child);
+                    free(new_path);
+
+                    from_child = from_child->next;
+                    to_child = to_child->next;
                 }
                 else if (diff < 0)
                 {
                     /* object element doesn't exist in 'to' --> remove it */
-                    cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, (unsigned char*)a->string, 0);
-                    a = a->next;
+                    cJSONUtils_GeneratePatch(patches, (const unsigned char*)"remove", path, (unsigned char*)from_child->string, NULL);
+
+                    from_child = from_child->next;
                 }
                 else
                 {
                     /* object element doesn't exist in 'from' --> add it */
-                    cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (unsigned char*)b->string, b);
-                    b = b->next;
+                    cJSONUtils_GeneratePatch(patches, (const unsigned char*)"add", path, (unsigned char*)to_child->string, to_child);
+
+                    to_child = to_child->next;
                 }
             }
             return;
