@@ -46,25 +46,28 @@ static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
     return copy;
 }
 
-static int cJSONUtils_strcasecmp(const unsigned char *s1, const unsigned char *s2)
+/* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
+static int cJSONUtils_strcasecmp(const unsigned char *string1, const unsigned char *string2)
 {
-    if (!s1)
-    {
-        return (s1 == s2) ? 0 : 1; /* both NULL? */
-    }
-    if (!s2)
+    if ((string1 == NULL) || (string2 == NULL))
     {
         return 1;
     }
-    for(; tolower(*s1) == tolower(*s2); (void)++s1, ++s2)
+
+    if (string1 == string2)
     {
-        if(*s1 == 0)
+        return 0;
+    }
+
+    for(; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
+    {
+        if (*string1 == '\0')
         {
             return 0;
         }
     }
 
-    return tolower(*s1) - tolower(*s2);
+    return tolower(*string1) - tolower(*string2);
 }
 
 /* JSON Pointer implementation: */
