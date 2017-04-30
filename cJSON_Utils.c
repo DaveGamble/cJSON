@@ -123,27 +123,29 @@ static size_t cJSONUtils_PointerEncodedstrlen(const unsigned char *string)
     return length;
 }
 
-static void cJSONUtils_PointerEncodedstrcpy(unsigned char *d, const unsigned char *s)
+/* copy a string while escaping '~' and '/' with ~0 and ~1 JSON pointer escape codes */
+static void cJSONUtils_PointerEncodedstrcpy(unsigned char *destination, const unsigned char *source)
 {
-    for (; *s; s++)
+    for (; source[0] != '\0'; (void)source++, destination++)
     {
-        if (*s == '/')
+        if (source[0] == '/')
         {
-            *d++ = '~';
-            *d++ = '1';
+            destination[1] = '1';
+            destination++;
         }
-        else if (*s == '~')
+        else if (source[0] == '~')
         {
-            *d++ = '~';
-            *d++ = '0';
+            destination[0] = '~';
+            destination[1] = '1';
+            destination++;
         }
         else
         {
-            *d++ = *s;
+            destination[0] = source[0];
         }
     }
 
-    *d = '\0';
+    destination[0] = '\0';
 }
 
 CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(cJSON *object, cJSON *target)
