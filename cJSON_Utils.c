@@ -814,26 +814,30 @@ cleanup:
     return status;
 }
 
-CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches)
 {
-    int err = 0;
+    const cJSON *current_patch = NULL;
+    int status = 0;
 
     if (!cJSON_IsArray(patches))
     {
         /* malformed patches. */
         return 1;
     }
-    if (patches)
+
+    if (patches != NULL)
     {
-        patches = patches->child;
+        current_patch = patches->child;
     }
-    while (patches)
+
+    while (current_patch != NULL)
     {
-        if ((err = cJSONUtils_ApplyPatch(object, patches)))
+        status = cJSONUtils_ApplyPatch(object, current_patch);
+        if (status != 0)
         {
-            return err;
+            return status;
         }
-        patches = patches->next;
+        current_patch = current_patch->next;
     }
 
     return 0;

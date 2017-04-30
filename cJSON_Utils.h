@@ -30,7 +30,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to);
 /* Utility for generating patch array entries. */
 CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON *array, const char *op, const char *path, cJSON *val);
 /* Returns 0 for success. */
-CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches);
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches);
 
 /*
 // Note that ApplyPatches is NOT atomic on failure. To implement an atomic ApplyPatches, use:
