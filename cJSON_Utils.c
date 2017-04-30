@@ -50,8 +50,8 @@ static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
     return copy;
 }
 
-/* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
-static int case_insensitive_strcmp(const unsigned char *string1, const unsigned char *string2)
+/* string comparison which doesn't consider NULL pointers equal */
+static int compare_strings(const unsigned char *string1, const unsigned char *string2, const cJSON_bool case_sensitive)
 {
     if ((string1 == NULL) || (string2 == NULL))
     {
@@ -61,6 +61,11 @@ static int case_insensitive_strcmp(const unsigned char *string1, const unsigned 
     if (string1 == string2)
     {
         return 0;
+    }
+
+    if (case_sensitive)
+    {
+        return strcmp((const char*)string1, (const char*)string2);
     }
 
     for(; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
@@ -432,7 +437,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b)
 
         case cJSON_String:
             /* string mismatch. */
-            if (strcmp(a->valuestring, b->valuestring) != 0)
+            if (compare_strings((unsigned char*)a->valuestring, (unsigned char*)b->valuestring, true) != 0)
             {
                 return false;
             }
@@ -468,7 +473,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b)
             {
                 cJSON_bool identical = false;
                 /* compare object keys */
-                if (case_insensitive_strcmp((unsigned char*)a->string, (unsigned char*)b->string))
+                if (compare_strings((unsigned char*)a->string, (unsigned char*)b->string, false))
                 {
                     /* missing member */
                     return false;
@@ -909,7 +914,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             return;
 
         case cJSON_String:
-            if (strcmp(from->valuestring, to->valuestring) != 0)
+            if (compare_strings((unsigned char*)from->valuestring, (unsigned char*)to->valuestring, true) != 0)
             {
                 compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
@@ -983,7 +988,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                 }
                 else
                 {
-                    diff = case_insensitive_strcmp((unsigned char*)from_child->string, (unsigned char*)to_child->string);
+                    diff = compare_strings((unsigned char*)from_child->string, (unsigned char*)to_child->string, false);
                 }
 
                 if (diff == 0)
@@ -1049,7 +1054,7 @@ static cJSON *sort_list(cJSON *list)
         return result;
     }
 
-    while ((current_item != NULL) && (current_item->next != NULL) && (case_insensitive_strcmp((unsigned char*)current_item->string, (unsigned char*)current_item->next->string) < 0))
+    while ((current_item != NULL) && (current_item->next != NULL) && (compare_strings((unsigned char*)current_item->string, (unsigned char*)current_item->next->string, false) < 0))
     {
         /* Test for list sorted. */
         current_item = current_item->next;
@@ -1088,7 +1093,7 @@ static cJSON *sort_list(cJSON *list)
     while ((first != NULL) && (second != NULL))
     {
         cJSON *smaller = NULL;
-        if (case_insensitive_strcmp((unsigned char*)first->string, (unsigned char*)second->string) < 0)
+        if (compare_strings((unsigned char*)first->string, (unsigned char*)second->string, false) < 0)
         {
             smaller = first;
         }
@@ -1213,7 +1218,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * 
         {
             if (to_child != NULL)
             {
-                diff = strcmp(from_child->string, to_child->string);
+                diff = compare_strings((unsigned char*)from_child->string, (unsigned char*)to_child->string, true);
             }
             else
             {
