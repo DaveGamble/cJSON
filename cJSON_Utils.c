@@ -1045,7 +1045,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * con
 }
 
 /* sort lists using mergesort */
-static cJSON *sort_list(cJSON *list)
+static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
 {
     cJSON *first = list;
     cJSON *second = list;
@@ -1059,7 +1059,7 @@ static cJSON *sort_list(cJSON *list)
         return result;
     }
 
-    while ((current_item != NULL) && (current_item->next != NULL) && (compare_strings((unsigned char*)current_item->string, (unsigned char*)current_item->next->string, false) < 0))
+    while ((current_item != NULL) && (current_item->next != NULL) && (compare_strings((unsigned char*)current_item->string, (unsigned char*)current_item->next->string, case_sensitive) < 0))
     {
         /* Test for list sorted. */
         current_item = current_item->next;
@@ -1090,8 +1090,8 @@ static cJSON *sort_list(cJSON *list)
     }
 
     /* Recursively sort the sub-lists. */
-    first = sort_list(first);
-    second = sort_list(second);
+    first = sort_list(first, case_sensitive);
+    second = sort_list(second, case_sensitive);
     result = NULL;
 
     /* Merge the sub-lists */
@@ -1157,7 +1157,7 @@ static cJSON *sort_list(cJSON *list)
 
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object)
 {
-    object->child = sort_list(object->child);
+    object->child = sort_list(object->child, false);
 }
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
