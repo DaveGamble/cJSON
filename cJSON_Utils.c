@@ -288,22 +288,35 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
 /* JSON Patch implementation. */
 static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
 {
-    unsigned char *s2 = string;
+    unsigned char *decoded_string = string;
 
     if (string == NULL) {
         return;
     }
 
-    for (; *string; (void)s2++, string++)
+    for (; *string; (void)decoded_string++, string++)
     {
-        *s2 = (unsigned char) ((*string != '~')
-            ? (*string)
-            : ((*(++string) == '0')
-                    ? '~'
-                    : '/'));
+        if (string[0] == '~')
+        {
+            if (string[1] == '0')
+            {
+                decoded_string[0] = '~';
+            }
+            else if (string[1] == '1')
+            {
+                decoded_string[1] = '/';
+            }
+            else
+            {
+                /* invalid escape sequence */
+                return;
+            }
+
+            string++;
+        }
     }
 
-    *s2 = '\0';
+    decoded_string[0] = '\0';
 }
 
 /* non-broken cJSON_DetachItemFromArray */
