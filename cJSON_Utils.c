@@ -416,49 +416,79 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
     {
         case cJSON_Number:
             /* numeric mismatch. */
-            return ((a->valueint != b->valueint) || (a->valuedouble != b->valuedouble)) ? -2 : 0;
+            if ((a->valueint != b->valueint) || (a->valuedouble != b->valuedouble))
+            {
+                return -2;
+            }
+            else
+            {
+                return 0;
+            }
+
         case cJSON_String:
             /* string mismatch. */
-            return (strcmp(a->valuestring, b->valuestring) != 0) ? -3 : 0;
-        case cJSON_Array:
-            for ((void)(a = a->child), b = b->child; a && b; (void)(a = a->next), b = b->next)
+            if (strcmp(a->valuestring, b->valuestring) != 0)
             {
-                int err = cJSONUtils_Compare(a, b);
-                if (err)
+                return -3;
+            }
+            else
+            {
+                return 0;
+            }
+
+        case cJSON_Array:
+            for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
+            {
+                int status = cJSONUtils_Compare(a, b);
+                if (status != 0)
                 {
-                    return err;
+                    return status;
                 }
             }
+
             /* array size mismatch? (one of both children is not NULL) */
-            return (a || b) ? -4 : 0;
+            if ((a != NULL) || (b != NULL))
+            {
+                return -4;
+            }
+            else
+            {
+                return 0;
+            }
+
         case cJSON_Object:
             cJSONUtils_SortObject(a);
             cJSONUtils_SortObject(b);
-            a = a->child;
-            b = b->child;
-            while (a && b)
+            for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
-                int err = 0;
+                int status = 0;
                 /* compare object keys */
                 if (cJSONUtils_strcasecmp((unsigned char*)a->string, (unsigned char*)b->string))
                 {
                     /* missing member */
                     return -6;
                 }
-                err = cJSONUtils_Compare(a, b);
-                if (err)
+                status = cJSONUtils_Compare(a, b);
+                if (status != 0)
                 {
-                    return err;
+                    return status;
                 }
-                a = a->next;
-                b = b->next;
             }
+
             /* object length mismatch (one of both children is not null) */
-            return (a || b) ? -5 : 0;
+            if ((a != NULL) || (b != NULL))
+            {
+                return -5;
+            }
+            else
+            {
+                return 0;
+            }
 
         default:
             break;
     }
+
     /* null, true or false */
     return 0;
 }
