@@ -354,52 +354,55 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
 
 static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
 {
-    unsigned char *parentptr = NULL;
-    unsigned char *childptr = NULL;
+    unsigned char *parent_pointer = NULL;
+    unsigned char *child_pointer = NULL;
     cJSON *parent = NULL;
-    cJSON *ret = NULL;
+    cJSON *detached_item = NULL;
 
     /* copy path and split it in parent and child */
-    parentptr = cJSONUtils_strdup(path);
-    if (parentptr == NULL) {
-        return NULL;
+    parent_pointer = cJSONUtils_strdup(path);
+    if (parent_pointer == NULL) {
+        goto cleanup;
     }
 
-    childptr = (unsigned char*)strrchr((char*)parentptr, '/'); /* last '/' */
-    if (childptr == NULL)
+    child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/'); /* last '/' */
+    if (child_pointer == NULL)
     {
-        cJSON_free(parentptr);
-        return NULL;
+        goto cleanup;
     }
     /* split strings */
-    *childptr++ = '\0';
+    child_pointer[0] = '\0';
+    child_pointer++;
 
-    parent = cJSONUtils_GetPointer(object, (char*)parentptr);
-    cJSONUtils_InplaceDecodePointerString(childptr);
+    parent = cJSONUtils_GetPointer(object, (char*)parent_pointer);
+    cJSONUtils_InplaceDecodePointerString(child_pointer);
 
-    if (!parent)
-    {
-        /* Couldn't find object to remove child from. */
-        ret = NULL;
-    }
-    else if (cJSON_IsArray(parent))
+    if (cJSON_IsArray(parent))
     {
         size_t index = 0;
-        if (!decode_array_index_from_pointer(childptr, &index))
+        if (!decode_array_index_from_pointer(child_pointer, &index))
         {
-            cJSON_free(parentptr);
-            return NULL;
+            goto cleanup;
         }
-        ret = detach_item_from_array(parent, index);
+        detached_item = detach_item_from_array(parent, index);
     }
     else if (cJSON_IsObject(parent))
     {
-        ret = cJSON_DetachItemFromObject(parent, (char*)childptr);
+        detached_item = cJSON_DetachItemFromObject(parent, (char*)child_pointer);
     }
-    cJSON_free(parentptr);
+    else
+    {
+        /* Couldn't find object to remove child from. */
+        goto cleanup;
+    }
 
-    /* return the detachted item */
-    return ret;
+cleanup:
+    if (parent_pointer != NULL)
+    {
+        cJSON_free(parent_pointer);
+    }
+
+    return detached_item;
 }
 
 static int cJSONUtils_Compare(cJSON *a, cJSON *b)
