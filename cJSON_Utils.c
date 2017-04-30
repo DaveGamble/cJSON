@@ -51,7 +51,7 @@ static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
 }
 
 /* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
-static int cJSONUtils_strcasecmp(const unsigned char *string1, const unsigned char *string2)
+static int case_insensitive_strcmp(const unsigned char *string1, const unsigned char *string2)
 {
     if ((string1 == NULL) || (string2 == NULL))
     {
@@ -467,7 +467,7 @@ static int cJSONUtils_Compare(cJSON *a, cJSON *b)
             {
                 int status = 0;
                 /* compare object keys */
-                if (cJSONUtils_strcasecmp((unsigned char*)a->string, (unsigned char*)b->string))
+                if (case_insensitive_strcmp((unsigned char*)a->string, (unsigned char*)b->string))
                 {
                     /* missing member */
                     return -6;
@@ -982,7 +982,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                 }
                 else
                 {
-                    diff = cJSONUtils_strcasecmp((unsigned char*)from_child->string, (unsigned char*)to_child->string);
+                    diff = case_insensitive_strcmp((unsigned char*)from_child->string, (unsigned char*)to_child->string);
                 }
 
                 if (diff == 0)
@@ -1048,7 +1048,7 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
         return result;
     }
 
-    while ((current_item != NULL) && (current_item->next != NULL) && (cJSONUtils_strcasecmp((unsigned char*)current_item->string, (unsigned char*)current_item->next->string) < 0))
+    while ((current_item != NULL) && (current_item->next != NULL) && (case_insensitive_strcmp((unsigned char*)current_item->string, (unsigned char*)current_item->next->string) < 0))
     {
         /* Test for list sorted. */
         current_item = current_item->next;
@@ -1087,7 +1087,7 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     while ((first != NULL) && (second != NULL))
     {
         cJSON *smaller = NULL;
-        if (cJSONUtils_strcasecmp((unsigned char*)first->string, (unsigned char*)second->string) < 0)
+        if (case_insensitive_strcmp((unsigned char*)first->string, (unsigned char*)second->string) < 0)
         {
             smaller = first;
         }
