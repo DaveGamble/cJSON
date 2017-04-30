@@ -533,54 +533,100 @@ static cJSON_bool insert_item_in_array(cJSON *array, size_t which, cJSON *newite
 
 enum patch_operation { INVALID, ADD, REMOVE, REPLACE, MOVE, COPY, TEST };
 
-static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
+static enum patch_operation decode_patch_operation(const cJSON * const patch)
 {
-    cJSON *op = NULL;
+    cJSON *operation = cJSON_GetObjectItem(patch, "op");
+    if (!cJSON_IsString(operation))
+    {
+        return INVALID;
+    }
+
+    if (strcmp(operation->valuestring, "add") == 0)
+    {
+        return ADD;
+    }
+
+    if (strcmp(operation->valuestring, "remove") == 0)
+    {
+        return REMOVE;
+    }
+
+    if (strcmp(operation->valuestring, "replace") == 0)
+    {
+        return REPLACE;
+    }
+
+    if (strcmp(operation->valuestring, "move") == 0)
+    {
+        return MOVE;
+    }
+
+    if (strcmp(operation->valuestring, "copy") == 0)
+    {
+        return COPY;
+    }
+
+    if (strcmp(operation->valuestring, "test") == 0)
+    {
+        return TEST;
+    }
+
+    return INVALID;
+}
+
+/* overwrite and existing item with another one and free resources on the way */
+static void overwrite_item(cJSON * const root, const cJSON replacement)
+{
+    if (root == NULL)
+    {
+        return;
+    }
+
+    if (root->string != NULL)
+    {
+        cJSON_free(root->string);
+    }
+    if (root->valuestring != NULL)
+    {
+        cJSON_free(root->valuestring);
+    }
+    if (root->child != NULL)
+    {
+        cJSON_Delete(root->child);
+    }
+
+    memcpy(root, &replacement, sizeof(cJSON));
+}
+
+static int cJSONUtils_ApplyPatch(cJSON *object, const cJSON *patch)
+{
     cJSON *path = NULL;
     cJSON *value = NULL;
     cJSON *parent = NULL;
     enum patch_operation opcode = INVALID;
-    unsigned char *parentptr = NULL;
-    unsigned char *childptr = NULL;
+    unsigned char *parent_pointer = NULL;
+    unsigned char *child_pointer = NULL;
+    int status = 0;
 
-    op = cJSON_GetObjectItem(patch, "op");
     path = cJSON_GetObjectItem(patch, "path");
-    if (!cJSON_IsString(op) || !cJSON_IsString(path))
+    if (!cJSON_IsString(path))
     {
         /* malformed patch. */
-        return 2;
+        status = 2;
+        goto cleanup;
     }
 
-    /* decode operation */
-    if (!strcmp(op->valuestring, "add"))
+    opcode = decode_patch_operation(patch);
+    if (opcode == INVALID)
     {
-        opcode = ADD;
+        status = 3;
+        goto cleanup;
     }
-    else if (!strcmp(op->valuestring, "remove"))
-    {
-        opcode = REMOVE;
-    }
-    else if (!strcmp(op->valuestring, "replace"))
-    {
-        opcode = REPLACE;
-    }
-    else if (!strcmp(op->valuestring, "move"))
-    {
-        opcode = MOVE;
-    }
-    else if (!strcmp(op->valuestring, "copy"))
-    {
-        opcode = COPY;
-    }
-    else if (!strcmp(op->valuestring, "test"))
+    else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        return cJSONUtils_Compare(cJSONUtils_GetPointer(object, path->valuestring), cJSON_GetObjectItem(patch, "value"));
-    }
-    else
-    {
-        /* unknown opcode. */
-        return 3;
+        status = cJSONUtils_Compare(cJSONUtils_GetPointer(object, path->valuestring), cJSON_GetObjectItem(patch, "value"));
+        goto cleanup;
     }
 
     /* special case for replacing the root */
@@ -588,73 +634,47 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     {
         if (opcode == REMOVE)
         {
-            /* remove possible children */
-            if (object->child != NULL)
-            {
-                cJSON_Delete(object->child);
-            }
+            static const cJSON invalid = { NULL, NULL, NULL, cJSON_Invalid, NULL, 0, 0, NULL};
 
-            /* remove other allocated resources */
-            if (object->string != NULL)
-            {
-                cJSON_free(object->string);
-            }
-            if (object->valuestring != NULL)
-            {
-                cJSON_free(object->valuestring);
-            }
+            overwrite_item(object, invalid);
 
-            /* make it invalid */
-            memset(object, '\0', sizeof(cJSON));
-
-            return 0;
+            status = 0;
+            goto cleanup;
         }
 
         if ((opcode == REPLACE) || (opcode == ADD))
         {
-            /* remove possible children */
-            if (object->child != NULL)
-            {
-                cJSON_Delete(object->child);
-            }
-
-            /* remove other allocated resources */
-            if (object->string != NULL)
-            {
-                cJSON_free(object->string);
-            }
-            if (object->valuestring != NULL)
-            {
-                cJSON_free(object->valuestring);
-            }
-
             value = cJSON_GetObjectItem(patch, "value");
             if (value == NULL)
             {
                 /* missing "value" for add/replace. */
-                return 7;
+                status = 7;
+                goto cleanup;
             }
 
             value = cJSON_Duplicate(value, 1);
             if (value == NULL)
             {
                 /* out of memory for add/replace. */
-                return 8;
-            }
-            /* the string "value" isn't needed */
-            if (value->string != NULL)
-            {
-                cJSON_free(value->string);
-                value->string = NULL;
+                status = 8;
+                goto cleanup;
             }
 
-            /* copy over the value object */
-            memcpy(object, value, sizeof(cJSON));
+            overwrite_item(object, *value);
 
             /* delete the duplicated value */
             cJSON_free(value);
+            value = NULL;
 
-            return 0;
+            /* the string "value" isn't needed */
+            if (object->string != NULL)
+            {
+                cJSON_free(object->string);
+                object->string = NULL;
+            }
+
+            status = 0;
+            goto cleanup;
         }
     }
 
@@ -664,13 +684,15 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         cJSON *old_item = cJSONUtils_PatchDetach(object, (unsigned char*)path->valuestring);
         if (old_item == NULL)
         {
-            return 13;
+            status = 13;
+            goto cleanup;
         }
         cJSON_Delete(old_item);
         if (opcode == REMOVE)
         {
             /* For Remove, this job is done. */
-            return 0;
+            status = 0;
+            goto cleanup;
         }
     }
 
@@ -678,10 +700,11 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
     if ((opcode == MOVE) || (opcode == COPY))
     {
         cJSON *from = cJSON_GetObjectItem(patch, "from");
-        if (!from)
+        if (from == NULL)
         {
             /* missing "from" for copy/move. */
-            return 4;
+            status = 4;
+            goto cleanup;
         }
 
         if (opcode == MOVE)
@@ -692,93 +715,103 @@ static int cJSONUtils_ApplyPatch(cJSON *object, cJSON *patch)
         {
             value = cJSONUtils_GetPointer(object, from->valuestring);
         }
-        if (!value)
+        if (value == NULL)
         {
             /* missing "from" for copy/move. */
-            return 5;
+            status = 5;
+            goto cleanup;
         }
         if (opcode == COPY)
         {
             value = cJSON_Duplicate(value, 1);
         }
-        if (!value)
+        if (value == NULL)
         {
             /* out of memory for copy/move. */
-            return 6;
+            status = 6;
+            goto cleanup;
         }
     }
     else /* Add/Replace uses "value". */
     {
         value = cJSON_GetObjectItem(patch, "value");
-        if (!value)
+        if (value == NULL)
         {
             /* missing "value" for add/replace. */
-            return 7;
+            status = 7;
+            goto cleanup;
         }
         value = cJSON_Duplicate(value, 1);
-        if (!value)
+        if (value == NULL)
         {
             /* out of memory for add/replace. */
-            return 8;
+            status = 8;
+            goto cleanup;
         }
     }
 
     /* Now, just add "value" to "path". */
 
     /* split pointer in parent and child */
-    parentptr = cJSONUtils_strdup((unsigned char*)path->valuestring);
-    childptr = (unsigned char*)strrchr((char*)parentptr, '/');
-    if (childptr)
+    parent_pointer = cJSONUtils_strdup((unsigned char*)path->valuestring);
+    child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/');
+    if (child_pointer != NULL)
     {
-        *childptr++ = '\0';
+        child_pointer[0] = '\0';
+        child_pointer++;
     }
-    parent = cJSONUtils_GetPointer(object, (char*)parentptr);
-    cJSONUtils_InplaceDecodePointerString(childptr);
+    parent = cJSONUtils_GetPointer(object, (char*)parent_pointer);
+    cJSONUtils_InplaceDecodePointerString(child_pointer);
 
     /* add, remove, replace, move, copy, test. */
-    if ((parent == NULL) || (childptr == NULL))
+    if ((parent == NULL) || (child_pointer == NULL))
     {
         /* Couldn't find object to add to. */
-        free(parentptr);
-        cJSON_Delete(value);
-        return 9;
+        status = 9;
+        goto cleanup;
     }
     else if (cJSON_IsArray(parent))
     {
-        if (!strcmp((char*)childptr, "-"))
+        if (strcmp((char*)child_pointer, "-") == 0)
         {
             cJSON_AddItemToArray(parent, value);
+            value = NULL;
         }
         else
         {
             size_t index = 0;
-            if (!decode_array_index_from_pointer(childptr, &index))
+            if (!decode_array_index_from_pointer(child_pointer, &index))
             {
-                free(parentptr);
-                cJSON_Delete(value);
-                return 11;
+                status = 11;
+                goto cleanup;
             }
 
             if (!insert_item_in_array(parent, index, value))
             {
-                free(parentptr);
-                cJSON_Delete(value);
-                return 10;
+                status = 10;
+                goto cleanup;
             }
+            value = NULL;
         }
     }
     else if (cJSON_IsObject(parent))
     {
-        cJSON_DeleteItemFromObject(parent, (char*)childptr);
-        cJSON_AddItemToObject(parent, (char*)childptr, value);
+        cJSON_DeleteItemFromObject(parent, (char*)child_pointer);
+        cJSON_AddItemToObject(parent, (char*)child_pointer, value);
+        value = NULL;
     }
-    else
+
+cleanup:
+    if (value != NULL)
     {
         cJSON_Delete(value);
     }
-    free(parentptr);
+    if (parent_pointer != NULL)
+    {
+        cJSON_free(parent_pointer);
+    }
 
-    return 0;
+    return status;
 }
 
 CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON *object, cJSON *patches)
