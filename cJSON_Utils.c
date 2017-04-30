@@ -1035,7 +1035,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * con
 }
 
 /* sort lists using mergesort */
-static cJSON *cJSONUtils_SortList(cJSON *list)
+static cJSON *sort_list(cJSON *list)
 {
     cJSON *first = list;
     cJSON *second = list;
@@ -1080,8 +1080,8 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
     }
 
     /* Recursively sort the sub-lists. */
-    first = cJSONUtils_SortList(first);
-    second = cJSONUtils_SortList(second);
+    first = sort_list(first);
+    second = sort_list(second);
     result = NULL;
 
     /* Merge the sub-lists */
@@ -1147,7 +1147,7 @@ static cJSON *cJSONUtils_SortList(cJSON *list)
 
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object)
 {
-    object->child = cJSONUtils_SortList(object->child);
+    object->child = sort_list(object->child);
 }
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
