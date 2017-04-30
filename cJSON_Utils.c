@@ -299,6 +299,11 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
     return get_item_from_pointer(object, pointer, false);
 }
 
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointerCaseSensitive(cJSON * const object, const char *pointer)
+{
+    return get_item_from_pointer(object, pointer, true);
+}
+
 /* JSON Patch implementation. */
 static void decode_pointer_inplace(unsigned char *string)
 {
