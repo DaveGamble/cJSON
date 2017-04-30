@@ -873,6 +873,35 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
     return 0;
 }
 
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, const cJSON * const patches)
+{
+    const cJSON *current_patch = NULL;
+    int status = 0;
+
+    if (!cJSON_IsArray(patches))
+    {
+        /* malformed patches. */
+        return 1;
+    }
+
+    if (patches != NULL)
+    {
+        current_patch = patches->child;
+    }
+
+    while (current_patch != NULL)
+    {
+        status = apply_patch(object, current_patch, true);
+        if (status != 0)
+        {
+            return status;
+        }
+        current_patch = current_patch->next;
+    }
+
+    return 0;
+}
+
 static void compose_patch(cJSON * const patches, const unsigned char * const operation, const unsigned char * const path, const unsigned char *suffix, const cJSON * const value)
 {
     cJSON *patch = cJSON_CreateObject();
