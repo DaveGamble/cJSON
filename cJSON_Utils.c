@@ -75,11 +75,11 @@ static int cJSONUtils_strcasecmp(const unsigned char *string1, const unsigned ch
 }
 
 /* Compare the next path element of two JSON pointers, two NULL pointers are considered unequal: */
-static int cJSONUtils_Pstrcasecmp(const unsigned char *name, const unsigned char *pointer)
+static cJSON_bool case_insensitive_pointer_comparison(const unsigned char *name, const unsigned char *pointer)
 {
     if ((name == NULL) || (pointer == NULL))
     {
-        return 1;
+        return false;
     }
 
     for (; (*name != '\0') && (*pointer != '\0') && (*pointer != '/'); (void)name++, pointer++) /* compare until next '/' */
@@ -90,7 +90,7 @@ static int cJSONUtils_Pstrcasecmp(const unsigned char *name, const unsigned char
             if (((pointer[1] != '0') || (*name != '~')) && ((pointer[1] != '1') || (*name != '/')))
             {
                 /* invalid escape sequence or wrong character in *name */
-                return 1;
+                return false;
             }
             else
             {
@@ -99,16 +99,16 @@ static int cJSONUtils_Pstrcasecmp(const unsigned char *name, const unsigned char
         }
         else if (tolower(*name) != tolower(*pointer))
         {
-            return 1;
+            return false;
         }
     }
     if (((*pointer != 0) && (*pointer != '/')) != (*name != 0))
     {
         /* one string has ended, the other not */
-        return 1;
+        return false;;
     }
 
-    return 0;
+    return true;
 }
 
 /* calculate the length of a string if encoded as JSON pointer with ~0 and ~1 escape sequences */
@@ -270,7 +270,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
         {
             current_element = current_element->child;
             /* GetObjectItem. */
-            while ((current_element != NULL) && cJSONUtils_Pstrcasecmp((unsigned char*)current_element->string, (const unsigned char*)pointer))
+            while ((current_element != NULL) && !case_insensitive_pointer_comparison((unsigned char*)current_element->string, (const unsigned char*)pointer))
             {
                 current_element = current_element->next;
             }
