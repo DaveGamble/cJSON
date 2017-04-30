@@ -1247,9 +1247,8 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const p
     return target;
 }
 
-CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to)
+static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const cJSON_bool case_sensitive)
 {
-    cJSON_bool case_sensitive = false;
     cJSON *from_child = NULL;
     cJSON *to_child = NULL;
     cJSON *patch = NULL;
@@ -1324,4 +1323,14 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * 
     }
 
     return patch;
+}
+
+CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to)
+{
+    return generate_merge_patch(from, to, false);
+}
+
+CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatchCaseSensitive(cJSON * const from, cJSON * const to)
+{
+    return generate_merge_patch(from, to, true);
 }
