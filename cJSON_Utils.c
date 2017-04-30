@@ -546,11 +546,21 @@ static cJSON_bool insert_item_in_array(cJSON *array, size_t which, cJSON *newite
     return 1;
 }
 
+static cJSON *get_object_item(const cJSON * const object, const char* name, const cJSON_bool case_sensitive)
+{
+    if (case_sensitive)
+    {
+        return cJSON_GetObjectItemCaseSensitive(object, name);
+    }
+
+    return cJSON_GetObjectItem(object, name);
+}
+
 enum patch_operation { INVALID, ADD, REMOVE, REPLACE, MOVE, COPY, TEST };
 
-static enum patch_operation decode_patch_operation(const cJSON * const patch)
+static enum patch_operation decode_patch_operation(const cJSON * const patch, const cJSON_bool case_sensitive)
 {
-    cJSON *operation = cJSON_GetObjectItem(patch, "op");
+    cJSON *operation = get_object_item(patch, "op", case_sensitive);
     if (!cJSON_IsString(operation))
     {
         return INVALID;
@@ -623,7 +633,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     unsigned char *child_pointer = NULL;
     int status = 0;
 
-    path = cJSON_GetObjectItem(patch, "path");
+    path = get_object_item(patch, "path", case_sensitive);
     if (!cJSON_IsString(path))
     {
         /* malformed patch. */
@@ -631,7 +641,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
         goto cleanup;
     }
 
-    opcode = decode_patch_operation(patch);
+    opcode = decode_patch_operation(patch, case_sensitive);
     if (opcode == INVALID)
     {
         status = 3;
@@ -640,7 +650,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), cJSON_GetObjectItem(patch, "value"), case_sensitive);
+        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), get_object_item(patch, "value", case_sensitive), case_sensitive);
         goto cleanup;
     }
 
@@ -659,7 +669,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
 
         if ((opcode == REPLACE) || (opcode == ADD))
         {
-            value = cJSON_GetObjectItem(patch, "value");
+            value = get_object_item(patch, "value", case_sensitive);
             if (value == NULL)
             {
                 /* missing "value" for add/replace. */
@@ -714,7 +724,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     /* Copy/Move uses "from". */
     if ((opcode == MOVE) || (opcode == COPY))
     {
-        cJSON *from = cJSON_GetObjectItem(patch, "from");
+        cJSON *from = get_object_item(patch, "from", case_sensitive);
         if (from == NULL)
         {
             /* missing "from" for copy/move. */
@@ -749,7 +759,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     }
     else /* Add/Replace uses "value". */
     {
-        value = cJSON_GetObjectItem(patch, "value");
+        value = get_object_item(patch, "value", case_sensitive);
         if (value == NULL)
         {
             /* missing "value" for add/replace. */
