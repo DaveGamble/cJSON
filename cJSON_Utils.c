@@ -437,7 +437,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b)
 
         case cJSON_String:
             /* string mismatch. */
-            if (compare_strings((unsigned char*)a->valuestring, (unsigned char*)b->valuestring, true) != 0)
+            if (strcmp(a->valuestring, b->valuestring) != 0)
             {
                 return false;
             }
