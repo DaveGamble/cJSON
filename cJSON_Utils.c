@@ -112,7 +112,7 @@ static cJSON_bool case_insensitive_pointer_comparison(const unsigned char *name,
 }
 
 /* calculate the length of a string if encoded as JSON pointer with ~0 and ~1 escape sequences */
-static size_t cJSONUtils_PointerEncodedstrlen(const unsigned char *string)
+static size_t pointer_encoded_length(const unsigned char *string)
 {
     size_t length;
     for (length = 0; *string != '\0'; (void)string++, length++)
@@ -190,7 +190,7 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
 
             if (cJSON_IsObject(object))
             {
-                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + cJSONUtils_PointerEncodedstrlen((unsigned char*)current_child->string) + 2);
+                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + pointer_encoded_length((unsigned char*)current_child->string) + 2);
                 full_pointer[0] = '/';
                 cJSONUtils_PointerEncodedstrcpy(full_pointer + 1, (unsigned char*)current_child->string);
                 strcat((char*)full_pointer, (char*)target_pointer);
@@ -862,7 +862,7 @@ static void cJSONUtils_GeneratePatch(cJSON * const patches, const unsigned char 
     }
     else
     {
-        size_t suffix_length = cJSONUtils_PointerEncodedstrlen(suffix);
+        size_t suffix_length = pointer_encoded_length(suffix);
         size_t path_length = strlen((const char*)path);
         unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
 
@@ -989,7 +989,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                 {
                     /* both object keys are the same */
                     size_t path_length = strlen((const char*)path);
-                    size_t from_child_name_length = cJSONUtils_PointerEncodedstrlen((unsigned char*)from_child->string);
+                    size_t from_child_name_length = pointer_encoded_length((unsigned char*)from_child->string);
                     unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + sizeof("/"));
 
                     sprintf((char*)new_path, "%s/", path);
