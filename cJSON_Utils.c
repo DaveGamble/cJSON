@@ -30,17 +30,18 @@
 
 #include "cJSON_Utils.h"
 
-static unsigned char* cJSONUtils_strdup(const unsigned char* str)
+static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
 {
-    size_t len = 0;
+    size_t length = 0;
     unsigned char *copy = NULL;
 
-    len = strlen((const char*)str) + 1;
-    if (!(copy = (unsigned char*)cJSON_malloc(len)))
+    length = strlen((const char*)string) + sizeof("");
+    copy = (unsigned char*) cJSON_malloc(length);
+    if (copy == NULL)
     {
         return NULL;
     }
-    memcpy(copy, str, len);
+    memcpy(copy, string, length);
 
     return copy;
 }
