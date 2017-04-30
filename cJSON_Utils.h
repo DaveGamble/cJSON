@@ -58,7 +58,8 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
 /* target will be modified by patch. return value is new ptr for target. */
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch);
 /* generates a patch to move from -> to */
-CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON *from, cJSON *to);
+/* NOTE: This modifies objects in 'from' and 'to' by sorting the elements by their key */
+CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to);
 
 /* Given a root object and a target object, construct a pointer from one to the other. */
 CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const object, const cJSON * const target);
