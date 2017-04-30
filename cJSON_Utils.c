@@ -107,18 +107,20 @@ static int cJSONUtils_Pstrcasecmp(const unsigned char *name, const unsigned char
     return 0;
 }
 
-static size_t cJSONUtils_PointerEncodedstrlen(const unsigned char *s)
+/* calculate the length of a string if encoded as JSON pointer with ~0 and ~1 escape sequences */
+static size_t cJSONUtils_PointerEncodedstrlen(const unsigned char *string)
 {
-    size_t l = 0;
-    for (; *s; (void)s++, l++)
+    size_t length;
+    for (length = 0; *string != '\0'; (void)string++, length++)
     {
-        if ((*s == '~') || (*s == '/'))
+        /* character needs to be escaped? */
+        if ((*string == '~') || (*string == '/'))
         {
-            l++;
+            length++;
         }
     }
 
-    return l;
+    return length;
 }
 
 static void cJSONUtils_PointerEncodedstrcpy(unsigned char *d, const unsigned char *s)
