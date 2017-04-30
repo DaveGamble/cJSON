@@ -245,12 +245,14 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
     return 1;
 }
 
-CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *pointer)
 {
+    cJSON *current_element = object;
     /* follow path of the pointer */
-    while ((*pointer++ == '/') && object)
+    while ((pointer[0] == '/') && (current_element != NULL))
     {
-        if (cJSON_IsArray(object))
+        pointer++;
+        if (cJSON_IsArray(current_element))
         {
             size_t index = 0;
             if (!decode_array_index_from_pointer((const unsigned char*)pointer, &index))
@@ -258,18 +260,18 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
                 return NULL;
             }
 
-            object = get_array_item(object, index);
+            current_element = get_array_item(current_element, index);
         }
-        else if (cJSON_IsObject(object))
+        else if (cJSON_IsObject(current_element))
         {
-            object = object->child;
+            current_element = current_element->child;
             /* GetObjectItem. */
-            while (object && cJSONUtils_Pstrcasecmp((unsigned char*)object->string, (const unsigned char*)pointer))
+            while ((current_element != NULL) && cJSONUtils_Pstrcasecmp((unsigned char*)current_element->string, (const unsigned char*)pointer))
             {
-                object = object->next;
+                current_element = current_element->next;
             }
             /* skip to the next path token or end of string */
-            while (*pointer && (*pointer != '/'))
+            while ((pointer[0] != '\0') && (pointer[0] != '/'))
             {
                 pointer++;
             }
@@ -280,7 +282,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer)
         }
     }
 
-    return object;
+    return current_element;
 }
 
 /* JSON Patch implementation. */

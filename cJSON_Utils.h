@@ -23,7 +23,7 @@
 #include "cJSON.h"
 
 /* Implement RFC6901 (https://tools.ietf.org/html/rfc6901) JSON Pointer spec. */
-CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON *object, const char *pointer);
+CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *pointer);
 
 /* Implement RFC6902 (https://tools.ietf.org/html/rfc6902) JSON Patch spec. */
 CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to);
