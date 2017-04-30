@@ -290,7 +290,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *po
 }
 
 /* JSON Patch implementation. */
-static void cJSONUtils_InplaceDecodePointerString(unsigned char *string)
+static void decode_pointer_inplace(unsigned char *string)
 {
     unsigned char *decoded_string = string;
 
@@ -379,7 +379,7 @@ static cJSON *cJSONUtils_PatchDetach(cJSON *object, const unsigned char *path)
     child_pointer++;
 
     parent = cJSONUtils_GetPointer(object, (char*)parent_pointer);
-    cJSONUtils_InplaceDecodePointerString(child_pointer);
+    decode_pointer_inplace(child_pointer);
 
     if (cJSON_IsArray(parent))
     {
@@ -765,7 +765,7 @@ static int cJSONUtils_ApplyPatch(cJSON *object, const cJSON *patch)
         child_pointer++;
     }
     parent = cJSONUtils_GetPointer(object, (char*)parent_pointer);
-    cJSONUtils_InplaceDecodePointerString(child_pointer);
+    decode_pointer_inplace(child_pointer);
 
     /* add, remove, replace, move, copy, test. */
     if ((parent == NULL) || (child_pointer == NULL))
