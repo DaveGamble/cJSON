@@ -1218,7 +1218,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * 
         {
             if (to_child != NULL)
             {
-                diff = compare_strings((unsigned char*)from_child->string, (unsigned char*)to_child->string, true);
+                diff = strcmp(from_child->string, to_child->string);
             }
             else
             {
