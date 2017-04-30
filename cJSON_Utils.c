@@ -420,7 +420,7 @@ cleanup:
     return detached_item;
 }
 
-static cJSON_bool compare_json(cJSON *a, cJSON *b)
+static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensitive)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
     {
@@ -454,7 +454,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b)
         case cJSON_Array:
             for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
-                cJSON_bool identical = compare_json(a, b);
+                cJSON_bool identical = compare_json(a, b, case_sensitive);
                 if (!identical)
                 {
                     return false;
@@ -478,12 +478,12 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b)
             {
                 cJSON_bool identical = false;
                 /* compare object keys */
-                if (compare_strings((unsigned char*)a->string, (unsigned char*)b->string, false))
+                if (compare_strings((unsigned char*)a->string, (unsigned char*)b->string, case_sensitive))
                 {
                     /* missing member */
                     return false;
                 }
-                identical = compare_json(a, b);
+                identical = compare_json(a, b, case_sensitive);
                 if (!identical)
                 {
                     return false;
@@ -641,7 +641,7 @@ static int apply_patch(cJSON *object, const cJSON *patch)
     else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), cJSON_GetObjectItem(patch, "value"));
+        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), cJSON_GetObjectItem(patch, "value"), case_sensitive);
         goto cleanup;
     }
 
@@ -1198,6 +1198,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const p
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to)
 {
+    cJSON_bool case_sensitive = false;
     cJSON *from_child = NULL;
     cJSON *to_child = NULL;
     cJSON *patch = NULL;
@@ -1253,7 +1254,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * 
         else
         {
             /* object key exists in both objects */
-            if (!compare_json(from_child, to_child))
+            if (!compare_json(from_child, to_child, case_sensitive))
             {
                 /* not identical --> generate a patch */
                 cJSON_AddItemToObject(patch, to_child->string, cJSONUtils_GenerateMergePatch(from_child, to_child));
