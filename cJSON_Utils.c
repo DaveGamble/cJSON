@@ -128,7 +128,7 @@ static size_t pointer_encoded_length(const unsigned char *string)
 }
 
 /* copy a string while escaping '~' and '/' with ~0 and ~1 JSON pointer escape codes */
-static void cJSONUtils_PointerEncodedstrcpy(unsigned char *destination, const unsigned char *source)
+static void encode_string_as_pointer(unsigned char *destination, const unsigned char *source)
 {
     for (; source[0] != '\0'; (void)source++, destination++)
     {
@@ -192,7 +192,7 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
             {
                 unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + pointer_encoded_length((unsigned char*)current_child->string) + 2);
                 full_pointer[0] = '/';
-                cJSONUtils_PointerEncodedstrcpy(full_pointer + 1, (unsigned char*)current_child->string);
+                encode_string_as_pointer(full_pointer + 1, (unsigned char*)current_child->string);
                 strcat((char*)full_pointer, (char*)target_pointer);
                 cJSON_free(target_pointer);
 
@@ -867,7 +867,7 @@ static void cJSONUtils_GeneratePatch(cJSON * const patches, const unsigned char 
         unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
 
         sprintf((char*)full_path, "%s/", (const char*)path);
-        cJSONUtils_PointerEncodedstrcpy(full_path + path_length + 1, suffix);
+        encode_string_as_pointer(full_path + path_length + 1, suffix);
 
         cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)full_path));
         free(full_path);
@@ -993,7 +993,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
                     unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + sizeof("/"));
 
                     sprintf((char*)new_path, "%s/", path);
-                    cJSONUtils_PointerEncodedstrcpy(new_path + path_length + 1, (unsigned char*)from_child->string);
+                    encode_string_as_pointer(new_path + path_length + 1, (unsigned char*)from_child->string);
 
                     /* create a patch for the element */
                     cJSONUtils_CompareToPatch(patches, new_path, from_child, to_child);
