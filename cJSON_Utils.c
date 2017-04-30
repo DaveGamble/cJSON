@@ -1145,8 +1145,10 @@ CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object)
     object->child = cJSONUtils_SortList(object->child);
 }
 
-CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
 {
+    cJSON *patch_child = NULL;
+
     if (!cJSON_IsObject(patch))
     {
         /* scalar value, array or NULL, just duplicate */
@@ -1160,20 +1162,20 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, cJSON *patch)
         target = cJSON_CreateObject();
     }
 
-    patch = patch->child;
-    while (patch)
+    patch_child = patch->child;
+    while (patch_child != NULL)
     {
-        if (cJSON_IsNull(patch))
+        if (cJSON_IsNull(patch_child))
         {
             /* NULL is the indicator to remove a value, see RFC7396 */
-            cJSON_DeleteItemFromObject(target, patch->string);
+            cJSON_DeleteItemFromObject(target, patch_child->string);
         }
         else
         {
-            cJSON *replaceme = cJSON_DetachItemFromObject(target, patch->string);
-            cJSON_AddItemToObject(target, patch->string, cJSONUtils_MergePatch(replaceme, patch));
+            cJSON *replace_me = cJSON_DetachItemFromObject(target, patch_child->string);
+            cJSON_AddItemToObject(target, patch_child->string, cJSONUtils_MergePatch(replace_me, patch_child));
         }
-        patch = patch->next;
+        patch_child = patch_child->next;
     }
     return target;
 }
