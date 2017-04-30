@@ -26,7 +26,8 @@
 CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *pointer);
 
 /* Implement RFC6902 (https://tools.ietf.org/html/rfc6902) JSON Patch spec. */
-CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to);
+/* NOTE: This modifies objects in 'from' and 'to' by sorting the elements by their key */
+CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * const to);
 /* Utility for generating patch array entries. */
 CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * const operation, const char * const path, const cJSON * const value);
 /* Returns 0 for success. */

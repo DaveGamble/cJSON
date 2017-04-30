@@ -1021,7 +1021,7 @@ static void cJSONUtils_CompareToPatch(cJSON * const patches, const unsigned char
     }
 }
 
-CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON *from, cJSON *to)
+CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * const to)
 {
     cJSON *patches = cJSON_CreateArray();
     cJSONUtils_CompareToPatch(patches, (const unsigned char*)"", from, to);
