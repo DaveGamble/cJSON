@@ -843,24 +843,35 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
     return 0;
 }
 
-static void cJSONUtils_GeneratePatch(cJSON *patches, const unsigned char *op, const unsigned char *path, const unsigned char *suffix, cJSON *val)
+static void cJSONUtils_GeneratePatch(cJSON * const patches, const unsigned char * const operation, const unsigned char * const path, const unsigned char *suffix, const cJSON * const value)
 {
     cJSON *patch = cJSON_CreateObject();
-    cJSON_AddItemToObject(patch, "op", cJSON_CreateString((const char*)op));
-    if (suffix)
+    if (patch == NULL)
     {
-        unsigned char *newpath = (unsigned char*)cJSON_malloc(strlen((const char*)path) + cJSONUtils_PointerEncodedstrlen(suffix) + 2);
-        cJSONUtils_PointerEncodedstrcpy(newpath + sprintf((char*)newpath, "%s/", (const char*)path), suffix);
-        cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)newpath));
-        free(newpath);
+        return;
     }
-    else
+    cJSON_AddItemToObject(patch, "op", cJSON_CreateString((const char*)operation));
+
+    if (suffix == NULL)
     {
         cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)path));
     }
-    if (val)
+    else
     {
-        cJSON_AddItemToObject(patch, "value", cJSON_Duplicate(val, 1));
+        size_t suffix_length = cJSONUtils_PointerEncodedstrlen(suffix);
+        size_t path_length = strlen((const char*)path);
+        unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
+
+        sprintf((char*)full_path, "%s/", (const char*)path);
+        cJSONUtils_PointerEncodedstrcpy(full_path + path_length + 1, suffix);
+
+        cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)full_path));
+        free(full_path);
+    }
+
+    if (value != NULL)
+    {
+        cJSON_AddItemToObject(patch, "value", cJSON_Duplicate(value, 1));
     }
     cJSON_AddItemToArray(patches, patch);
 }
