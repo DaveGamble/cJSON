@@ -1059,6 +1059,14 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * con
     return patches;
 }
 
+CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatchesCaseSensitive(cJSON * const from, cJSON * const to)
+{
+    cJSON *patches = cJSON_CreateArray();
+    create_patches(patches, (const unsigned char*)"", from, to, true);
+
+    return patches;
+}
+
 /* sort lists using mergesort */
 static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
 {
