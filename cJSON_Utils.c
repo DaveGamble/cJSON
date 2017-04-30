@@ -896,7 +896,7 @@ CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * 
     compose_patch(array, (const unsigned char*)operation, (const unsigned char*)path, NULL, value);
 }
 
-static void create_patches(cJSON * const patches, const unsigned char * const path, cJSON * const from, cJSON * const to)
+static void create_patches(cJSON * const patches, const unsigned char * const path, cJSON * const from, cJSON * const to, const cJSON_bool case_sensitive)
 {
     if ((from == NULL) || (to == NULL))
     {
@@ -944,7 +944,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                     return;
                 }
                 sprintf((char*)new_path, "%s/%lu", path, (unsigned long)index); /* path of the current array element */
-                create_patches(patches, new_path, from_child, to_child);
+                create_patches(patches, new_path, from_child, to_child, case_sensitive);
             }
 
             /* remove leftover elements from 'from' that are not in 'to' */
@@ -993,7 +993,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                 }
                 else
                 {
-                    diff = compare_strings((unsigned char*)from_child->string, (unsigned char*)to_child->string, false);
+                    diff = compare_strings((unsigned char*)from_child->string, (unsigned char*)to_child->string, case_sensitive);
                 }
 
                 if (diff == 0)
@@ -1007,7 +1007,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                     encode_string_as_pointer(new_path + path_length + 1, (unsigned char*)from_child->string);
 
                     /* create a patch for the element */
-                    create_patches(patches, new_path, from_child, to_child);
+                    create_patches(patches, new_path, from_child, to_child, case_sensitive);
                     free(new_path);
 
                     from_child = from_child->next;
@@ -1039,7 +1039,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
 CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * const to)
 {
     cJSON *patches = cJSON_CreateArray();
-    create_patches(patches, (const unsigned char*)"", from, to);
+    create_patches(patches, (const unsigned char*)"", from, to, false);
 
     return patches;
 }
