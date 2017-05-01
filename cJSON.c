@@ -1878,13 +1878,16 @@ CJSON_PUBLIC(void) cJSON_DeleteItemFromArray(cJSON *array, int which)
 
 CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *string)
 {
-    cJSON *c = object->child;
-    while (c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
-    {
-        c = c->next;
-    }
+    cJSON *to_detach = cJSON_GetObjectItem(object, string);
 
-    return cJSON_DetachItemViaPointer(object, c);
+    return cJSON_DetachItemViaPointer(object, to_detach);
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObjectCaseSensitive(cJSON *object, const char *string)
+{
+    cJSON *to_detach = cJSON_GetObjectItemCaseSensitive(object, string);
+
+    return cJSON_DetachItemViaPointer(object, to_detach);
 }
 
 CJSON_PUBLIC(void) cJSON_DeleteItemFromObject(cJSON *object, const char *string)
