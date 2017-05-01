@@ -1852,28 +1852,8 @@ static cJSON *DetachItemFromArray(cJSON *array, size_t which)
         c = c->next;
         which--;
     }
-    if (!c)
-    {
-        /* item doesn't exist */
-        return NULL;
-    }
-    if (c->prev)
-    {
-        /* not the first element */
-        c->prev->next = c->next;
-    }
-    if (c->next)
-    {
-        c->next->prev = c->prev;
-    }
-    if (c==array->child)
-    {
-        array->child = c->next;
-    }
-    /* make sure the detached item doesn't point anywhere anymore */
-    c->prev = c->next = NULL;
 
-    return c;
+    return cJSON_DetachItemViaPointer(array, c);
 }
 CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromArray(cJSON *array, int which)
 {
@@ -1892,19 +1872,13 @@ CJSON_PUBLIC(void) cJSON_DeleteItemFromArray(cJSON *array, int which)
 
 CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *string)
 {
-    size_t i = 0;
     cJSON *c = object->child;
     while (c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
     {
-        i++;
         c = c->next;
     }
-    if (c)
-    {
-        return DetachItemFromArray(object, i);
-    }
 
-    return NULL;
+    return cJSON_DetachItemViaPointer(object, c);
 }
 
 CJSON_PUBLIC(void) cJSON_DeleteItemFromObject(cJSON *object, const char *string)
