@@ -1930,35 +1930,41 @@ CJSON_PUBLIC(void) cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newit
     }
 }
 
-static void ReplaceItemInArray(cJSON *array, size_t which, cJSON *newitem)
+CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON * const item, cJSON * replacement)
 {
-    cJSON *replaced = get_array_item(array, which);
-
-    if (replaced == NULL)
+    if ((parent == NULL) || (replacement == NULL))
     {
-        return;
+        return false;
     }
 
-    newitem->next = replaced->next;
-    newitem->prev = replaced->prev;
-    if (newitem->next)
+    if (replacement == item)
     {
-        newitem->next->prev = newitem;
-    }
-    if (replaced == array->child)
-    {
-        array->child = newitem;
-    }
-    else
-    {
-        newitem->prev->next = newitem;
+        return true;
     }
 
-    replaced->next = NULL;
-    replaced->prev = NULL;
+    replacement->next = item->next;
+    replacement->prev = item->prev;
 
-    cJSON_Delete(replaced);
+    if (replacement->next != NULL)
+    {
+        replacement->next->prev = replacement;
+    }
+    if (replacement->prev != NULL)
+    {
+        replacement->prev->next = replacement;
+    }
+    if (parent->child == item)
+    {
+        parent->child = replacement;
+    }
+
+    item->next = NULL;
+    item->prev = NULL;
+    cJSON_Delete(item);
+
+    return true;
 }
+
 CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
 {
     if (which < 0)
@@ -1966,29 +1972,12 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newi
         return;
     }
 
-    ReplaceItemInArray(array, (size_t)which, newitem);
+    cJSON_ReplaceItemViaPointer(array, get_array_item(array, (size_t)which), newitem);
 }
 
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
 {
-    size_t i = 0;
-    cJSON *c = object->child;
-    while(c && (case_insensitive_strcmp((unsigned char*)c->string, (const unsigned char*)string) != 0))
-    {
-        i++;
-        c = c->next;
-    }
-    if(c)
-    {
-        /* free the old string if not const */
-        if (!(newitem->type & cJSON_StringIsConst) && newitem->string)
-        {
-             global_hooks.deallocate(newitem->string);
-        }
-
-        newitem->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
-        ReplaceItemInArray(object, i, newitem);
-    }
+    cJSON_ReplaceItemViaPointer(object, cJSON_GetObjectItem(object, string), newitem);
 }
 
 /* Create basic types: */
