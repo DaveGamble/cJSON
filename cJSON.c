@@ -1980,6 +1980,11 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object, const char *string, 
     cJSON_ReplaceItemViaPointer(object, cJSON_GetObjectItem(object, string), newitem);
 }
 
+CJSON_PUBLIC(void) cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object, const char *string, cJSON *newitem)
+{
+    cJSON_ReplaceItemViaPointer(object, cJSON_GetObjectItemCaseSensitive(object, string), newitem);
+}
+
 /* Create basic types: */
 CJSON_PUBLIC(cJSON *) cJSON_CreateNull(void)
 {
