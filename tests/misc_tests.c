@@ -218,6 +218,45 @@ static void cjson_set_number_value_should_set_numbers(void)
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
 }
 
+static void cjson_detach_item_via_pointer_should_detach_items(void)
+{
+    cJSON list[4];
+    cJSON parent[1];
+
+    memset(list, '\0', sizeof(list));
+
+    /* link the list */
+    list[0].next = &(list[1]);
+    list[1].next = &(list[2]);
+    list[2].next = &(list[3]);
+
+    list[3].prev = &(list[2]);
+    list[2].prev = &(list[1]);
+    list[1].prev = &(list[0]);
+
+    parent->child = &list[0];
+
+    /* detach in the middle (list[1]) */
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[1])) == &(list[1]), "Failed to detach in the middle.");
+    TEST_ASSERT_TRUE_MESSAGE((list[1].prev == NULL) && (list[1].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_TRUE((list[0].next == &(list[2])) && (list[2].prev == &(list[0])));
+
+    /* detach beginning (list[0]) */
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[0])) == &(list[0]), "Failed to detach beginning.");
+    TEST_ASSERT_TRUE_MESSAGE((list[0].prev == NULL) && (list[0].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (parent->child == &(list[2])), "Didn't set the new beginning.");
+
+    /* detach end (list[3])*/
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[3])) == &(list[3]), "Failed to detach end.");
+    TEST_ASSERT_TRUE_MESSAGE((list[3].prev == NULL) && (list[3].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].next == NULL) && (parent->child == &(list[2])), "Didn't set the new end");
+
+    /* detach single item (list[2]) */
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &list[2]) == &list[2], "Failed to detach single item.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (list[2].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_NULL_MESSAGE(parent->child, "Child of the parent wasn't set to NULL.");
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -229,6 +268,7 @@ int main(void)
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
     RUN_TEST(cjson_set_number_value_should_set_numbers);
+    RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
 
     return UNITY_END();
 }
