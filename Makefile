@@ -3,10 +3,8 @@ UTILS_OBJ = cJSON_Utils.o
 CJSON_LIBNAME = libcjson
 UTILS_LIBNAME = libcjson_utils
 CJSON_TEST = cJSON_test
-UTILS_TEST = cJSON_test_utils
 
 CJSON_TEST_SRC = cJSON.c test.c
-UTILS_TEST_SRC = cJSON.c cJSON_Utils.c test_utils.c
 
 LDLIBS = -lm
 
@@ -71,9 +69,6 @@ test: tests
 #cJSON
 $(CJSON_TEST): $(CJSON_TEST_SRC) cJSON.h
 	$(CC) $(R_CFLAGS) $(CJSON_TEST_SRC)  -o $@ $(LDLIBS) -I.
-#cJSON_Utils
-$(UTILS_TEST): $(UTILS_TEST_SRC) cJSON.h cJSON_Utils.h
-	$(CC) $(R_CFLAGS) $(UTILS_TEST_SRC) -o $@ $(LDLIBS) -I.
 
 #static libraries
 #cJSON
