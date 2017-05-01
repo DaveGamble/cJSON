@@ -402,6 +402,10 @@ However it is thread safe under the following conditions:
 * `cJSON_InitHooks` is only ever called before using cJSON in any threads.
 * `setlocale` is never called before all calls to cJSON functions have returned.
 
+#### Case Sensitivity
+
+When cJSON was originally created, it didn't follow the JSON standard and didn't make a distinction between uppercase and lowercase letters. If you want the correct, standard compliant, behavior, you need to use the `CaseSensitive` functions where available.
+
 # Enjoy cJSON!
 
 - Dave Gamble, Aug 2009
