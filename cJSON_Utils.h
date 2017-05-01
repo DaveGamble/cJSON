@@ -60,6 +60,7 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, con
 /* Implement RFC7386 (https://tools.ietf.org/html/rfc7396) JSON Merge Patch spec. */
 /* target will be modified by patch. return value is new ptr for target. */
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch);
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatchCaseSensitive(cJSON *target, const cJSON * const patch);
 /* generates a patch to move from -> to */
 /* NOTE: This modifies objects in 'from' and 'to' by sorting the elements by their key */
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to);

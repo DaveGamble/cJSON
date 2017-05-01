@@ -1222,7 +1222,7 @@ CJSON_PUBLIC(void) cJSONUtils_SortObjectCaseSensitive(cJSON * const object)
     sort_object(object, true);
 }
 
-CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
+static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_bool case_sensitive)
 {
     cJSON *patch_child = NULL;
 
@@ -1245,16 +1245,50 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const p
         if (cJSON_IsNull(patch_child))
         {
             /* NULL is the indicator to remove a value, see RFC7396 */
-            cJSON_DeleteItemFromObject(target, patch_child->string);
+            if (case_sensitive)
+            {
+                cJSON_DeleteItemFromObjectCaseSensitive(target, patch_child->string);
+            }
+            else
+            {
+                cJSON_DeleteItemFromObject(target, patch_child->string);
+            }
         }
         else
         {
-            cJSON *replace_me = cJSON_DetachItemFromObject(target, patch_child->string);
-            cJSON_AddItemToObject(target, patch_child->string, cJSONUtils_MergePatch(replace_me, patch_child));
+            cJSON *replace_me = NULL;
+            cJSON *replacement = NULL;
+
+            if (case_sensitive)
+            {
+                replace_me = cJSON_DetachItemFromObjectCaseSensitive(target, patch_child->string);
+            }
+            else
+            {
+                replace_me = cJSON_DetachItemFromObject(target, patch_child->string);
+            }
+
+            replacement = merge_patch(replace_me, patch_child, case_sensitive);
+            if (replacement == NULL)
+            {
+                return NULL;
+            }
+
+            cJSON_AddItemToObject(target, patch_child->string, replacement);
         }
         patch_child = patch_child->next;
     }
     return target;
+}
+
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
+{
+    return merge_patch(target, patch, false);
+}
+
+CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatchCaseSensitive(cJSON *target, const cJSON * const patch)
+{
+    return merge_patch(target, patch, true);
 }
 
 static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const cJSON_bool case_sensitive)
