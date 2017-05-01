@@ -1895,6 +1895,11 @@ CJSON_PUBLIC(void) cJSON_DeleteItemFromObject(cJSON *object, const char *string)
     cJSON_Delete(cJSON_DetachItemFromObject(object, string));
 }
 
+CJSON_PUBLIC(void) cJSON_DeleteItemFromObjectCaseSensitive(cJSON *object, const char *string)
+{
+    cJSON_Delete(cJSON_DetachItemFromObjectCaseSensitive(object, string));
+}
+
 /* Replace array/object items with new ones. */
 CJSON_PUBLIC(void) cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)
 {
