@@ -59,7 +59,7 @@ static cJSON_bool test_apply_patch(const cJSON * const test)
     cJSON_bool successful = false;
 
     /* extract all the data out of the test */
-    comment = cJSON_GetObjectItem(test, "comment");
+    comment = cJSON_GetObjectItemCaseSensitive(test, "comment");
     if (cJSON_IsString(comment))
     {
         printf("Testing \"%s\"\n", comment->valuestring);
@@ -69,34 +69,34 @@ static cJSON_bool test_apply_patch(const cJSON * const test)
         printf("Testing unkown\n");
     }
 
-    disabled = cJSON_GetObjectItem(test, "disabled");
+    disabled = cJSON_GetObjectItemCaseSensitive(test, "disabled");
     if (cJSON_IsTrue(disabled))
     {
         printf("SKIPPED\n");
         return true;
     }
 
-    doc = cJSON_GetObjectItem(test, "doc");
+    doc = cJSON_GetObjectItemCaseSensitive(test, "doc");
     TEST_ASSERT_NOT_NULL_MESSAGE(doc, "No \"doc\" in the test.");
-    patch = cJSON_GetObjectItem(test, "patch");
+    patch = cJSON_GetObjectItemCaseSensitive(test, "patch");
     TEST_ASSERT_NOT_NULL_MESSAGE(patch, "No \"patch\"in the test.");
     /* Make a working copy of 'doc' */
     object = cJSON_Duplicate(doc, true);
     TEST_ASSERT_NOT_NULL(object);
 
-    expected = cJSON_GetObjectItem(test, "expected");
-    error_element = cJSON_GetObjectItem(test, "error");
+    expected = cJSON_GetObjectItemCaseSensitive(test, "expected");
+    error_element = cJSON_GetObjectItemCaseSensitive(test, "error");
     if (error_element != NULL)
     {
         /* excepting an error */
-        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatches(object, patch), "Test didn't fail as it's supposed to.");
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatchesCaseSensitive(object, patch), "Test didn't fail as it's supposed to.");
 
         successful = true;
     }
     else
     {
         /* apply the patch */
-        TEST_ASSERT_EQUAL_INT_MESSAGE(0, cJSONUtils_ApplyPatches(object, patch), "Failed to apply patches.");
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, cJSONUtils_ApplyPatchesCaseSensitive(object, patch), "Failed to apply patches.");
         successful = true;
 
         if (expected != NULL)
@@ -131,21 +131,21 @@ static cJSON_bool test_generate_test(cJSON *test __attribute__((unused)))
 
     char *printed_patch = NULL;
 
-    disabled = cJSON_GetObjectItem(test, "disabled");
+    disabled = cJSON_GetObjectItemCaseSensitive(test, "disabled");
     if (cJSON_IsTrue(disabled))
     {
         printf("SKIPPED\n");
         return true;
     }
 
-    doc = cJSON_GetObjectItem(test, "doc");
+    doc = cJSON_GetObjectItemCaseSensitive(test, "doc");
     TEST_ASSERT_NOT_NULL_MESSAGE(doc, "No \"doc\" in the test.");
 
     /* Make a working copy of 'doc' */
     object = cJSON_Duplicate(doc, true);
     TEST_ASSERT_NOT_NULL(object);
 
-    expected = cJSON_GetObjectItem(test, "expected");
+    expected = cJSON_GetObjectItemCaseSensitive(test, "expected");
     if (expected == NULL)
     {
         cJSON_Delete(object);
@@ -153,7 +153,7 @@ static cJSON_bool test_generate_test(cJSON *test __attribute__((unused)))
         return true;
     }
 
-    patch = cJSONUtils_GeneratePatches(doc, expected);
+    patch = cJSONUtils_GeneratePatchesCaseSensitive(doc, expected);
     TEST_ASSERT_NOT_NULL_MESSAGE(patch, "Failed to generate patches.");
 
     printed_patch = cJSON_Print(patch);
@@ -161,7 +161,7 @@ static cJSON_bool test_generate_test(cJSON *test __attribute__((unused)))
     free(printed_patch);
 
     /* apply the generated patch */
-    TEST_ASSERT_EQUAL_INT_MESSAGE(0, cJSONUtils_ApplyPatches(object, patch), "Failed to apply generated patch.");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, cJSONUtils_ApplyPatchesCaseSensitive(object, patch), "Failed to apply generated patch.");
 
     successful = cJSON_Compare(object, expected, true);
 
