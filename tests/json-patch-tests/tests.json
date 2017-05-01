@@ -55,6 +55,21 @@
       "expected": "bar",
       "disabled": true },
 
+    { "comment": "replace object document with array document?",
+      "doc": {},
+      "patch": [{"op": "add", "path": "", "value": []}],
+      "expected": [] },
+
+    { "comment": "replace array document with object document?",
+      "doc": [],
+      "patch": [{"op": "add", "path": "", "value": {}}],
+      "expected": {} },
+
+    { "comment": "append to root array document?",
+      "doc": [],
+      "patch": [{"op": "add", "path": "/-", "value": "hi"}],
+      "expected": ["hi"] },
+
     { "comment": "Add, / target",
       "doc": {},
       "patch": [ {"op": "add", "path": "/", "value":1 } ],
