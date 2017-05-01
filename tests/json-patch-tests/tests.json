@@ -409,7 +409,7 @@
       "doc": ["foo", "bar"],
       "patch": [{"op": "test", "path": "/01", "value": "bar"}],
       "error": "test op should reject the array value, it has leading zeros" },
-    
+
     { "comment": "Removing nonexistent field",
       "doc": {"foo" : "bar"},
       "patch": [{"op": "remove", "path": "/baz"}],
@@ -418,6 +418,12 @@
     { "comment": "Removing nonexistent index",
       "doc": ["foo", "bar"],
       "patch": [{"op": "remove", "path": "/2"}],
-      "error": "removing a nonexistent index should fail" }
+      "error": "removing a nonexistent index should fail" },
+
+    { "comment": "Patch with different capitalisation than doc",
+       "doc": {"foo":"bar"},
+       "patch": [{"op": "add", "path": "/FOO", "value": "BAR"}],
+       "expected": {"foo": "bar", "FOO": "BAR"}
+    }
 
 ]
