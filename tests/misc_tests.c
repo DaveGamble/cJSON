@@ -218,6 +218,92 @@ static void cjson_set_number_value_should_set_numbers(void)
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
 }
 
+static void cjson_detach_item_via_pointer_should_detach_items(void)
+{
+    cJSON list[4];
+    cJSON parent[1];
+
+    memset(list, '\0', sizeof(list));
+
+    /* link the list */
+    list[0].next = &(list[1]);
+    list[1].next = &(list[2]);
+    list[2].next = &(list[3]);
+
+    list[3].prev = &(list[2]);
+    list[2].prev = &(list[1]);
+    list[1].prev = &(list[0]);
+
+    parent->child = &list[0];
+
+    /* detach in the middle (list[1]) */
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[1])) == &(list[1]), "Failed to detach in the middle.");
+    TEST_ASSERT_TRUE_MESSAGE((list[1].prev == NULL) && (list[1].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_TRUE((list[0].next == &(list[2])) && (list[2].prev == &(list[0])));
+
+    /* detach beginning (list[0]) */
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[0])) == &(list[0]), "Failed to detach beginning.");
+    TEST_ASSERT_TRUE_MESSAGE((list[0].prev == NULL) && (list[0].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (parent->child == &(list[2])), "Didn't set the new beginning.");
+
+    /* detach end (list[3])*/
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[3])) == &(list[3]), "Failed to detach end.");
+    TEST_ASSERT_TRUE_MESSAGE((list[3].prev == NULL) && (list[3].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].next == NULL) && (parent->child == &(list[2])), "Didn't set the new end");
+
+    /* detach single item (list[2]) */
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &list[2]) == &list[2], "Failed to detach single item.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (list[2].next == NULL), "Didn't set pointers of detached item to NULL.");
+    TEST_ASSERT_NULL_MESSAGE(parent->child, "Child of the parent wasn't set to NULL.");
+}
+
+static void cjson_replace_item_via_pointer_should_replace_items(void)
+{
+    cJSON replacements[3];
+    cJSON *beginning = NULL;
+    cJSON *middle = NULL;
+    cJSON *end = NULL;
+    cJSON *array = NULL;
+
+    beginning = cJSON_CreateNull();
+    TEST_ASSERT_NOT_NULL(beginning);
+    middle = cJSON_CreateNull();
+    TEST_ASSERT_NOT_NULL(middle);
+    end = cJSON_CreateNull();
+    TEST_ASSERT_NOT_NULL(end);
+
+    array = cJSON_CreateArray();
+    TEST_ASSERT_NOT_NULL(array);
+
+    cJSON_AddItemToArray(array, beginning);
+    cJSON_AddItemToArray(array, middle);
+    cJSON_AddItemToArray(array, end);
+
+
+    memset(replacements, '\0', sizeof(replacements));
+
+    /* replace beginning */
+    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, beginning, &(replacements[0])));
+    TEST_ASSERT_NULL(replacements[0].prev);
+    TEST_ASSERT_TRUE(replacements[0].next == middle);
+    TEST_ASSERT_TRUE(middle->prev == &(replacements[0]));
+    TEST_ASSERT_TRUE(array->child == &(replacements[0]));
+
+    /* replace middle */
+    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, middle, &(replacements[1])));
+    TEST_ASSERT_TRUE(replacements[1].prev == &(replacements[0]));
+    TEST_ASSERT_TRUE(replacements[1].next == end);
+    TEST_ASSERT_TRUE(end->prev == &(replacements[1]));
+
+    /* replace end */
+    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, end, &(replacements[2])));
+    TEST_ASSERT_TRUE(replacements[2].prev == &(replacements[1]));
+    TEST_ASSERT_NULL(replacements[2].next);
+    TEST_ASSERT_TRUE(replacements[1].next == &(replacements[2]));
+
+    cJSON_free(array);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -229,6 +315,8 @@ int main(void)
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
     RUN_TEST(cjson_set_number_value_should_set_numbers);
+    RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
+    RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
 
     return UNITY_END();
 }

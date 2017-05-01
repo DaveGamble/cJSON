@@ -138,8 +138,8 @@ This is an object. We're in C. We don't have objects. But we do have structs.
 What's the framerate?
 
 ```c
-cJSON *format = cJSON_GetObjectItem(root, "format");
-cJSON *framerate_item = cJSON_GetObjectItem(format, "frame rate");
+cJSON *format = cJSON_GetObjectItemCaseSensitive(root, "format");
+cJSON *framerate_item = cJSON_GetObjectItemCaseSensitive(format, "frame rate");
 double framerate = 0;
 if (cJSON_IsNumber(framerate_item))
 {
@@ -150,7 +150,7 @@ if (cJSON_IsNumber(framerate_item))
 Want to change the framerate?
 
 ```c
-cJSON *framerate_item = cJSON_GetObjectItem(format, "frame rate");
+cJSON *framerate_item = cJSON_GetObjectItemCaseSensitive(format, "frame rate");
 cJSON_SetNumberValue(framerate_item, 25);
 ```
 
