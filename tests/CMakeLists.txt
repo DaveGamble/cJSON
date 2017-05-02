@@ -39,7 +39,6 @@ if(ENABLE_CJSON_TEST)
         parse_array
         parse_object
         parse_value
-        parse_file
         print_string
         print_number
         print_array
