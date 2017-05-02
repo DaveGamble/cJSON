@@ -23,6 +23,7 @@ Contributors
 * [Max Bruckner](https://github.com/FSMaxB)
 * Mike Pontillo
 * [Mike Jerris](https://github.com/mjerris)
+* [Mike Robinson](https://github.com/mhrobinson)
 * Paulo Antonio Alvarez
 * [Pawel Winogrodzki](https://github.com/PawelWMS)
 * [Rafael Leal Dias](https://github.com/rafaeldias)
