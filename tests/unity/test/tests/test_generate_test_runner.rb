@@ -1170,11 +1170,11 @@ def runner_test(test, runner, expected, test_defines, cmdline_args)
   simulator = build_simulator_fields
   cmdline_args ||= ""
   executable = $cfg['linker']['bin_files']['destination'] + test_base + $cfg['linker']['bin_files']['extension'] + " #{cmdline_args}"
-  if simulator.nil?
-    cmd_str = executable
-  else
-    cmd_str = "#{simulator[:command]} #{simulator[:pre_support]} #{executable} #{simulator[:post_support]}"
-  end
+  cmd_str = if simulator.nil?
+              executable
+            else
+              "#{simulator[:command]} #{simulator[:pre_support]} #{executable} #{simulator[:post_support]}"
+            end
   output = execute(cmd_str, true)
 
   #compare to the expected pass/fail

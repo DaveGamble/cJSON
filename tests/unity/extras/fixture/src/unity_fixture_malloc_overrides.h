@@ -26,6 +26,7 @@
  * For example, when using FreeRTOS UNITY_FIXTURE_MALLOC becomes pvPortMalloc()
  * and UNITY_FIXTURE_FREE becomes vPortFree(). */
 #if !defined(UNITY_FIXTURE_MALLOC) || !defined(UNITY_FIXTURE_FREE)
+    #include <stdlib.h>
     #define UNITY_FIXTURE_MALLOC(size) malloc(size)
     #define UNITY_FIXTURE_FREE(ptr)    free(ptr)
 #else

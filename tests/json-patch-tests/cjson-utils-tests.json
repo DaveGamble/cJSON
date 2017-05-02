@@ -1,0 +1,84 @@
+[
+    {
+	"comment": "1",
+	"doc": { "foo": "bar"},
+	"patch": [{ "op": "add", "path": "/baz", "value": "qux" }],
+	"expected": {"baz": "qux", "foo": "bar"}
+    },
+    {
+	"comment": "2",
+	"doc": { "foo": [ "bar", "baz" ] },
+	"patch": [{ "op": "add", "path": "/foo/1", "value": "qux" }],
+	"expected": {"foo": [ "bar", "qux", "baz" ] }
+    },
+    {
+	"comment": "3",
+	"doc": {"baz": "qux","foo": "bar"},
+	"patch": [{ "op": "remove", "path": "/baz" }],
+	"expected": {"foo": "bar" }
+    },
+    {
+	"comment": "4",
+	"doc": { "foo": [ "bar", "qux", "baz" ] },
+	"patch": [{ "op": "remove", "path": "/foo/1" }],
+	"expected": {"foo": [ "bar", "baz" ] }
+    },
+    {
+	"comment": "5",
+	"doc": { "baz": "qux","foo": "bar"},
+	"patch": [{ "op": "replace", "path": "/baz", "value": "boo" }],
+	"expected": {"baz": "boo","foo": "bar"}
+    },
+    {
+	"comment": "6",
+	"doc": {"foo": {"bar": "baz","waldo": "fred"},"qux": {"corge": "grault"}},
+	"patch": [{ "op": "move", "from": "/foo/waldo", "path": "/qux/thud" }],
+	"expected": {"foo": {"bar": "baz"},"qux": {"corge": "grault","thud": "fred"}}
+    },
+    {
+	"comment": "7",
+	"doc": { "foo": [ "all", "grass", "cows", "eat" ] },
+	"patch": [ { "op": "move", "from": "/foo/1", "path": "/foo/3" }],
+	"expected": { "foo": [ "all", "cows", "eat", "grass" ] }
+    },
+    {
+	"comment": "8",
+	"doc": {"baz": "qux","foo": [ "a", 2, "c" ]},
+	"patch": [{ "op": "test", "path": "/baz", "value": "qux" },{ "op": "test", "path": "/foo/1", "value": 2 }]
+    },
+    {
+	"comment": "9",
+	"doc": { "baz": "qux" },
+	"patch": [ { "op": "test", "path": "/baz", "value": "bar" }],
+	"error": "\"bar\" doesn't exist"
+    },
+    {
+	"comment": "10",
+	"doc": { "foo": "bar" },
+	"patch": [{ "op": "add", "path": "/child", "value": { "grandchild": { } } }],
+	"expected": {"foo": "bar","child": {"grandchild": {}}}
+    },
+    {
+	"comment": "11",
+	"doc": { "foo": "bar" },
+	"patch": [{ "op": "add", "path": "/baz", "value": "qux", "xyz": 123 }],
+	"expected": {"foo": "bar","baz": "qux"}
+    },
+    {
+	"comment": "12",
+	"doc": { "foo": "bar" },
+	"patch": [{ "op": "add", "path": "/baz/bat", "value": "qux" }],
+	"error": "Can't add to nonexistent object"
+    },
+    {
+	"comment": "13",
+	"doc": {"/": 9,"~1": 10},
+	"patch": [{"op": "test", "path": "/~01", "value": 10}]
+    },
+    {
+	"comment": "14",
+	"doc": { "foo": ["bar"] },
+	"patch": [ { "op": "add", "path": "/foo/-", "value": ["abc", "def"] }],
+	"expected": {"foo": ["bar", ["abc", "def"]] }
+    }
+]

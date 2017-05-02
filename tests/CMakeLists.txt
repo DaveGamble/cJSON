@@ -46,6 +46,8 @@ if(ENABLE_CJSON_TEST)
         print_object
         print_value
         misc_tests
+        parse_with_opts
+        compare_tests
     )
 
     add_library(test-common common.c)
@@ -74,4 +76,29 @@ if(ENABLE_CJSON_TEST)
     endforeach()
 
     add_dependencies(check ${unity_tests})
+
+    if (ENABLE_CJSON_UTILS)
+        #copy test files
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/json-patch-tests")
+        file(GLOB test_files "json-patch-tests/*")
+        file(COPY ${test_files} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/json-patch-tests/")
+
+        set (cjson_utils_tests
+            json_patch_tests
+            old_utils_tests)
+
+        foreach (cjson_utils_test ${cjson_utils_tests})
+            add_executable("${cjson_utils_test}" "${cjson_utils_test}.c")
+            target_link_libraries("${cjson_utils_test}" "${CJSON_LIB}" "${CJSON_UTILS_LIB}" unity test-common)
+            if(MEMORYCHECK_COMMAND)
+                add_test(NAME "${cjson_utils_test}"
+                    COMMAND "${MEMORYCHECK_COMMAND}" ${MEMORYCHECK_COMMAND_OPTIONS} "${CMAKE_CURRENT_BINARY_DIR}/${cjson_utils_test}")
+            else()
+                add_test(NAME "${cjson_utils_test}"
+                    COMMAND "./${cjson_utils_test}")
+            endif()
+        endforeach()
+
+        add_dependencies(check ${cjson_utils_tests})
+    endif()
 endif()

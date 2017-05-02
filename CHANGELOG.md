@@ -1,3 +1,33 @@
+1.5.0
+=====
+Features:
+---------
+* cJSON finally prints numbers without losing precision (#153) thanks @DeboraG
+* `cJSON_Compare` recursively checks if two cJSON items contain the same values (#148)
+* Provide case sensitive versions of every function where it matters (#158, #159)
+* Added `cJSON_ReplaceItemViaPointer` and `cJSON_DetachItemViaPointer`
+* Added `cJSON_free` and `cJSON_malloc` that expose the internal configured memory allocators. (02a05eea4e6ba41811f130b322660bea8918e1a0)
+
+
+Enhancements:
+-------------
+* Parse into a buffer, this will allow parsing `\u0000` in the future (not quite yet though)
+* General simplifications and readability improvements
+* More unit tests
+* Update [unity](https://github.com/ThrowTheSwitch/Unity) testing library to 2.4.1
+* Add the [json-patch-tests](https://github.com/json-patch/json-patch-tests) test suite to test cJSON_Utils.
+* Move all tests from `test_utils.c` to unit tests with unity.
+
+Fixes:
+------
+* Fix some warnings with the Microsoft compiler (#139) thanks @PawelWMS
+* Fix several bugs in cJSON_Utils, mostly found with [json-patch-tests](https://github.com/json-patch/json-patch-tests)
+* Prevent a stack overflow by specifying a maximum nesting depth `CJSON_NESTING_LIMIT`
+
+Other Changes:
+--------------
+* Move generated files in the `library_config` subdirectory.
+
 1.4.7
 =====
 Fixes:

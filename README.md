@@ -14,7 +14,9 @@ Ultralightweight JSON parser in ANSI C.
 
 ## License
 
->  Copyright (c) 2009-2016 Dave Gamble
+MIT License
+
+>  Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
 >
 >  Permission is hereby granted, free of charge, to any person obtaining a copy
 >  of this software and associated documentation files (the "Software"), to deal
@@ -136,8 +138,8 @@ This is an object. We're in C. We don't have objects. But we do have structs.
 What's the framerate?
 
 ```c
-cJSON *format = cJSON_GetObjectItem(root, "format");
-cJSON *framerate_item = cJSON_GetObjectItem(format, "frame rate");
+cJSON *format = cJSON_GetObjectItemCaseSensitive(root, "format");
+cJSON *framerate_item = cJSON_GetObjectItemCaseSensitive(format, "frame rate");
 double framerate = 0;
 if (cJSON_IsNumber(framerate_item))
 {
@@ -148,7 +150,7 @@ if (cJSON_IsNumber(framerate_item))
 Want to change the framerate?
 
 ```c
-cJSON *framerate_item = cJSON_GetObjectItem(format, "frame rate");
+cJSON *framerate_item = cJSON_GetObjectItemCaseSensitive(format, "frame rate");
 cJSON_SetNumberValue(framerate_item, 25);
 ```
 
@@ -395,6 +397,10 @@ cJSON does not officially support any `double` implementations other than IEE754
 
 The maximum length of a floating point literal that cJSON supports is currently 63 characters.
 
+#### Deep Nesting Of Arrays And Objects
+
+cJSON doesn't support arrays and objects that are nested too deeply because this would result in a stack overflow. To prevent this cJSON limits the depth to `CJSON_NESTING_LIMIT` which is 1000 by default but can be changed at compile time.
+
 #### Thread Safety
 
 In general cJSON is **not thread safe**.
@@ -403,6 +409,10 @@ However it is thread safe under the following conditions:
 * `cJSON_GetErrorPtr` is never used (the `return_parse_end` parameter of `cJSON_ParseWithOpts` can be used instead)
 * `cJSON_InitHooks` is only ever called before using cJSON in any threads.
 * `setlocale` is never called before all calls to cJSON functions have returned.
+
+#### Case Sensitivity
+
+When cJSON was originally created, it didn't follow the JSON standard and didn't make a distinction between uppercase and lowercase letters. If you want the correct, standard compliant, behavior, you need to use the `CaseSensitive` functions where available.
 
 # Enjoy cJSON!
 

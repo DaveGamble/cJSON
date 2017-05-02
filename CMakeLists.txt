@@ -6,8 +6,8 @@ include(GNUInstallDirs)
 project(cJSON C)
 
 set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 4)
-set(PROJECT_VERSION_PATCH 7)
+set(PROJECT_VERSION_MINOR 5)
+set(PROJECT_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
@@ -103,7 +103,7 @@ if (NOT WIN32)
     target_link_libraries("${CJSON_LIB}" m)
 endif()
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson.pc.in"
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
 
 install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
@@ -130,7 +130,7 @@ if(ENABLE_CJSON_UTILS)
     add_library("${CJSON_UTILS_LIB}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
     target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
 
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libcjson_utils.pc.in"
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson_utils.pc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
     install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_UTILS_LIB}")
@@ -149,10 +149,10 @@ endif()
 
 # create the other package config files
 configure_file(
-    cJSONConfig.cmake.in
+    "${CMAKE_CURRENT_SOURCE_DIR}/library_config/cJSONConfig.cmake.in"
     ${PROJECT_BINARY_DIR}/cJSONConfig.cmake @ONLY)
 configure_file(
-    cJSONConfigVersion.cmake.in
+    "${CMAKE_CURRENT_SOURCE_DIR}/library_config/cJSONConfigVersion.cmake.in"
     ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake @ONLY)
 
 # Install package config files
@@ -179,18 +179,10 @@ if(ENABLE_CJSON_TEST)
         endif()
     endif()
 
-    if(ENABLE_CJSON_UTILS)
-        set(TEST_CJSON_UTILS cJSON_test_utils)
-        add_executable("${TEST_CJSON_UTILS}" test_utils.c)
-        target_link_libraries("${TEST_CJSON_UTILS}" "${CJSON_UTILS_LIB}")
-
-        add_test(NAME ${TEST_CJSON_UTILS} COMMAND "${CMAKE_CURRENT_BINARY_DIR}/${TEST_CJSON_UTILS}")
-    endif()
-
     #"check" target that automatically builds everything and runs the tests
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        DEPENDS ${TEST_CJSON} ${TEST_CJSON_UTILS})
+        DEPENDS ${TEST_CJSON})
 endif()
 
 add_subdirectory(tests)
