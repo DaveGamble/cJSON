@@ -6,6 +6,7 @@ Contributors
 * [Anton Sergeev](https://github.com/anton-sergeev)
 * [Christian Schulze](https://github.com/ChristianSch)
 * [Dave Gamble](https://github.com/DaveGamble)
+* [Debora Grosse](https://github.com/DeboraG)
 * [dieyushi](https://github.com/dieyushi)
 * [Dongwen Huang (黄东文)](https://github.com/DongwenHuang)
 * Eswar Yaganti
@@ -22,7 +23,9 @@ Contributors
 * [Max Bruckner](https://github.com/FSMaxB)
 * Mike Pontillo
 * [Mike Jerris](https://github.com/mjerris)
+* [Mike Robinson](https://github.com/mhrobinson)
 * Paulo Antonio Alvarez
+* [Pawel Winogrodzki](https://github.com/PawelWMS)
 * [Rafael Leal Dias](https://github.com/rafaeldias)
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)

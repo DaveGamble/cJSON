@@ -28,16 +28,17 @@ static void assert_print_number(const char *expected, double input)
 {
     unsigned char printed[1024];
     cJSON item[1];
-    printbuffer buffer;
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
+    buffer.hooks = global_hooks;
 
     memset(item, 0, sizeof(item));
     cJSON_SetNumberValue(item, input);
 
-    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer, &global_hooks), "Failed to print number.");
+    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
 }
 
@@ -63,19 +64,19 @@ static void print_number_should_print_positive_integers(void)
 static void print_number_should_print_positive_reals(void)
 {
     assert_print_number("0.123", 0.123);
-    assert_print_number("1.000000e-09", 10e-10);
+    assert_print_number("1e-09", 10e-10);
     assert_print_number("1000000000000", 10e11);
-    assert_print_number("1.230000e+129", 123e+127);
-    assert_print_number("0", 123e-128); /* TODO: Maybe this shouldn't be 0 */
+    assert_print_number("1.23e+129", 123e+127);
+    assert_print_number("1.23e-126", 123e-128);
 }
 
 static void print_number_should_print_negative_reals(void)
 {
     assert_print_number("-0.0123", -0.0123);
-    assert_print_number("-1.000000e-09", -10e-10);
-    assert_print_number("-1000000000000000000000", -10e20);
-    assert_print_number("-1.230000e+129", -123e+127);
-    assert_print_number("-1.230000e-126", -123e-128);
+    assert_print_number("-1e-09", -10e-10);
+    assert_print_number("-1e+21", -10e20);
+    assert_print_number("-1.23e+129", -123e+127);
+    assert_print_number("-1.23e-126", -123e-128);
 }
 
 static void print_number_should_print_non_number(void)
@@ -85,15 +86,6 @@ static void print_number_should_print_non_number(void)
     /* assert_print_number("null", NaN); */
     /* assert_print_number("null", INFTY); */
     /* assert_print_number("null", -INFTY); */
-}
-
-static void trim_trailing_zeroes_should_trim_trailing_zeroes(void)
-{
-    TEST_ASSERT_EQUAL_INT(2, trim_trailing_zeroes((const unsigned char*)"10.00", (int)(sizeof("10.00") - 1), '.'));
-    TEST_ASSERT_EQUAL_INT(0, trim_trailing_zeroes((const unsigned char*)".00", (int)(sizeof(".00") - 1), '.'));
-    TEST_ASSERT_EQUAL_INT(0, trim_trailing_zeroes((const unsigned char*)"00", (int)(sizeof("00") - 1), '.'));
-    TEST_ASSERT_EQUAL_INT(-1, trim_trailing_zeroes(NULL, 10, '.'));
-    TEST_ASSERT_EQUAL_INT(-1, trim_trailing_zeroes((const unsigned char*)"", 0, '.'));
 }
 
 int main(void)
@@ -107,7 +99,6 @@ int main(void)
     RUN_TEST(print_number_should_print_positive_reals);
     RUN_TEST(print_number_should_print_negative_reals);
     RUN_TEST(print_number_should_print_non_number);
-    RUN_TEST(trim_trailing_zeroes_should_trim_trailing_zeroes);
 
     return UNITY_END();
 }
