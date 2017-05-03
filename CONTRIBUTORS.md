@@ -17,6 +17,7 @@ Contributors
 * [IvanVoid](https://github.com/npi3pak)
 * [Jiri Zouhar](https://github.com/loigu)
 * [Jonathan Fether](https://github.com/jfether)
+* [Julián Vásquez](https://github.com/juvasquezg)
 * [Kevin Branigan](https://github.com/kbranigan)
 * [Kyle Chisholm](https://github.com/ChisholmKyle)
 * [Linus Wallgren](https://github.com/ecksun)
