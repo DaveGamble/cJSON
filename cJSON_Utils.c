@@ -1041,7 +1041,7 @@ static void compose_patch(cJSON * const patches, const unsigned char * const ope
         encode_string_as_pointer(full_path + path_length + 1, suffix);
 
         cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)full_path));
-        free(full_path);
+        cJSON_free(full_path);
     }
 
     if (value != NULL)
@@ -1100,7 +1100,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                  * if size_t is an alias of unsigned long, or if it is bigger */
                 if (index > ULONG_MAX)
                 {
-                    free(new_path);
+                    cJSON_free(new_path);
                     return;
                 }
                 sprintf((char*)new_path, "%s/%lu", path, (unsigned long)index); /* path of the current array element */
@@ -1115,7 +1115,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                  * if size_t is an alias of unsigned long, or if it is bigger */
                 if (index > ULONG_MAX)
                 {
-                    free(new_path);
+                    cJSON_free(new_path);
                     return;
                 }
                 sprintf((char*)new_path, "%lu", (unsigned long)index);
@@ -1126,7 +1126,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             {
                 compose_patch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to_child);
             }
-            free(new_path);
+            cJSON_free(new_path);
             return;
         }
 
@@ -1168,7 +1168,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
 
                     /* create a patch for the element */
                     create_patches(patches, new_path, from_child, to_child, case_sensitive);
-                    free(new_path);
+                    cJSON_free(new_path);
 
                     from_child = from_child->next;
                     to_child = to_child->next;
