@@ -1,3 +1,10 @@
+1.5.1
+=====
+Fixes:
+------
+* Add gcc version guard to the Makefile (#164), thanks @juvasquezg
+* Fix incorrect free in `cJSON_Utils` if custom memory allocator is used (#166), thanks @prefetchnta
+
 1.5.0
 =====
 Features:
