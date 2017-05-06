@@ -27,6 +27,7 @@ Contributors
 * [Mike Robinson](https://github.com/mhrobinson)
 * Paulo Antonio Alvarez
 * [Pawel Winogrodzki](https://github.com/PawelWMS)
+* [prefetchnta](https://github.com/prefetchnta)
 * [Rafael Leal Dias](https://github.com/rafaeldias)
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)
