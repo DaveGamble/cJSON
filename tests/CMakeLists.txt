@@ -25,6 +25,14 @@ if(ENABLE_CJSON_TEST)
             target_compile_options(unity PRIVATE "-fno-sanitize=float-divide-by-zero")
         endif()
     endif()
+    # Disable -Wswitch-enum for Unity
+    if (FLAG_SUPPORTED_Wswitchenum)
+        if ("${CMAKE_VERSION}" VERSION_LESS "2.8.12")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-switch-enum")
+        else()
+            target_compile_options(unity PRIVATE "-Wno-switch-enum")
+        endif()
+    endif()
 
     #copy test files
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/inputs")
