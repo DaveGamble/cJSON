@@ -43,6 +43,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wparentheses
         -Wformat-overflow
         -Wunused-macros
+        -Wmissing-variable-declarations
         )
 endif()
 
