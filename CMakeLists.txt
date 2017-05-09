@@ -45,6 +45,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wunused-macros
         -Wmissing-variable-declarations
         -Wused-but-marked-unused
+        -Wswitch-enum
         )
 endif()
 
