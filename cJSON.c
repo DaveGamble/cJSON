@@ -2560,16 +2560,18 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
 
         case cJSON_Array:
         {
-            cJSON *a_element = NULL;
-            cJSON *b_element = NULL;
-            for (a_element = a->child, b_element = b->child;
-                    (a_element != NULL) && (b_element != NULL);
-                    a_element = a_element->next, b_element = b_element->next)
+            cJSON *a_element = a->child;
+            cJSON *b_element = b->child;
+
+            for (; (a_element != NULL) && (b_element != NULL);)
             {
                 if (!cJSON_Compare(a_element, b_element, case_sensitive))
                 {
                     return false;
                 }
+
+                a_element = a_element->next;
+                b_element = b_element->next;
             }
 
             return true;
