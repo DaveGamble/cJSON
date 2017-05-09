@@ -30,7 +30,7 @@
 #include "../cJSON_Utils.h"
 
 /* JSON Apply Merge tests: */
-const char *merges[15][3] =
+static const char *merges[15][3] =
 {
     {"{\"a\":\"b\"}", "{\"a\":\"c\"}", "{\"a\":\"c\"}"},
     {"{\"a\":\"b\"}", "{\"b\":\"c\"}", "{\"a\":\"b\",\"b\":\"c\"}"},
