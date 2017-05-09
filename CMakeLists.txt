@@ -44,6 +44,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wformat-overflow
         -Wunused-macros
         -Wmissing-variable-declarations
+        -Wused-but-marked-unused
         )
 endif()
 
