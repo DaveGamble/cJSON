@@ -1,3 +1,11 @@
+1.5.2
+=====
+Fixes:
+------
+* Fix a reading buffer overflow in `parse_string` (a167d9e381e5c84bc03de4e261757b031c0c690d)
+* Fix compiling with -Wcomma (186cce3ece6ce6dfcb58ac8b2a63f7846c3493ad)
+* Remove leftover attribute from tests (b537ca70a35680db66f1f5b8b437f7114daa699a)
+
 1.5.1
 =====
 Fixes:
