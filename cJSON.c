@@ -657,7 +657,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
         /* calculate approximate size of the output (overestimate) */
         size_t allocation_length = 0;
         size_t skipped_bytes = 0;
-        while ((*input_end != '\"') && ((size_t)(input_end - input_buffer->content) < input_buffer->length))
+        while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
         {
             /* is escape sequence */
             if (input_end[0] == '\\')
@@ -672,7 +672,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
             }
             input_end++;
         }
-        if (*input_end != '\"')
+        if (((size_t)(input_end - input_buffer->content) >= input_buffer->length) || (*input_end != '\"'))
         {
             goto fail; /* string ended unexpectedly */
         }
