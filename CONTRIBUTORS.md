@@ -8,7 +8,7 @@ Contributors
 * [Dave Gamble](https://github.com/DaveGamble)
 * [Debora Grosse](https://github.com/DeboraG)
 * [dieyushi](https://github.com/dieyushi)
-* [Dongwen Huang (黄东文)](https://github.com/DongwenHuang)
+* [Dōngwén Huáng (黄东文)](https://github.com/DongwenHuang)
 * Eswar Yaganti
 * [Evan Todd](https://github.com/etodd)
 * [Fabrice Fontaine](https://github.com/ffontaine)
