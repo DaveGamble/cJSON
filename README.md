@@ -383,17 +383,17 @@ cJSON doesn't support strings that contain the zero character `'\0'` or `\u0000`
 
 #### Character Encoding
 
-cJSON only supports UTF-8 encoded input and will always produce UTF-8 as output (If the input contained invalid UTF-8, it will most likely propagate it through to the output, thereby making the output non-valid UTF-8).
+cJSON only supports UTF-8 encoded input. In most cases it doesn't reject invalid UTF-8 as input though, it just propagates it through as is. As long as the input doesn't contain invalid UTF-8, the output will always be valid UTF-8.
 
 #### C Standard
 
 cJSON is written in ANSI C (or C89, C90). If your compiler or C library doesn't follow this standard, correct behavior is not guaranteed.
 
-NOTE: ANSI C is not C++ therefore it shouldn't be compiled by a C++ compiler. You can compile it with a C compiler and link it with your C++ code however. Although compiling with a C++ compiler might work, correct behavior is not guaranteed.
+NOTE: ANSI C is not C++ therefore it shouldn't be compiled with a C++ compiler. You can compile it with a C compiler and link it with your C++ code however. Although compiling with a C++ compiler might work, correct behavior is not guaranteed.
 
 #### Floating Point Numbers
 
-cJSON does not officially support any `double` implementations other than IEE754 double precision floating point numbers. It might still work with other implementations but bugs with these will be considered invalid.
+cJSON does not officially support any `double` implementations other than IEEE754 double precision floating point numbers. It might still work with other implementations but bugs with these will be considered invalid.
 
 The maximum length of a floating point literal that cJSON supports is currently 63 characters.
 
@@ -417,3 +417,4 @@ When cJSON was originally created, it didn't follow the JSON standard and didn't
 # Enjoy cJSON!
 
 - Dave Gamble, Aug 2009
+- [cJSON contributors](CONTRIBUTORS.md)
