@@ -68,6 +68,7 @@ static void print_number_should_print_positive_reals(void)
     assert_print_number("1000000000000", 10e11);
     assert_print_number("1.23e+129", 123e+127);
     assert_print_number("1.23e-126", 123e-128);
+    assert_print_number("3.1415926535897931", 3.1415926535897931);
 }
 
 static void print_number_should_print_negative_reals(void)
