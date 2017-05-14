@@ -49,16 +49,16 @@ static void print_number_should_print_zero(void)
 
 static void print_number_should_print_negative_integers(void)
 {
-    assert_print_number("-1", -1);
-    assert_print_number("-32768", -32768);
+    assert_print_number("-1", -1.0);
+    assert_print_number("-32768", -32768.0);
     assert_print_number("-2147483648", -2147483648.0);
 }
 
 static void print_number_should_print_positive_integers(void)
 {
-    assert_print_number("1", 1);
-    assert_print_number("32767", 32767);
-    assert_print_number("2147483647", 2147483647);
+    assert_print_number("1", 1.0);
+    assert_print_number("32767", 32767.0);
+    assert_print_number("2147483647", 2147483647.0);
 }
 
 static void print_number_should_print_positive_reals(void)
