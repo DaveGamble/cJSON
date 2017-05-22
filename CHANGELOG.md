@@ -1,3 +1,9 @@
+1.5.3
+=====
+Fixes:
+------
+* Fix `cJSON_ReplaceItemInObject` not keeping the name of an item (#174)
+
 1.5.2
 =====
 Fixes:
