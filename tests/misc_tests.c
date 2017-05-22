@@ -304,6 +304,26 @@ static void cjson_replace_item_via_pointer_should_replace_items(void)
     cJSON_free(array);
 }
 
+static void cjson_replace_item_in_object_should_preserve_name(void)
+{
+    cJSON root[1] = {{ NULL, NULL, NULL, 0, NULL, 0, 0, NULL }};
+    cJSON *child = NULL;
+    cJSON *replacement = NULL;
+
+    child = cJSON_CreateNumber(1);
+    TEST_ASSERT_NOT_NULL(child);
+    replacement = cJSON_CreateNumber(2);
+    TEST_ASSERT_NOT_NULL(replacement);
+
+    cJSON_AddItemToObject(root, "child", child);
+    cJSON_ReplaceItemInObject(root, "child", replacement);
+
+    TEST_ASSERT_TRUE(root->child == replacement);
+    TEST_ASSERT_EQUAL_STRING("child", replacement->string);
+
+    cJSON_Delete(replacement);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -317,6 +337,7 @@ int main(void)
     RUN_TEST(cjson_set_number_value_should_set_numbers);
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
+    RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
 
     return UNITY_END();
 }

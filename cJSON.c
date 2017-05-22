@@ -1975,14 +1975,34 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newi
     cJSON_ReplaceItemViaPointer(array, get_array_item(array, (size_t)which), newitem);
 }
 
+static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSON *replacement, cJSON_bool case_sensitive)
+{
+    if (replacement == NULL)
+    {
+        return false;
+    }
+
+    /* replace the name in the replacement */
+    if (!(replacement->type & cJSON_StringIsConst) && (replacement->string != NULL))
+    {
+        cJSON_free(replacement->string);
+    }
+    replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
+    replacement->type &= ~cJSON_StringIsConst;
+
+    cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
+
+    return true;
+}
+
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
 {
-    cJSON_ReplaceItemViaPointer(object, cJSON_GetObjectItem(object, string), newitem);
+    replace_item_in_object(object, string, newitem, false);
 }
 
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object, const char *string, cJSON *newitem)
 {
-    cJSON_ReplaceItemViaPointer(object, cJSON_GetObjectItemCaseSensitive(object, string), newitem);
+    replace_item_in_object(object, string, newitem, true);
 }
 
 /* Create basic types: */
