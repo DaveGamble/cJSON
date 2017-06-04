@@ -41,6 +41,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         -Wcomma
         -Wdouble-promotion
         -Wparentheses
+        -Wformat-overflow
         )
 endif()
 
