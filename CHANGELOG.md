@@ -1,3 +1,13 @@
+1.5.4
+=====
+Fixes:
+------
+* Fix build with GCC 7.1.1 and optimization level `-O2` (bfbd8fe0d85f1dd21e508748fc10fc4c27cc51be)
+
+Other Changes:
+--------------
+* Update [Unity](https://github.com/ThrowTheSwitch/Unity) to 3b69beaa58efc41bbbef70a32a46893cae02719d
+
 1.5.3
 =====
 Fixes:
