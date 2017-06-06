@@ -135,11 +135,19 @@ CJSON_PUBLIC(const char*) cJSON_Version(void);
 /* Supply malloc, realloc and free functions to cJSON */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
+
+
+
 /* Memory Management: the caller is always responsible to free the results from all variants of cJSON_Parse (with cJSON_Delete) and cJSON_Print (with stdlib free, cJSON_Hooks.free_fn, or cJSON_free as appropriate). The exception is cJSON_PrintPreallocated, where the caller has full responsibility of the buffer. */
 /* Supply a block of JSON, and this returns a cJSON object you can interrogate. */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value);
+/* Wrapper for cJSON_Parse() to be used when JSON is needed to be read from a file */
+CJSON_PUBLIC(cJSON *) cJSON_Parse_File(const char *file_name, int *err);
 /* Render a cJSON entity to text for transfer/storage. */
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item);
+/* Wrapper for cJSON_Print() to be used when JSON is needed to be written to a file */
+/* return false on error */
+CJSON_PUBLIC(cJSON_bool) cJSON_Print_To_File(const cJSON *item, const char *file_name);
 /* Render a cJSON entity to text for transfer/storage without any formatting. */
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item);
 /* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
@@ -149,6 +157,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format);
 /* Delete a cJSON entity and all subentities. */
 CJSON_PUBLIC(void) cJSON_Delete(cJSON *c);
+
 
 /* Returns the number of items in an array (or object). */
 CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array);
