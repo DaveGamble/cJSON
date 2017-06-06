@@ -392,7 +392,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
         }
         if (newbuffer)
         {
-            memcpy(newbuffer, p->buffer, p->offset + 1);
+            memcpy(newbuffer, p->buffer, p->offset);
         }
         p->hooks.deallocate(p->buffer);
     }
