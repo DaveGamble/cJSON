@@ -179,6 +179,19 @@ static void file_test11_should_be_parsed_and_printed(void)
     do_test("test11");
 }
 
+static void file_test12_should_be_parsed_and_printed(void)
+{
+    cJSON *tree = NULL;
+    int err = 0;
+    
+    tree = cJSON_Parse_File("inputs/test12", &err);
+    TEST_ASSERT_NOT_NULL_MESSAGE(tree, "cJSON_Parse_File(test12) Failed");
+    if (tree) {
+       TEST_ASSERT_MESSAGE(cJSON_Print_To_File(tree, "inputs/test12_parsed"), "cJSON_Print_To_File() Failed");
+       cJSON_Delete(tree);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -193,5 +206,6 @@ int main(void)
     RUN_TEST(file_test9_should_be_parsed_and_printed);
     RUN_TEST(file_test10_should_be_parsed_and_printed);
     RUN_TEST(file_test11_should_be_parsed_and_printed);
+    RUN_TEST(file_test12_should_be_parsed_and_printed);
     return UNITY_END();
 }

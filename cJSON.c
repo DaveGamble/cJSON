@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <locale.h>
+#include <errno.h>
 
 #ifdef __GNUC__
 #pragma GCC visibility pop
@@ -903,6 +904,7 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
 static cJSON_bool print_array(const cJSON * const item, printbuffer * const output_buffer);
 static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_buffer);
 static cJSON_bool print_object(const cJSON * const item, printbuffer * const output_buffer);
+static unsigned long get_file_size(const char *file_name);
 
 /* Utility to jump whitespace and cr/lf */
 static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
@@ -1013,6 +1015,55 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
+
+/* Wrapper to be used when using a file for cJSON_Parse */
+CJSON_PUBLIC(cJSON *) cJSON_Parse_File(const char *file_name, int *err)
+{
+    FILE *fin;
+    char *data;
+    cJSON *json = NULL;
+    unsigned long len;
+    
+    errno = 0;
+    len = get_file_size(file_name);
+    
+    if ( (len <= 0) || (NULL == file_name) || (NULL == (fin = fopen(file_name, "rb"))) ) 
+    {
+        if (NULL != err) {
+            *err = errno;
+        } 
+        return NULL; 
+    }
+    
+    data = (char *) global_hooks.allocate(len + + sizeof(""));
+    if (data) 
+    {
+     if (fread(data, sizeof(unsigned char), len, fin) == len) 
+     {
+         data[len] = '\0';
+         json = cJSON_Parse(data);
+     }
+     global_hooks.deallocate(data);
+    }
+    
+    fclose(fin);
+    return json;
+}
+
+static unsigned long get_file_size(const char *file_name)
+{
+    unsigned long file_size = 0;
+    FILE *f;
+    f = fopen(file_name, "r");
+    if (NULL != f) {
+        fseek(f, 0, SEEK_END);
+        file_size = (unsigned long ) ftell(f);
+        fclose(f);
+    }
+    return file_size;
+}
+
+
 #define cjson_min(a, b) ((a < b) ? a : b)
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
@@ -1081,6 +1132,37 @@ fail:
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)
 {
     return (char*)print(item, true, &global_hooks);
+}
+
+/* Wrapper for cJSON_Print() to be used when JSON is needed to be written to a file */
+CJSON_PUBLIC(cJSON_bool) cJSON_Print_To_File(const cJSON *item, const char *file_name)
+{
+    cJSON_bool ret_value = false;
+    char *cp;
+    size_t str_len;
+    FILE *fout;
+    
+    fout = fopen(file_name, "w");
+    if (NULL == fout) 
+    {
+        return ret_value;
+    }
+    
+    cp = cJSON_Print(item);
+    
+    if (NULL != cp) 
+    {
+        str_len = strlen(cp);
+        if (fwrite(cp, sizeof(unsigned char), str_len, fout) == str_len)
+        {
+            ret_value = true;
+        }
+        global_hooks.deallocate(cp);
+    }
+       
+    fclose(fout);
+    
+    return ret_value;
 }
 
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
