@@ -175,6 +175,15 @@ static void cjson_compare_should_compare_objects(void)
                 "{\"Flse\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
                 "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
                 false));
+    /* test objects that are a subset of each other */
+    TEST_ASSERT_FALSE(compare_from_string(
+                "{\"one\": 1, \"two\": 2}",
+                "{\"one\": 1, \"two\": 2, \"three\": 3}",
+                true))
+    TEST_ASSERT_FALSE(compare_from_string(
+                "{\"one\": 1, \"two\": 2}",
+                "{\"one\": 1, \"two\": 2, \"three\": 3}",
+                false))
 }
 
 int main(void)
