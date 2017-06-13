@@ -148,6 +148,10 @@ static void cjson_compare_should_compare_arrays(void)
 
     TEST_ASSERT_FALSE(compare_from_string("[true,null,42,\"string\",[],{}]", "[false, true, null, 42, \"string\", [], {}]", true));
     TEST_ASSERT_FALSE(compare_from_string("[true,null,42,\"string\",[],{}]", "[false, true, null, 42, \"string\", [], {}]", false));
+
+    /* Arrays that are a prefix of another array */
+    TEST_ASSERT_FALSE(compare_from_string("[1,2,3]", "[1,2]", true));
+    TEST_ASSERT_FALSE(compare_from_string("[1,2,3]", "[1,2]", false));
 }
 
 static void cjson_compare_should_compare_objects(void)
