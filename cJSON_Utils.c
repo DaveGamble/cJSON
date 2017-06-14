@@ -279,15 +279,16 @@ static cJSON *get_item_from_pointer(cJSON * const object, const char * pointer, 
             {
                 current_element = current_element->next;
             }
-            /* skip to the next path token or end of string */
-            while ((pointer[0] != '\0') && (pointer[0] != '/'))
-            {
-                pointer++;
-            }
         }
         else
         {
             return NULL;
+        }
+
+        /* skip to the next path token or end of string */
+        while ((pointer[0] != '\0') && (pointer[0] != '/'))
+        {
+            pointer++;
         }
     }
 
