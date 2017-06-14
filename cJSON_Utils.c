@@ -943,7 +943,14 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     }
     else if (cJSON_IsObject(parent))
     {
-        cJSON_DeleteItemFromObject(parent, (char*)child_pointer);
+        if (case_sensitive)
+        {
+            cJSON_DeleteItemFromObjectCaseSensitive(parent, (char*)child_pointer);
+        }
+        else
+        {
+            cJSON_DeleteItemFromObject(parent, (char*)child_pointer);
+        }
         cJSON_AddItemToObject(parent, (char*)child_pointer, value);
         value = NULL;
     }
