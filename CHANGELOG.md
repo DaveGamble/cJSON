@@ -1,3 +1,11 @@
+1.5.5
+=====
+Fixes:
+------
+* Fix pointers to nested arrays in cJSON_Utils (9abe75e072050f34732a7169740989a082b65134)
+* Fix an error with case sensitivity handling in cJSON_Utils (b9cc911831b0b3e1bb72f142389428e59f882b38)
+* Fix cJSON_Compare for arrays that are prefixes of the other and objects that are a subset of the other (03ba72faec115160d1f3aea5582d9b6af5d3e473) See #180, thanks @zhengqb for reporting
+
 1.5.4
 =====
 Fixes:
