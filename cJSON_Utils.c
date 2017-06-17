@@ -20,6 +20,10 @@
   THE SOFTWARE.
 */
 
+/* disable warnings about old C89 functions in MSVC */
+#if !defined(_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER)
+#define _CRT_SECURE_NO_DEPRECATE
+#endif
 #pragma GCC visibility push(default)
 #include <ctype.h>
 #include <string.h>
