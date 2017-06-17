@@ -114,7 +114,27 @@ typedef struct internal_hooks
     void *(*reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
-static internal_hooks global_hooks = { malloc, free, realloc };
+#if defined(_MSC_VER)
+/* work around MSVC error C2322: '...' address of dillimport '...' is not static */
+static void *internal_malloc(size_t size)
+{
+    return malloc(size);
+}
+static void internal_free(void *pointer)
+{
+    free(pointer);
+}
+static void *internal_realloc(void *pointer, size_t size)
+{
+    return realloc(pointer, size);
+}
+#else
+#define internal_malloc malloc
+#define internal_free free
+#define internal_realloc realloc
+#endif
+
+static internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };
 
 static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hooks)
 {
