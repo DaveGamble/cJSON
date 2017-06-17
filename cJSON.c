@@ -31,6 +31,11 @@
 #ifdef __GNUC__
 #pragma GCC visibility push(default)
 #endif
+#if defined(_MSC_VER)
+#pragma warning (push)
+/* disable warning about single line comments in system headers */
+#pragma warning (disable : 4001)
+#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -41,6 +46,9 @@
 #include <ctype.h>
 #include <locale.h>
 
+#if defined(_MSC_VER)
+#pragma warning (pop)
+#endif
 #ifdef __GNUC__
 #pragma GCC visibility pop
 #endif
