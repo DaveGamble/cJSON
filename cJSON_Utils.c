@@ -24,13 +24,18 @@
 #if !defined(_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER)
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
+
+#ifdef __GNUCC__
 #pragma GCC visibility push(default)
+#endif
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#ifdef __GNUCC__
 #pragma GCC visibility pop
+#endif
 
 #include "cJSON_Utils.h"
 
