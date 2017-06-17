@@ -16,37 +16,46 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 set(custom_compiler_flags)
 
 include(CheckCCompilerFlag)
-option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags for Clang and GCC" ON)
+option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
-    list(APPEND custom_compiler_flags
-        -std=c89
-        -pedantic
-        -Wall
-        -Wextra
-        -Werror
-        -Wstrict-prototypes
-        -Wwrite-strings
-        -Wshadow
-        -Winit-self
-        -Wcast-align
-        -Wformat=2
-        -Wmissing-prototypes
-        -Wstrict-overflow=2
-        -Wcast-qual
-        -Wundef
-        -Wswitch-default
-        -Wconversion
-        -Wc++-compat
-        -fstack-protector-strong
-        -Wcomma
-        -Wdouble-promotion
-        -Wparentheses
-        -Wformat-overflow
-        -Wunused-macros
-        -Wmissing-variable-declarations
-        -Wused-but-marked-unused
-        -Wswitch-enum
+    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
+        list(APPEND custom_compiler_flags
+            -std=c89
+            -pedantic
+            -Wall
+            -Wextra
+            -Werror
+            -Wstrict-prototypes
+            -Wwrite-strings
+            -Wshadow
+            -Winit-self
+            -Wcast-align
+            -Wformat=2
+            -Wmissing-prototypes
+            -Wstrict-overflow=2
+            -Wcast-qual
+            -Wundef
+            -Wswitch-default
+            -Wconversion
+            -Wc++-compat
+            -fstack-protector-strong
+            -Wcomma
+            -Wdouble-promotion
+            -Wparentheses
+            -Wformat-overflow
+            -Wunused-macros
+            -Wmissing-variable-declarations
+            -Wused-but-marked-unused
+            -Wswitch-enum
         )
+    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+        list(APPEND custom_compiler_flags
+            /GS
+            /Za
+            /sdl
+            /W4
+        )
+    endif()
 endif()
 
 option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)

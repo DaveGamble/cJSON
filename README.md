@@ -85,7 +85,7 @@ You can change the build process with a list of different options that you can p
 * `-DENABLE_CJSON_TEST=On`: Enable building the tests. (on by default)
 * `-DENABLE_CJSON_UTILS=On`: Enable building cJSON_Utils. (off by default)
 * `-DENABLE_TARGET_EXPORT=On`: Enable the export of CMake targets. Turn off if it makes problems. (on by default)
-* `-DENABLE_CUSTOM_COMPILER_FLAGS=On`: Enable custom compiler flags (currently for Clang and GCC). Turn off if it makes problems. (on by default)
+* `-DENABLE_CUSTOM_COMPILER_FLAGS=On`: Enable custom compiler flags (currently for Clang, GCC and MSVC). Turn off if it makes problems. (on by default)
 * `-DENABLE_VALGRIND=On`: Run tests with [valgrind](http://valgrind.org). (off by default)
 * `-DENABLE_SANITIZERS=On`: Compile cJSON with [AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer) and [UndefinedBehaviorSanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html) enabled (if possible). (off by default)
 * `-DBUILD_SHARED_LIBS=On`: Build the shared libraries. (on by default)
