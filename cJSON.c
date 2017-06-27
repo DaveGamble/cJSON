@@ -1653,17 +1653,25 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
 /* Get Array size/item / object item. */
 CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)
 {
-    cJSON *c = array->child;
-    size_t i = 0;
-    while(c)
+    cJSON *child = NULL;
+    size_t size = 0;
+
+    if (array == NULL)
     {
-        i++;
-        c = c->next;
+        return 0;
+    }
+
+    child = array->child;
+
+    while(child != NULL)
+    {
+        size++;
+        child = child->next;
     }
 
     /* FIXME: Can overflow here. Cannot be fixed without breaking the API */
 
-    return (int)i;
+    return (int)size;
 }
 
 static cJSON* get_array_item(const cJSON *array, size_t index)
