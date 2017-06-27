@@ -1756,16 +1756,23 @@ static void suffix_object(cJSON *prev, cJSON *item)
 /* Utility for handling references. */
 static cJSON *create_reference(const cJSON *item, const internal_hooks * const hooks)
 {
-    cJSON *ref = cJSON_New_Item(hooks);
-    if (!ref)
+    cJSON *reference = NULL;
+    if (item == NULL)
     {
         return NULL;
     }
-    memcpy(ref, item, sizeof(cJSON));
-    ref->string = NULL;
-    ref->type |= cJSON_IsReference;
-    ref->next = ref->prev = NULL;
-    return ref;
+
+    reference = cJSON_New_Item(hooks);
+    if (reference == NULL)
+    {
+        return NULL;
+    }
+
+    memcpy(reference, item, sizeof(cJSON));
+    reference->string = NULL;
+    reference->type |= cJSON_IsReference;
+    reference->next = reference->prev = NULL;
+    return reference;
 }
 
 /* Add item to array/object. */
