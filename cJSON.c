@@ -1122,7 +1122,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buf, const i
 {
     printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
 
-    if (len < 0)
+    if ((len < 0) || (buf == NULL))
     {
         return false;
     }
