@@ -2242,7 +2242,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
     cJSON *p = NULL;
     cJSON *a = NULL;
 
-    if (count < 0)
+    if ((count < 0) || (numbers == NULL))
     {
         return NULL;
     }
