@@ -1790,6 +1790,11 @@ CJSON_PUBLIC(void) cJSON_AddItemToArray(cJSON *array, cJSON *item)
 
 CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
 {
+    if (item == NULL)
+    {
+        return;
+    }
+
     /* call cJSON_AddItemToObjectCS for code reuse */
     cJSON_AddItemToObjectCS(object, (char*)cJSON_strdup((const unsigned char*)string, &global_hooks), item);
     /* remove cJSON_StringIsConst flag */
