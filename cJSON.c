@@ -2008,7 +2008,7 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newi
 
 static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSON *replacement, cJSON_bool case_sensitive)
 {
-    if (replacement == NULL)
+    if ((replacement == NULL) || (string == NULL))
     {
         return false;
     }
