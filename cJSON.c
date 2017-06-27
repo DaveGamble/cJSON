@@ -1111,6 +1111,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
     if (!print_value(item, &p))
     {
+        global_hooks.deallocate(p.buffer);
         return NULL;
     }
 
