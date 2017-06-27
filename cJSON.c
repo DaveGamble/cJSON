@@ -1844,6 +1844,11 @@ CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJ
 
 CJSON_PUBLIC(void) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
 {
+    if (array == NULL)
+    {
+        return;
+    }
+
     cJSON_AddItemToArray(array, create_reference(item, &global_hooks));
 }
 
