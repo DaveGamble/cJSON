@@ -262,6 +262,12 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
 static cJSON *get_item_from_pointer(cJSON * const object, const char * pointer, const cJSON_bool case_sensitive)
 {
     cJSON *current_element = object;
+
+    if (pointer == NULL)
+    {
+        return NULL;
+    }
+
     /* follow path of the pointer */
     while ((pointer[0] == '/') && (current_element != NULL))
     {
