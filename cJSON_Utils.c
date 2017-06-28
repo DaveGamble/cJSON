@@ -162,6 +162,11 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
     size_t child_index = 0;
     cJSON *current_child = 0;
 
+    if ((object == NULL) || (target == NULL))
+    {
+        return NULL;
+    }
+
     if (object == target)
     {
         /* found */
