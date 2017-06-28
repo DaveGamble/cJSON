@@ -1228,7 +1228,14 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * const to)
 {
-    cJSON *patches = cJSON_CreateArray();
+    cJSON *patches = NULL;
+
+    if ((from == NULL) || (to == NULL))
+    {
+        return NULL;
+    }
+
+    patches = cJSON_CreateArray();
     create_patches(patches, (const unsigned char*)"", from, to, false);
 
     return patches;
