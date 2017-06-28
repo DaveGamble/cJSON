@@ -550,6 +550,10 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
 
 static void sort_object(cJSON * const object, const cJSON_bool case_sensitive)
 {
+    if (object == NULL)
+    {
+        return;
+    }
     object->child = sort_list(object->child, case_sensitive);
 }
 
