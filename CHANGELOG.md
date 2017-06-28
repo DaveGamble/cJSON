@@ -1,3 +1,9 @@
+1.5.6
+=====
+Fixes:
+------
+* Make cJSON a lot more tolerant about passing NULL pointers to its functions, it should now fail safely instead of dereferencing the pointer. (#183) Thanks @msichal for reporting #182
+
 1.5.5
 =====
 Fixes:
