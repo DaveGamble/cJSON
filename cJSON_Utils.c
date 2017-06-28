@@ -1043,7 +1043,14 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, con
 
 static void compose_patch(cJSON * const patches, const unsigned char * const operation, const unsigned char * const path, const unsigned char *suffix, const cJSON * const value)
 {
-    cJSON *patch = cJSON_CreateObject();
+    cJSON *patch = NULL;
+
+    if ((patches == NULL) || (operation == NULL) || (path == NULL))
+    {
+        return;
+    }
+
+    patch = cJSON_CreateObject();
     if (patch == NULL)
     {
         return;
