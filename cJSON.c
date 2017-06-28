@@ -2390,6 +2390,12 @@ fail:
 CJSON_PUBLIC(void) cJSON_Minify(char *json)
 {
     unsigned char *into = (unsigned char*)json;
+
+    if (json == NULL)
+    {
+        return;
+    }
+
     while (*json)
     {
         if (*json == ' ')
