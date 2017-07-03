@@ -410,6 +410,30 @@ static void cjson_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void skip_utf8_bom_should_skip_bom(void)
+{
+    const unsigned char string[] = "\xEF\xBB\xBF{}";
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = string;
+    buffer.length = sizeof(string);
+    buffer.hooks = global_hooks;
+
+    TEST_ASSERT_TRUE(skip_utf8_bom(&buffer) == &buffer);
+    TEST_ASSERT_EQUAL_UINT(3U, (unsigned int)buffer.offset);
+}
+
+static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
+{
+    const unsigned char string[] = " \xEF\xBB\xBF{}";
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = string;
+    buffer.length = sizeof(string);
+    buffer.hooks = global_hooks;
+    buffer.offset = 1;
+
+    TEST_ASSERT_NULL(skip_utf8_bom(&buffer));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -425,6 +449,8 @@ int main(void)
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
     RUN_TEST(cjson_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(skip_utf8_bom_should_skip_bom);
+    RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
 
     return UNITY_END();
 }
