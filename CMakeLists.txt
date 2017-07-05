@@ -73,6 +73,16 @@ if (ENABLE_SANITIZERS)
         )
 endif()
 
+option(ENABLE_SAFE_STACK "Enables the SafeStack instrumentation pass by the Code Pointer Integrity Project" OFF)
+if (ENABLE_SAFE_STACK)
+    if (ENABLE_SANITIZERS)
+        message(FATAL_ERROR "ENABLE_SAFE_STACK cannot be used in combination with ENABLE_SANITIZERS")
+    endif()
+    list(APPEND custom_compiler_flags
+        -fsanitize=safe-stack
+        )
+endif()
+
 option(ENABLE_PUBLIC_SYMBOLS "Export library symbols." On)
 if (ENABLE_PUBLIC_SYMBOLS)
     list(APPEND custom_compiler_flags -fvisibility=hidden)
