@@ -8,4 +8,6 @@ $output = "$pwd\build\vs2008_patch.zip"
 7z -e "$pwd\build\vs2008_patch.zip"
 cmd.exe /c "$pwd\build\vs2008_patch\setup_x64.bat"
 
+copy C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\vcvars64.bat C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\amd64\vcvarsamd64.bat
+
 
