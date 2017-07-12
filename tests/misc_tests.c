@@ -410,6 +410,22 @@ static void cjson_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void *failing_realloc(void *pointer, size_t size)
+{
+    (void)size;
+    (void)pointer;
+    return NULL;
+}
+
+static void ensure_should_fail_on_failed_realloc(void)
+{
+    printbuffer buffer = {NULL, 10, 0, 0, false, false, {&malloc, &free, &failing_realloc}};
+    buffer.buffer = (unsigned char*)malloc(100);
+    TEST_ASSERT_NOT_NULL(buffer.buffer);
+
+    TEST_ASSERT_NULL_MESSAGE(ensure(&buffer, 200), "Ensure didn't fail with failing realloc.");
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -425,6 +441,6 @@ int main(void)
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
     RUN_TEST(cjson_functions_shouldnt_crash_with_null_pointers);
-
+    RUN_TEST(ensure_should_fail_on_failed_realloc);
     return UNITY_END();
 }
