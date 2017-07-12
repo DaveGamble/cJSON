@@ -1,3 +1,10 @@
+1.5.7
+=====
+Fixes:
+------
+* Fix a bug where realloc failing would return a pointer to an invalid memory address. This is a security issue as it could potentially be used by an attacker to write to arbitrary memory addresses. (see #189), fixed in (954d61e5e7cb9dc6c480fc28ac1cdceca07dd5bd), big thanks @timothyjohncarney for reporting this issue
+* Fix a spelling mistake in the AFL fuzzer dictionary (#185), thanks @jwilk
+
 1.5.6
 =====
 Fixes:
