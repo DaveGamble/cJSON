@@ -66,13 +66,15 @@ environment:
 platform:
   - x86
   - x64
+  exclude:
+  - platform: x64
+    GENERATOR: "Visual Studio 9 2008"
 
 configuration:
   - Release
 
 
 build_script:
-  - ps: if($env:PLATFORM -eq "x64" -And $GENERATOR -eq 'Visual Studio 9 2008') { .\appveyor-patch.ps1 }
   - ps: if($env:PLATFORM -eq "x64") { $env:CMAKE_GEN_SUFFIX=" Win64" }
   - cmake "-G%GENERATOR%%CMAKE_GEN_SUFFIX%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DENABLE_CJSON_TEST=%ENABLE_CJSON_TEST%  -H. -Bbuild
   - cmake --build build --config "%CONFIGURATION%"
