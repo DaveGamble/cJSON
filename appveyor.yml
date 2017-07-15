@@ -66,6 +66,7 @@ environment:
 platform:
   - x86
   - x64
+matrix:
   exclude:
   - platform: x64
     GENERATOR: "Visual Studio 9 2008"
