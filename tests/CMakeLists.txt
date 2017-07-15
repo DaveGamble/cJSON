@@ -66,7 +66,7 @@ if(ENABLE_CJSON_TEST)
             message(WARNING "Valgrind couldn't be found.")
             unset(MEMORYCHECK_COMMAND)
         else()
-            set(MEMORYCHECK_COMMAND_OPTIONS --trace-children=yes --leak-check=full --error-exitcode=1)
+            set(MEMORYCHECK_COMMAND_OPTIONS --suppressions=${CMAKE_SOURCE_DIR}/valgrind.suppressions --trace-children=yes --leak-check=full --error-exitcode=1)
         endif()
     endif()
 
