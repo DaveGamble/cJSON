@@ -1413,12 +1413,15 @@ fail:
     return false;
 }
 
+#define PRINT_ARRAY_NEWLINE_NUM_ELEMENTS 4
+
 /* Render an array to text */
 static cJSON_bool print_array(const cJSON * const item, printbuffer * const output_buffer)
 {
     unsigned char *output_pointer = NULL;
     size_t length = 0;
     cJSON *current_element = item->child;
+    int num_elements = output_buffer->format ? cJSON_GetArraySize(item) : 0;
 
     if (output_buffer == NULL)
     {
@@ -1427,18 +1430,38 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
 
     /* Compose the output array. */
     /* opening square bracket */
-    output_pointer = ensure(output_buffer, 1);
+    length = (num_elements > PRINT_ARRAY_NEWLINE_NUM_ELEMENTS) ? 2 : 1;
+    output_pointer = ensure(output_buffer, length);
     if (output_pointer == NULL)
     {
         return false;
     }
 
-    *output_pointer = '[';
-    output_buffer->offset++;
+    *output_pointer++ = '[';
     output_buffer->depth++;
+    if (num_elements > PRINT_ARRAY_NEWLINE_NUM_ELEMENTS)
+    {
+        *output_pointer++ = '\n';
+    }
+    output_buffer->offset += length;
 
     while (current_element != NULL)
     {
+        if (num_elements > PRINT_ARRAY_NEWLINE_NUM_ELEMENTS)
+        {
+            size_t i;
+            output_pointer = ensure(output_buffer, output_buffer->depth);
+            if (output_pointer == NULL)
+            {
+                return false;
+            }
+            for (i = 0; i < output_buffer->depth; i++)
+            {
+                *output_pointer++ = '\t';
+            }
+            output_buffer->offset += output_buffer->depth;
+        }
+
         if (!print_value(current_element, output_buffer))
         {
             return false;
@@ -1455,22 +1478,37 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
             *output_pointer++ = ',';
             if(output_buffer->format)
             {
-                *output_pointer++ = ' ';
+                if (num_elements > PRINT_ARRAY_NEWLINE_NUM_ELEMENTS)
+                {
+                    *output_pointer++ = '\n';
+                }
+                else
+                {
+                    *output_pointer++ = ' ';
+                }
             }
-            *output_pointer = '\0';
             output_buffer->offset += length;
+            *output_pointer = '\0';
         }
         current_element = current_element->next;
     }
 
-    output_pointer = ensure(output_buffer, 2);
+    output_buffer->depth--;
+    output_pointer = ensure(output_buffer, (num_elements > PRINT_ARRAY_NEWLINE_NUM_ELEMENTS) ? (output_buffer->depth + 3) : 2);
     if (output_pointer == NULL)
     {
         return false;
     }
+    if (num_elements > PRINT_ARRAY_NEWLINE_NUM_ELEMENTS)
+    {
+        *output_pointer++ = '\n';
+        for (size_t i = 0; i < output_buffer->depth; i++)
+        {
+            *output_pointer++ = '\t';
+        }
+    }
     *output_pointer++ = ']';
     *output_pointer = '\0';
-    output_buffer->depth--;
 
     return true;
 }
