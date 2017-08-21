@@ -1,3 +1,7 @@
+1.5.8
+=====
+* Fix `make test` in the Makefile, thanks @YanhaoMo for reporting this (#195)
+
 1.5.7
 =====
 Fixes:
