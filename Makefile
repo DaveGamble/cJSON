@@ -66,11 +66,10 @@ shared: $(CJSON_SHARED) $(UTILS_SHARED)
 
 static: $(CJSON_STATIC) $(UTILS_STATIC)
 
-tests: $(CJSON_TEST) $(UTILS_TEST)
+tests: $(CJSON_TEST)
 
 test: tests
 	./$(CJSON_TEST)
-	./$(UTILS_TEST)
 
 .c.o:
 	$(CC) -c $(R_CFLAGS) $<
@@ -150,4 +149,4 @@ clean:
 	$(RM) $(CJSON_OBJ) $(UTILS_OBJ) #delete object files
 	$(RM) $(CJSON_SHARED) $(CJSON_SHARED_VERSION) $(CJSON_SHARED_SO) $(CJSON_STATIC) #delete cJSON
 	$(RM) $(UTILS_SHARED) $(UTILS_SHARED_VERSION) $(UTILS_SHARED_SO) $(UTILS_STATIC) #delete cJSON_Utils
-	$(RM) $(CJSON_TEST) $(UTILS_TEST) #delete tests
+	$(RM) $(CJSON_TEST)  #delete test
