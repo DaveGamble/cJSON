@@ -46,7 +46,7 @@ static void parse_with_opts_should_handle_empty_strings(void)
 
     TEST_ASSERT_NULL(cJSON_ParseWithOpts(empty_string, &error_pointer, false));
     TEST_ASSERT_EQUAL_PTR(empty_string, error_pointer);
-    TEST_ASSERT_EQUAL_PTR(NULL, cJSON_GetErrorPtr());
+    TEST_ASSERT_EQUAL_PTR(empty_string, cJSON_GetErrorPtr());
 }
 
 static void parse_with_opts_should_handle_incomplete_json(void)
@@ -56,7 +56,7 @@ static void parse_with_opts_should_handle_incomplete_json(void)
 
     TEST_ASSERT_NULL(cJSON_ParseWithOpts(json, &parse_end, false));
     TEST_ASSERT_EQUAL_PTR(json + strlen(json), parse_end);
-    TEST_ASSERT_NULL(cJSON_GetErrorPtr());
+    TEST_ASSERT_EQUAL_PTR(json + strlen(json), cJSON_GetErrorPtr());
 }
 
 static void parse_with_opts_should_require_null_if_requested(void)
