@@ -1,3 +1,7 @@
+1.5.9
+=====
+* Set the global error pointer even if `return_parse_end` is passed to `cJSON_ParseWithOpts`. See #200, thanks @rmallins
+
 1.5.8
 =====
 * Fix `make test` in the Makefile, thanks @YanhaoMo for reporting this (#195)
