@@ -1,0 +1,6 @@
+{
+	suppress_ld_on_armv7
+	Memcheck:Cond
+	...
+	obj:*/ld-*.so
+}
