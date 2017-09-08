@@ -142,7 +142,7 @@ static void file_test6_should_not_be_parsed(void)
     tree = cJSON_Parse(test6);
     TEST_ASSERT_NULL_MESSAGE(tree, "Should fail to parse what is not JSON.");
 
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(test6, cJSON_GetErrorPtr(), "Error pointer is incorrect.");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(test6, cJSON_GetErrorPtr(), "Error pointer is incorrect.");
 
     if (test6 != NULL)
     {
@@ -179,6 +179,22 @@ static void file_test11_should_be_parsed_and_printed(void)
     do_test("test11");
 }
 
+static void test12_should_not_be_parsed(void)
+{
+    const char *test12 = "{ \"name\": ";
+    cJSON *tree = NULL;
+
+    tree = cJSON_Parse(test12);
+    TEST_ASSERT_NULL_MESSAGE(tree, "Should fail to parse incomplete JSON.");
+
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(test12 + strlen(test12), cJSON_GetErrorPtr(), "Error pointer is incorrect.");
+
+    if (tree != NULL)
+    {
+        cJSON_Delete(tree);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -193,5 +209,6 @@ int main(void)
     RUN_TEST(file_test9_should_be_parsed_and_printed);
     RUN_TEST(file_test10_should_be_parsed_and_printed);
     RUN_TEST(file_test11_should_be_parsed_and_printed);
+    RUN_TEST(test12_should_not_be_parsed);
     return UNITY_END();
 }

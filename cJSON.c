@@ -1006,10 +1006,8 @@ fail:
         {
             *return_parse_end = (const char*)local_error.json + local_error.position;
         }
-        else
-        {
-            global_error = local_error;
-        }
+ 
+        global_error = local_error;
     }
 
     return NULL;
