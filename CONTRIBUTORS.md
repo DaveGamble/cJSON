@@ -30,6 +30,7 @@ Contributors
 * [Pawel Winogrodzki](https://github.com/PawelWMS)
 * [prefetchnta](https://github.com/prefetchnta)
 * [Rafael Leal Dias](https://github.com/rafaeldias)
+* [Robin Mallinson](https://github.com/rmallins)
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)
 * [Romain Porte](https://github.com/MicroJoe)
