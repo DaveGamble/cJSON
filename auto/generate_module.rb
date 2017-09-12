@@ -172,7 +172,7 @@ class UnityModuleGenerator
       when 'camel' then part1
       when 'snake' then part1.downcase
       when 'caps'  then part1.upcase
-      else              part1.downcase
+      else              part1
       end
     else
       case (@options[:naming])
@@ -180,7 +180,7 @@ class UnityModuleGenerator
       when 'camel' then part1 + part2
       when 'snake' then part1.downcase + '_' + part2.downcase
       when 'caps'  then part1.upcase + '_' + part2.upcase
-      else              part1.downcase + '_' + part2.downcase
+      else              part1 + '_' + part2
       end
     end
   end
@@ -290,7 +290,7 @@ if $0 == __FILE__
           '  -n"camel"   sets the file naming convention.',
           '              bumpy - BumpyCaseFilenames.',
           '              camel - camelCaseFilenames.',
-          '              snake - snake_case_filenames. (DEFAULT)',
+          '              snake - snake_case_filenames.',
           '              caps  - CAPS_CASE_FILENAMES.',
           '  -u          update subversion too (requires subversion command line)',
           '  -y"my.yml"  selects a different yaml config file for module generation',
