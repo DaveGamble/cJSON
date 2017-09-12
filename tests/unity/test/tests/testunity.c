@@ -764,8 +764,9 @@ void testNotEqualBitsLow(void)
     EXPECT_ABORT_BEGIN
     TEST_ASSERT_BITS_LOW(v0, v1);
     VERIFY_FAILS_END
-
 }
+
+
 void testEqualShorts(void)
 {
     short v0, v1;
@@ -1305,6 +1306,415 @@ void testINT8sNotWithinDeltaAndCustomMessage(void)
     VERIFY_FAILS_END
 }
 
+
+//-----------------
+void testGreaterThan(void)
+{
+    UNITY_INT v0, v1;
+    UNITY_INT *p0, *p1;
+
+    v0 = 0;
+    v1 = 1;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN(v0, v1);
+    TEST_ASSERT_GREATER_THAN(*p0, v1);
+    TEST_ASSERT_GREATER_THAN(v0, *p1);
+    TEST_ASSERT_GREATER_THAN(*p0, *p1);
+}
+
+void testGreaterThanINT(void)
+{
+    UNITY_INT v0, v1;
+    UNITY_INT *p0, *p1;
+
+    v0 = 302;
+    v1 = 3334;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_INT(v0, v1);
+    TEST_ASSERT_GREATER_THAN_INT(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_INT(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_INT(*p0, *p1);
+}
+
+
+void testGreaterThanINT8(void)
+{
+    UNITY_INT8 v0, v1;
+    UNITY_INT8 *p0, *p1;
+
+    v0 = -128;
+    v1 = 127;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_INT8(v0, v1);
+    TEST_ASSERT_GREATER_THAN_INT8(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_INT8(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_INT8(*p0, *p1);
+}
+
+void testGreaterThanINT16(void)
+{
+    UNITY_INT16 v0, v1;
+    UNITY_INT16 *p0, *p1;
+
+    v0 = -32768;
+    v1 = 32767;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_INT16(v0, v1);
+    TEST_ASSERT_GREATER_THAN_INT16(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_INT16(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_INT16(*p0, *p1);
+}
+
+void testGreaterThanINT32(void)
+{
+    UNITY_INT32 v0, v1;
+    UNITY_INT32 *p0, *p1;
+
+    v0 = -214783648;
+    v1 = 214783647;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_INT32(v0, v1);
+    TEST_ASSERT_GREATER_THAN_INT32(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_INT32(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_INT32(*p0, *p1);
+}
+
+void testGreaterThanUINT(void)
+{
+    UNITY_UINT v0, v1;
+    UNITY_UINT *p0, *p1;
+
+    v0 = 0;
+    v1 = 1;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_UINT(v0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_UINT(*p0, *p1);
+}
+
+
+void testGreaterThanUINT8(void)
+{
+    UNITY_UINT8 v0, v1;
+    UNITY_UINT8 *p0, *p1;
+
+    v0 = 0;
+    v1 = 255;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_UINT8(v0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT8(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT8(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_UINT8(*p0, *p1);
+}
+
+void testGreaterThanUINT16(void)
+{
+    UNITY_UINT16 v0, v1;
+    UNITY_UINT16 *p0, *p1;
+
+    v0 = 0;
+    v1 = 65535;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_UINT16(v0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT16(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT16(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_UINT16(*p0, *p1);
+}
+
+void testGreaterThanUINT32(void)
+{
+    UNITY_UINT32 v0, v1;
+    UNITY_UINT32 *p0, *p1;
+
+    v0 = 0;
+    v1 = 4294967295;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_UINT32(v0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT32(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_UINT32(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_UINT32(*p0, *p1);
+}
+
+void testGreaterThanHEX8(void)
+{
+    UNITY_UINT8 v0, v1;
+    UNITY_UINT8 *p0, *p1;
+
+    v0 = 0x00;
+    v1 = 0xFF;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_HEX8(v0, v1);
+    TEST_ASSERT_GREATER_THAN_HEX8(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_HEX8(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_HEX8(*p0, *p1);
+}
+
+void testGreaterThanHEX16(void)
+{
+    UNITY_UINT16 v0, v1;
+    UNITY_UINT16 *p0, *p1;
+
+    v0 = 0x0000;
+    v1 = 0xFFFF;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_HEX16(v0, v1);
+    TEST_ASSERT_GREATER_THAN_HEX16(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_HEX16(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_HEX16(*p0, *p1);
+}
+
+void testGreaterThanHEX32(void)
+{
+    UNITY_UINT32 v0, v1;
+    UNITY_UINT32 *p0, *p1;
+
+    v0 = 0x00000000;
+    v1 = 0xFFFFFFFF;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_GREATER_THAN_HEX32(v0, v1);
+    TEST_ASSERT_GREATER_THAN_HEX32(*p0, v1);
+    TEST_ASSERT_GREATER_THAN_HEX32(v0, *p1);
+    TEST_ASSERT_GREATER_THAN_HEX32(*p0, *p1);
+}
+
+
+void testNotGreaterThan(void)
+{
+    EXPECT_ABORT_BEGIN
+    TEST_ASSERT_GREATER_THAN(0, -1);
+    VERIFY_FAILS_END
+}
+
+void testLessThan(void)
+{
+    UNITY_INT v0, v1;
+    UNITY_INT *p0, *p1;
+
+    v0 = 0;
+    v1 = -1;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN(v0, v1);
+    TEST_ASSERT_LESS_THAN(*p0, v1);
+    TEST_ASSERT_LESS_THAN(v0, *p1);
+    TEST_ASSERT_LESS_THAN(*p0, *p1);
+}
+
+void testLessThanINT(void)
+{
+    UNITY_INT v0, v1;
+    UNITY_INT *p0, *p1;
+
+    v0 = 3334;
+    v1 = 302;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_INT(v0, v1);
+    TEST_ASSERT_LESS_THAN_INT(*p0, v1);
+    TEST_ASSERT_LESS_THAN_INT(v0, *p1);
+    TEST_ASSERT_LESS_THAN_INT(*p0, *p1);
+}
+
+
+void testLessThanINT8(void)
+{
+    UNITY_INT8 v0, v1;
+    UNITY_INT8 *p0, *p1;
+
+    v0 = 127;
+    v1 = -128;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_INT8(v0, v1);
+    TEST_ASSERT_LESS_THAN_INT8(*p0, v1);
+    TEST_ASSERT_LESS_THAN_INT8(v0, *p1);
+    TEST_ASSERT_LESS_THAN_INT8(*p0, *p1);
+}
+
+void testLessThanINT16(void)
+{
+    UNITY_INT16 v0, v1;
+    UNITY_INT16 *p0, *p1;
+
+    v0 = 32767;
+    v1 = -32768;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_INT16(v0, v1);
+    TEST_ASSERT_LESS_THAN_INT16(*p0, v1);
+    TEST_ASSERT_LESS_THAN_INT16(v0, *p1);
+    TEST_ASSERT_LESS_THAN_INT16(*p0, *p1);
+}
+
+void testLessThanINT32(void)
+{
+    UNITY_INT32 v0, v1;
+    UNITY_INT32 *p0, *p1;
+
+    v0 = 214783647;
+    v1 = -214783648;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_INT32(v0, v1);
+    TEST_ASSERT_LESS_THAN_INT32(*p0, v1);
+    TEST_ASSERT_LESS_THAN_INT32(v0, *p1);
+    TEST_ASSERT_LESS_THAN_INT32(*p0, *p1);
+}
+
+void testLessThanUINT(void)
+{
+    UNITY_UINT v0, v1;
+    UNITY_UINT *p0, *p1;
+
+    v0 = 1;
+    v1 = 0;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_UINT(v0, v1);
+    TEST_ASSERT_LESS_THAN_UINT(*p0, v1);
+    TEST_ASSERT_LESS_THAN_UINT(v0, *p1);
+    TEST_ASSERT_LESS_THAN_UINT(*p0, *p1);
+}
+
+
+void testLessThanUINT8(void)
+{
+    UNITY_UINT8 v0, v1;
+    UNITY_UINT8 *p0, *p1;
+
+    v0 = 255;
+    v1 = 0;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_UINT8(v0, v1);
+    TEST_ASSERT_LESS_THAN_UINT8(*p0, v1);
+    TEST_ASSERT_LESS_THAN_UINT8(v0, *p1);
+    TEST_ASSERT_LESS_THAN_UINT8(*p0, *p1);
+}
+
+void testLessThanUINT16(void)
+{
+    UNITY_UINT16 v0, v1;
+    UNITY_UINT16 *p0, *p1;
+
+    v0 = 65535;
+    v1 = 0;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_UINT16(v0, v1);
+    TEST_ASSERT_LESS_THAN_UINT16(*p0, v1);
+    TEST_ASSERT_LESS_THAN_UINT16(v0, *p1);
+    TEST_ASSERT_LESS_THAN_UINT16(*p0, *p1);
+}
+
+void testLessThanUINT32(void)
+{
+    UNITY_UINT32 v0, v1;
+    UNITY_UINT32 *p0, *p1;
+
+    v0 = 4294967295;
+    v1 = 0;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_UINT32(v0, v1);
+    TEST_ASSERT_LESS_THAN_UINT32(*p0, v1);
+    TEST_ASSERT_LESS_THAN_UINT32(v0, *p1);
+    TEST_ASSERT_LESS_THAN_UINT32(*p0, *p1);
+}
+
+void testLessThanHEX8(void)
+{
+    UNITY_UINT8 v0, v1;
+    UNITY_UINT8 *p0, *p1;
+
+    v0 = 0xFF;
+    v1 = 0x00;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_HEX8(v0, v1);
+    TEST_ASSERT_LESS_THAN_HEX8(*p0, v1);
+    TEST_ASSERT_LESS_THAN_HEX8(v0, *p1);
+    TEST_ASSERT_LESS_THAN_HEX8(*p0, *p1);
+}
+
+void testLessThanHEX16(void)
+{
+    UNITY_UINT16 v0, v1;
+    UNITY_UINT16 *p0, *p1;
+
+    v0 = 0xFFFF;
+    v1 = 0x0000;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_HEX16(v0, v1);
+    TEST_ASSERT_LESS_THAN_HEX16(*p0, v1);
+    TEST_ASSERT_LESS_THAN_HEX16(v0, *p1);
+    TEST_ASSERT_LESS_THAN_HEX16(*p0, *p1);
+}
+
+void testLessThanHEX32(void)
+{
+    UNITY_UINT32 v0, v1;
+    UNITY_UINT32 *p0, *p1;
+
+    v0 = 0xFFFFFFFF;
+    v1 = 0x00000000;
+    p0 = &v0;
+    p1 = &v1;
+
+    TEST_ASSERT_LESS_THAN_HEX32(v0, v1);
+    TEST_ASSERT_LESS_THAN_HEX32(*p0, v1);
+    TEST_ASSERT_LESS_THAN_HEX32(v0, *p1);
+    TEST_ASSERT_LESS_THAN_HEX32(*p0, *p1);
+}
+
+
+void testNotLessThan(void)
+{
+    EXPECT_ABORT_BEGIN
+    TEST_ASSERT_LESS_THAN(0, 1);
+    VERIFY_FAILS_END
+}
+
+
+
+//-----------------
 void testEqualStrings(void)
 {
     const char *testString = "foo";
@@ -4056,61 +4466,46 @@ void testFloatPrinting(void)
 #if defined(UNITY_EXCLUDE_FLOAT_PRINT) || !defined(USING_OUTPUT_SPY)
     TEST_IGNORE();
 #else
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.0",          0.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.000000...",  0.000000499f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.000001",     0.00000050000005f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.100469",     0.100469499f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.0",          0.9999995f); /*Rounding to int place*/
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.0",          1.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.25",         1.25f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("7.999999",     7.999999f); /*Not rounding*/
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("16.000002",    16.000002f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("16.000004",    16.000004f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("16.000006",    16.000006f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("4294967040.0", 4294967040.0f); /*Last full print integer*/
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("0",         0.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.99e-07",  0.000000499f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("5e-07",     0.00000050000005f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.100469",  0.100469499f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1",         0.9999995f); /*Rounding to int place*/
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1",         1.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.25",      1.25f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("7.99999",   7.99999f); /*Not rounding*/
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("16.0002",   16.0002f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("16.0004",   16.0004f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("16.0006",   16.0006f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("999999",    999999.0f); /*Last full print integer*/
 
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.0",         -0.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0.000000...",-0.000000499f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0.000001",   -0.00000050000005f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0.100469",   -0.100469499f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1.0",        -0.9999995f); /*Rounding to int place*/
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1.0",        -1.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1.25",       -1.25f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-7.999999",   -7.999999f); /*Not rounding*/
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-16.000002",  -16.000002f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-16.000004",  -16.000004f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-16.000006",  -16.000006f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-4294967040.0",-4294967040.0f); /*Last full print integer*/
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0",         -0.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-4.99e-07",  -0.000000499f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-5e-07",     -0.00000050000005f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0.100469",  -0.100469499f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1",         -0.9999995f); /*Rounding to int place*/
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1",         -1.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1.25",      -1.25f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-7.99999",   -7.99999f); /*Not rounding*/
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-16.0002",   -16.0002f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-16.0004",   -16.0004f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-16.0006",   -16.0006f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-999999",    -999999.0f); /*Last full print integer*/
 
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.2949673e+09",  4294967296.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("5.0e+09",        5000000000.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("8.0e+09",        8.0e+09f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("8.3099991e+09",  8309999104.0f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.0e+10",        1.0e+10f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.0e+10",        10000000000.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.29497e+09", 4294967296.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("5e+09",       5000000000.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("8e+09",       8.0e+09f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("8.31e+09",    8309999104.0f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1e+10",       1.0e+10f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1e+10",       10000000000.0f);
     /* Some compilers have trouble with inexact float constants, a float cast works generally */
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.00005499e+10", (float)1.000055e+10f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.10000006e+38", (float)1.10000005e+38f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.63529943e+10", 1.63529943e+10f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("3.40282347e+38", 3.40282346638e38f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.00005e+10", (float)1.000054e+10f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.1e+38",     (float)1.10000005e+38f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.6353e+10",  1.63529943e+10f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("3.40282e+38", 3.40282346638e38f);
 
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1.0e+10",       -1.0e+10f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-3.40282347e+38",-3.40282346638e38f);
-#endif
-}
-
-void testFloatPrintingRoundTiesToEven(void)
-{
-#if defined(UNITY_EXCLUDE_FLOAT_PRINT) || !defined(USING_OUTPUT_SPY)
-    TEST_IGNORE();
-#else
-  #ifdef UNITY_ROUND_TIES_AWAY_FROM_ZERO
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.007813", 0.0078125f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.976563", 0.9765625f);
-  #else /* Default to Round ties to even */
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.007182", 0.0071825f);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.976562", 0.9765625f);
-  #endif
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-1e+10",       -1.0e+10f);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-3.40282e+38", -3.40282346638e38f);
 #endif
 }
 
@@ -4119,105 +4514,69 @@ void testFloatPrintingInfinityAndNaN(void)
 #if defined(UNITY_EXCLUDE_FLOAT_PRINT) || !defined(USING_OUTPUT_SPY)
     TEST_IGNORE();
 #else
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("Inf",   1.0f / f_zero);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-Inf", -1.0f / f_zero);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("inf",   1.0f / f_zero);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-inf", -1.0f / f_zero);
 
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("NaN",   0.0f / f_zero);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("nan",   0.0f / f_zero);
 #endif
 }
 
 #if defined(UNITY_TEST_ALL_FLOATS_PRINT_OK) && defined(USING_OUTPUT_SPY)
-static void AllFloatPrinting_LessThan32Bits(void)
+static void printFloatValue(float f)
 {
     char expected[18];
-    union { float f_value; int32_t int_value; } u;
-    /* Float representations are laid out in integer order, walk up the list */
-    for (u.f_value = 0.00000050000005f; u.f_value <= 4294967040.0f; u.int_value += 1)
+    char expected_lower[18];
+    char expected_higher[18];
+
+    startPutcharSpy();
+
+    UnityPrintFloat(f);
+
+    sprintf(expected, "%.6g", f);
+
+    /* We print all NaN's as "nan", not "-nan" */
+    if(strcmp(expected, "-nan") == 0) strcpy(expected, "nan");
+
+    /* Allow for rounding differences in last digit */
+    double lower = (double)f * 0.9999995;
+    double higher = (double)f * 1.0000005;
+
+    if (isfinite(lower)) sprintf(expected_lower, "%.6g", lower); else strcpy(expected_lower, expected);
+    if (isfinite(higher)) sprintf(expected_higher, "%.6g", higher); else strcpy(expected_higher, expected);
+
+    if (strcmp(expected, getBufferPutcharSpy()) != 0 &&
+        strcmp(expected_lower, getBufferPutcharSpy()) != 0 &&
+        strcmp(expected_higher, getBufferPutcharSpy()) != 0)
     {
-        startPutcharSpy();
-
-        UnityPrintFloat(u.f_value); /*1.5x as fast as sprintf 5e-7f - 0.01f, 20s vs 30s*/
-        int len = sprintf(expected, "%.6f", u.f_value);
-
-        while (expected[len - 1] == '0' && expected[len - 2] != '.') { len--; }
-        expected[len] = '\0'; /* delete trailing 0's */
-
-        if (strcmp(expected, getBufferPutcharSpy()) != 0)
-        {
-            double six_digits = ((double)u.f_value - (uint32_t)u.f_value)*1000000.0;
-            /* Not a tie (remainder != 0.5) => Can't explain the different strings */
-            if (six_digits - (uint32_t)six_digits != 0.5)
-            {
-                /* Fail with diagnostic printing */
-                TEST_ASSERT_EQUAL_PRINT_FLOATING(expected, u.f_value);
-            }
-        }
-    }
-}
-
-/* Compared to perfect, floats are occasionally rounded wrong. It doesn't affect
- * correctness, though. Two examples (of 13 total found during testing):
- * Printed: 6.19256349e+20, Exact: 619256348499999981568.0f <= Eliminated by ROUND_TIES_TO_EVEN
- * Printed: 2.19012272e+35, Exact: 219012271499999993621766990196637696.0f */
-static void AllFloatPrinting_Larger(const float start, const float end)
-{
-    unsigned int wrong = 0;
-    char expected[18];
-    union { float f_value; int32_t int_value; } u;
-    for (u.f_value = start; u.f_value <= end; u.int_value += 1)
-    {
-        startPutcharSpy();
-
-        UnityPrintFloat(u.f_value); /*Twice as fast as sprintf 2**32-1e12, 10s vs 21s*/
-        sprintf(expected, "%.8e", u.f_value);
-
-        int len = 11 - 1; /* 11th char is 'e' in exponential format */
-        while (expected[len - 1] == '0' && expected[len - 2] != '.') { len --; }
-        if (expected[14] != '\0') memmove(&expected[12], &expected[13], 3); /* Two char exponent */
-        memmove(&expected[len], &expected[11 - 1], sizeof "e+09"); /* 5 char length */
-
-        if (strcmp(expected, getBufferPutcharSpy()) != 0)
-        {
-            wrong++;
-            /* endPutcharSpy(); UnityPrint("Expected "); UnityPrint(expected);
-            UnityPrint(" Was "); UnityPrint(getBufferPutcharSpy()); UNITY_OUTPUT_CHAR('\n'); */
-
-            if (wrong > 10 || (wrong > 3 && end <= 1e25f))
-                TEST_ASSERT_EQUAL_PRINT_FLOATING(expected, u.f_value);
-            /* Empirical values from the current routine, don't be worse when making changes */
-        }
+        /* Fail with diagnostic printing */
+        TEST_ASSERT_EQUAL_PRINT_FLOATING(expected, f);
     }
 }
 #endif
 
-/* Exhaustive testing of all float values we differentiate when printing. Doubles
- * are not explored here -- too many. These tests confirm that the routine works
- * for all floats > 5e-7, positives only. Off by default due to test time.
- * Compares Unity's routine to your sprintf() C lib, tested to pass on 3 platforms.
- * Part1 takes a long time, around 3 minutes compiled with -O2
- * Runs through all floats from 0.000001 - 2**32, ~300 million values */
-void testAllFloatPrintingPart1_LessThan32Bits(void)
+void testFloatPrintingRandomSamples(void)
 {
-#if defined(UNITY_TEST_ALL_FLOATS_PRINT_OK) && defined(USING_OUTPUT_SPY)
-    AllFloatPrinting_LessThan32Bits();
+#if !defined(UNITY_TEST_ALL_FLOATS_PRINT_OK) || !defined(USING_OUTPUT_SPY)
+    TEST_IGNORE();
 #else
-    TEST_IGNORE(); /* Ignore one of three */
-#endif
-}
+    union { float f_value; uint32_t int_value; } u;
 
-/* Test takes a long time, around 3.5 minutes compiled with -O2, try ~500 million values */
-void testAllFloatPrintingPart2_Larger(void)
-{
-#if defined(UNITY_TEST_ALL_FLOATS_PRINT_OK) && defined(USING_OUTPUT_SPY)
-    AllFloatPrinting_Larger(4294967296.0f, 1e25f);
-#endif
-}
+    /* These values are not covered by the MINSTD generator */
+    u.int_value = 0x00000000; printFloatValue(u.f_value);
+    u.int_value = 0x80000000; printFloatValue(u.f_value);
+    u.int_value = 0x7fffffff; printFloatValue(u.f_value);
+    u.int_value = 0xffffffff; printFloatValue(u.f_value);
 
-/* Test takes a long time, around 3.5 minutes compiled with -O2, try ~500 million values */
-void testAllFloatPrintingPart3_LargerStill(void)
-{
-#if defined(UNITY_TEST_ALL_FLOATS_PRINT_OK) && defined(USING_OUTPUT_SPY)
-    AllFloatPrinting_Larger(1e25f, 3.40282347e+38f);
+    uint32_t a = 1;
+    for(int num_tested = 0; num_tested < 1000000; num_tested++)
+    {
+        /* MINSTD pseudo-random number generator */
+        a = (uint32_t)(((uint64_t)a * 48271u) % 2147483647u);
+
+        /* MINSTD does not set the highest bit; test both possibilities */
+        u.int_value = a;              printFloatValue(u.f_value);
+        u.int_value = a | 0x80000000; printFloatValue(u.f_value);
+    }
 #endif
 }
 
@@ -4893,35 +5252,20 @@ void testDoublePrinting(void)
 #if defined(UNITY_EXCLUDE_FLOAT_PRINT) || defined(UNITY_EXCLUDE_DOUBLE) || !defined(USING_OUTPUT_SPY)
     TEST_IGNORE();
 #else
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.100469",         0.10046949999999999);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("4294967295.999999", 4294967295.999999);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.2949673e+09",     4294967295.9999995);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.2949673e+09",     4294967296.0);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.0e+10",           9999999995.0);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("9.00719925e+15",    9007199254740990.0);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("7.0e+100",          7.0e+100);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("3.0e+200",          3.0e+200);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("9.23456789e+300",   9.23456789e+300);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("0.100469",     0.10046949999999999);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.29497e+09",  4294967295.999999);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.29497e+09",  4294967295.9999995);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("4.29497e+09",  4294967296.0);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("1e+10",        9999999995.0);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("9.0072e+15",   9007199254740990.0);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("7e+100",       7.0e+100);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("3e+200",       3.0e+200);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("9.23457e+300", 9.23456789e+300);
 
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0.100469",         -0.10046949999999999);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-4294967295.999999", -4294967295.999999);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-4.2949673e+09",     -4294967295.9999995);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-7.0e+100",          -7.0e+100);
-#endif
-}
-
-void testDoublePrintingRoundTiesToEven(void)
-{
-#if defined(UNITY_EXCLUDE_FLOAT_PRINT) || defined(UNITY_EXCLUDE_DOUBLE) || !defined(USING_OUTPUT_SPY)
-    TEST_IGNORE();
-#else
-  #ifdef UNITY_ROUND_TIES_AWAY_FROM_ZERO
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.00000001e+10", 10000000050.0);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("9.00719925e+15", 9007199245000000.0);
-  #else /* Default to Round ties to even */
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("1.0e+10",        10000000050.0);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("9.00719924e+15", 9007199245000000.0);
-  #endif
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-0.100469",    -0.10046949999999999);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-4.29497e+09", -4294967295.999999);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-4.29497e+09", -4294967295.9999995);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-7e+100",      -7.0e+100);
 #endif
 }
 
@@ -4930,10 +5274,10 @@ void testDoublePrintingInfinityAndNaN(void)
 #if defined(UNITY_EXCLUDE_FLOAT_PRINT) || defined(UNITY_EXCLUDE_DOUBLE) || !defined(USING_OUTPUT_SPY)
     TEST_IGNORE();
 #else
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("Inf",   1.0 / d_zero);
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("-Inf", -1.0 / d_zero);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("inf",   1.0 / d_zero);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("-inf", -1.0 / d_zero);
 
-    TEST_ASSERT_EQUAL_PRINT_FLOATING("NaN",   0.0 / d_zero);
+    TEST_ASSERT_EQUAL_PRINT_FLOATING("nan",   0.0 / d_zero);
 #endif
 }
 

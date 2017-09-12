@@ -6,6 +6,7 @@ endif
 CFLAGS += -std=c99 -pedantic -Wall -Wextra -Werror
 CFLAGS += $(DEBUG)
 DEFINES = -D UNITY_OUTPUT_CHAR=UnityOutputCharSpy_OutputChar
+DEFINES += -D UNITY_OUTPUT_CHAR_HEADER_DECLARATION=UnityOutputCharSpy_OutputChar\(int\)
 SRC = ../src/unity_fixture.c \
       ../../../src/unity.c   \
       unity_fixture_Test.c   \

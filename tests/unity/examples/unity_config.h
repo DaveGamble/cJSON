@@ -201,10 +201,12 @@
  * `stdout` option. You decide to route your test result output to a custom
  * serial `RS232_putc()` function you wrote like thus:
  */
-/* #define UNITY_OUTPUT_CHAR(a)    RS232_putc(a) */
-/* #define UNITY_OUTPUT_FLUSH()    RS232_flush() */
-/* #define UNITY_OUTPUT_START()    RS232_config(115200,1,8,0) */
-/* #define UNITY_OUTPUT_COMPLETE() RS232_close() */
+/* #define UNITY_OUTPUT_CHAR(a)                    RS232_putc(a) */
+/* #define UNITY_OUTPUT_CHAR_HEADER_DECLARATION    RS232_putc(int) */
+/* #define UNITY_OUTPUT_FLUSH()                    RS232_flush() */
+/* #define UNITY_OUTPUT_FLUSH_HEADER_DECLARATION   RS232_flush(void) */
+/* #define UNITY_OUTPUT_START()                    RS232_config(115200,1,8,0) */
+/* #define UNITY_OUTPUT_COMPLETE()                 RS232_close() */
 
 /* For some targets, Unity can make the otherwise required `setUp()` and
  * `tearDown()` functions optional. This is a nice convenience for test writers
