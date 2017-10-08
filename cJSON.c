@@ -197,7 +197,7 @@ static unsigned char get_decimal_point(void)
     struct lconv *lconv = localeconv();
     return (unsigned char) lconv->decimal_point[0];
 #else
-	return '.';
+    return '.';
 #endif
 }
 
