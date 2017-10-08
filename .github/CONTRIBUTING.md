@@ -15,7 +15,7 @@ Coding Style
 ------------
 The coding style has been discussed in [#24](https://github.com/DaveGamble/cJSON/issues/24). The basics are:
 
-* Use 4 tabs for indentation
+* Use 4 spaces for indentation
 * No oneliners (conditions, loops, variable declarations ...)
 * Always use parenthesis for control structures
 * Don't implicitly rely on operator precedence, use round brackets in expressions. e.g. `(a > b) && (c < d)` instead of `a>b && c<d`
