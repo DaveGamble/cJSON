@@ -1,3 +1,18 @@
+1.6.0
+=====
+Features:
+---------
+* You can now build cJSON as both shared and static library at once with CMake using `-DBUILD_SHARED_AND_STATIC_LIBS=On`, see #178
+* UTF-8 byte order marks are now ignored, see #184
+* Locales can now be disabled with the option `-DENABLE_LOCALES=Off`, see #202, thanks @Casperinous
+* Better support for MSVC and Visual Studio
+
+Other Changes:
+--------------
+* Add the new warnings `-Wswitch-enum`, `-Wused-but-makred-unused`, `-Wmissing-variable-declarations`, `-Wunused-macro`
+* More number printing tests.
+* Continuous integration testing with AppVeyor (semi automatic at this point), thanks @simon-p-r
+
 1.5.9
 =====
 * Set the global error pointer even if `return_parse_end` is passed to `cJSON_ParseWithOpts`. See #200, thanks @rmallins
