@@ -90,6 +90,7 @@ You can change the build process with a list of different options that you can p
 * `-DENABLE_SANITIZERS=On`: Compile cJSON with [AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer) and [UndefinedBehaviorSanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html) enabled (if possible). (off by default)
 * `-DBUILD_SHARED_LIBS=On`: Build the shared libraries. (on by default)
 * `-DCMAKE_INSTALL_PREFIX=/usr`: Set a prefix for the installation.
+* `-DENABLE_LOCALES=On`: Enable the usage of localeconv method. ( on by default )
 
 If you are packaging cJSON for a distribution of Linux, you would probably take these steps for example:
 ```

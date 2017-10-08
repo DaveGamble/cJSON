@@ -186,5 +186,11 @@ if(ENABLE_CJSON_TEST)
         DEPENDS ${TEST_CJSON})
 endif()
 
+# Enable the use of locales
+option(ENABLE_LOCALES "Enable the use of locales" ON)
+if(ENABLE_LOCALES)
+	add_definitions(-DENABLE_LOCALES)
+endif() 
+
 add_subdirectory(tests)
 add_subdirectory(fuzzing)
