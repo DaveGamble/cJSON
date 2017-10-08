@@ -44,7 +44,10 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+
+#ifdef ENABLE_LOCALES
 #include <locale.h>
+#endif
 
 #if defined(_MSC_VER)
 #pragma warning (pop)
