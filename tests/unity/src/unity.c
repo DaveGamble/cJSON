@@ -27,6 +27,8 @@ static const char UnityStrNull[]                   = "NULL";
 static const char UnityStrSpacer[]                 = ". ";
 static const char UnityStrExpected[]               = " Expected ";
 static const char UnityStrWas[]                    = " Was ";
+static const char UnityStrGt[]                     = " to be greater than ";
+static const char UnityStrLt[]                     = " to be less than ";
 static const char UnityStrElement[]                = " Element ";
 static const char UnityStrByte[]                   = " Byte ";
 static const char UnityStrMemory[]                 = " Memory Mismatch.";
@@ -235,95 +237,97 @@ void UnityPrintMask(const UNITY_UINT mask, const UNITY_UINT number)
 
 /*-----------------------------------------------*/
 #ifndef UNITY_EXCLUDE_FLOAT_PRINT
-static void UnityPrintDecimalAndNumberWithLeadingZeros(UNITY_INT32 fraction_part, UNITY_INT32 divisor)
-{
-    UNITY_OUTPUT_CHAR('.');
-    while (divisor > 0)
-    {
-        UNITY_OUTPUT_CHAR('0' + fraction_part / divisor);
-        fraction_part %= divisor;
-        divisor /= 10;
-        if (fraction_part == 0) break; /* Truncate trailing 0's */
-    }
-}
-#ifndef UNITY_ROUND_TIES_AWAY_FROM_ZERO
-/* If rounds up && remainder 0.5 && result odd && below cutoff for double precision issues */
-  #define ROUND_TIES_TO_EVEN(orig, num_int, num)                                          \
-  if (num_int > (num) && (num) - (num_int-1) <= 0.5 && (num_int & 1) == 1 && orig < 1e22) \
-    num_int -= 1 /* => a tie to round down to even */
-#else
-  #define ROUND_TIES_TO_EVEN(orig, num_int, num) /* Remove macro */
-#endif
-
-/* Printing floating point numbers is hard. Some goals of this implementation: works for embedded
- * systems, floats or doubles, and has a reasonable format. The key paper in this area,
- * 'How to Print Floating-Point Numbers Accurately' by Steele & White, shows an approximation by
- * scaling called Dragon 2. This code uses a similar idea. The other core algorithm uses casts and
- * floating subtraction to give exact remainders after the decimal, to be scaled into an integer.
- * Extra trailing 0's are excluded. The output defaults to rounding to nearest, ties to even. You
- * can enable rounding ties away from zero. Note: UNITY_DOUBLE param can typedef to float or double
-
- * The old version required compiling in snprintf. For reference, with a similar format as now:
- *  char buf[19];
- *  if (number > 4294967296.0 || -number > 4294967296.0) snprintf(buf, sizeof buf, "%.8e", number);
- *  else                                                 snprintf(buf, sizeof buf, "%.6f", number);
- *  UnityPrint(buf);
- */
+/* This function prints a floating-point value in a format similar to
+ * printf("%.6g").  It can work with either single- or double-precision,
+ * but for simplicity, it prints only 6 significant digits in either case.
+ * Printing more than 6 digits accurately is hard (at least in the single-
+ * precision case) and isn't attempted here. */
 void UnityPrintFloat(const UNITY_DOUBLE input_number)
 {
-    UNITY_DOUBLE number;
+    UNITY_DOUBLE number = input_number;
 
-    if (input_number < 0)
+    /* print minus sign (including for negative zero) */
+    if (number < 0.0f || (number == 0.0f && 1.0f / number < 0.0f))
     {
         UNITY_OUTPUT_CHAR('-');
-        number = -input_number;
-    } else
-    {
-        number = input_number;
+        number = -number;
     }
 
-    if (isnan(number)) UnityPrint(UnityStrNaN);
-    else if (isinf(number)) UnityPrintLen(UnityStrInf, 3);
-    else if (number <= 0.0000005 && number > 0) UnityPrint("0.000000..."); /* Small number */
-    else if (number < 4294967295.9999995) /* Rounded result fits in 32 bits, "%.6f" format */
+    /* handle zero, NaN, and +/- infinity */
+    if (number == 0.0f) UnityPrint("0");
+    else if (isnan(number)) UnityPrint("nan");
+    else if (isinf(number)) UnityPrint("inf");
+    else
     {
-        const UNITY_INT32 divisor = 1000000/10;
-        UNITY_UINT32 integer_part = (UNITY_UINT32)number;
-        UNITY_INT32 fraction_part = (UNITY_INT32)((number - (UNITY_DOUBLE)integer_part)*1000000.0 + 0.5);
-        /* Double precision calculation gives best performance for six rounded decimal places */
-        ROUND_TIES_TO_EVEN(number, fraction_part, (number - (UNITY_DOUBLE)integer_part)*1000000.0);
+        int exponent = 0;
+        int decimals, digits;
+        UNITY_INT32 n;
+        char buf[16];
 
-        if (fraction_part == 1000000) /* Carry across the decimal point */
+        /* scale up or down by powers of 10 */
+        while (number < 100000.0f / 1e6f)  { number *= 1e6f; exponent -= 6; }
+        while (number < 100000.0f)         { number *= 10.0f; exponent--; }
+        while (number > 1000000.0f * 1e6f) { number /= 1e6f; exponent += 6; }
+        while (number > 1000000.0f)        { number /= 10.0f; exponent++; }
+
+        /* round to nearest integer */
+        n = ((UNITY_INT32)(number + number) + 1) / 2;
+        if (n > 999999)
         {
-            fraction_part = 0;
-            integer_part += 1;
-        }
-
-        UnityPrintNumberUnsigned(integer_part);
-        UnityPrintDecimalAndNumberWithLeadingZeros(fraction_part, divisor);
-    }
-    else /* Number is larger, use exponential format of 9 digits, "%.8e" */
-    {
-        const UNITY_INT32 divisor = 1000000000/10;
-        UNITY_INT32 integer_part;
-        UNITY_DOUBLE_TYPE divide = 10.0;
-        int exponent = 9;
-
-        while (number / divide >= 1000000000.0 - 0.5)
-        {
-            divide *= 10;
+            n = 100000;
             exponent++;
         }
-        integer_part = (UNITY_INT32)(number / divide + 0.5);
-        /* Double precision calculation required for float, to produce 9 rounded digits */
-        ROUND_TIES_TO_EVEN(number, integer_part, number / divide);
 
-        UNITY_OUTPUT_CHAR('0' + integer_part / divisor);
-        UnityPrintDecimalAndNumberWithLeadingZeros(integer_part % divisor, divisor / 10);
-        UNITY_OUTPUT_CHAR('e');
-        UNITY_OUTPUT_CHAR('+');
-        if (exponent < 10) UNITY_OUTPUT_CHAR('0');
-        UnityPrintNumber(exponent);
+        /* determine where to place decimal point */
+        decimals = (exponent <= 0 && exponent >= -9) ? -exponent : 5;
+        exponent += decimals;
+
+        /* truncate trailing zeroes after decimal point */
+        while (decimals > 0 && n % 10 == 0)
+        {
+            n /= 10;
+            decimals--;
+        }
+
+        /* build up buffer in reverse order */
+        digits = 0;
+        while (n != 0 || digits < decimals + 1)
+        {
+            buf[digits++] = (char)('0' + n % 10);
+            n /= 10;
+        }
+        while (digits > 0)
+        {
+            if(digits == decimals) UNITY_OUTPUT_CHAR('.');
+            UNITY_OUTPUT_CHAR(buf[--digits]);
+        }
+
+        /* print exponent if needed */
+        if (exponent != 0)
+        {
+            UNITY_OUTPUT_CHAR('e');
+
+            if(exponent < 0)
+            {
+                UNITY_OUTPUT_CHAR('-');
+                exponent = -exponent;
+            }
+            else
+            {
+                UNITY_OUTPUT_CHAR('+');
+            }
+
+            digits = 0;
+            while (exponent != 0 || digits < 2)
+            {
+                buf[digits++] = (char)('0' + exponent % 10);
+                exponent /= 10;
+            }
+            while (digits > 0)
+            {
+                UNITY_OUTPUT_CHAR(buf[--digits]);
+            }
+        }
     }
 }
 #endif /* ! UNITY_EXCLUDE_FLOAT_PRINT */
@@ -525,6 +529,50 @@ void UnityAssertEqualNumber(const UNITY_INT expected,
         UNITY_FAIL_AND_BAIL;
     }
 }
+
+/*-----------------------------------------------*/
+void UnityAssertGreaterNumber(const UNITY_INT threshold,
+                              const UNITY_INT actual,
+                              const char *msg,
+                              const UNITY_LINE_TYPE lineNumber,
+                              const UNITY_DISPLAY_STYLE_T style)
+{
+    RETURN_IF_FAIL_OR_IGNORE;
+
+    if (!(actual > threshold))
+    {
+        UnityTestResultsFailBegin(lineNumber);
+        UnityPrint(UnityStrExpected);
+        UnityPrintNumberByStyle(actual, style);
+        UnityPrint(UnityStrGt);
+        UnityPrintNumberByStyle(threshold, style);
+        UnityAddMsgIfSpecified(msg);
+        UNITY_FAIL_AND_BAIL;
+    }
+}
+
+/*-----------------------------------------------*/
+void UnityAssertSmallerNumber(const UNITY_INT threshold,
+                              const UNITY_INT actual,
+                              const char *msg,
+                              const UNITY_LINE_TYPE lineNumber,
+                              const UNITY_DISPLAY_STYLE_T style)
+{
+    RETURN_IF_FAIL_OR_IGNORE;
+
+    if (!(actual < threshold))
+    {
+        UnityTestResultsFailBegin(lineNumber);
+        UnityPrint(UnityStrExpected);
+        UnityPrintNumberByStyle(actual, style);
+        UnityPrint(UnityStrLt);
+        UnityPrintNumberByStyle(threshold, style);
+        UnityAddMsgIfSpecified(msg);
+        UNITY_FAIL_AND_BAIL;
+    }
+}
+
+
 
 #define UnityPrintPointlessAndBail()       \
 {                                          \
@@ -1025,7 +1073,7 @@ void UnityAssertEqualStringArray(UNITY_INTERNAL_PTR expected,
 {
     UNITY_UINT32 i = 0;
     UNITY_UINT32 j = 0;
-    const char* exp = NULL;
+    const char* expd = NULL;
     const char* act = NULL;
 
     RETURN_IF_FAIL_OR_IGNORE;
@@ -1048,7 +1096,7 @@ void UnityAssertEqualStringArray(UNITY_INTERNAL_PTR expected,
 
     if (flags != UNITY_ARRAY_TO_ARRAY)
     {
-        exp = (const char*)expected;
+        expd = (const char*)expected;
     }
 
     do
@@ -1056,15 +1104,15 @@ void UnityAssertEqualStringArray(UNITY_INTERNAL_PTR expected,
         act = actual[j];
         if (flags == UNITY_ARRAY_TO_ARRAY)
         {
-            exp = ((const char* const*)expected)[j];
+            expd = ((const char* const*)expected)[j];
         }
 
         /* if both pointers not null compare the strings */
-        if (exp && act)
+        if (expd && act)
         {
-            for (i = 0; exp[i] || act[i]; i++)
+            for (i = 0; expd[i] || act[i]; i++)
             {
-                if (exp[i] != act[i])
+                if (expd[i] != act[i])
                 {
                     Unity.CurrentTestFailed = 1;
                     break;
@@ -1073,7 +1121,7 @@ void UnityAssertEqualStringArray(UNITY_INTERNAL_PTR expected,
         }
         else
         { /* handle case of one pointers being null (if both null, test should pass) */
-            if (exp != act)
+            if (expd != act)
             {
                 Unity.CurrentTestFailed = 1;
             }
@@ -1087,7 +1135,7 @@ void UnityAssertEqualStringArray(UNITY_INTERNAL_PTR expected,
                 UnityPrint(UnityStrElement);
                 UnityPrintNumberUnsigned(j);
             }
-            UnityPrintExpectedAndActualStrings(exp, act);
+            UnityPrintExpectedAndActualStrings(expd, act);
             UnityAddMsgIfSpecified(msg);
             UNITY_FAIL_AND_BAIL;
         }

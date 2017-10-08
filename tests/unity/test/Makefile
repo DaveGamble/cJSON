@@ -14,6 +14,7 @@ CFLAGS += -Wbad-function-cast -Wcast-qual -Wold-style-definition -Wshadow -Wstri
 #DEBUG = -O0 -g
 CFLAGS += $(DEBUG)
 DEFINES =  -D UNITY_OUTPUT_CHAR=putcharSpy
+DEFINES += -D UNITY_OUTPUT_CHAR_HEADER_DECLARATION=putcharSpy\(int\)
 DEFINES += -D UNITY_SUPPORT_64 -D UNITY_INCLUDE_DOUBLE
 SRC = ../src/unity.c tests/testunity.c build/testunityRunner.c
 INC_DIR = -I ../src

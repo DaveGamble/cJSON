@@ -119,7 +119,7 @@ class UnityTestRunnerGenerator
     source_index = 0
     tests_and_line_numbers.size.times do |i|
       source_lines[source_index..-1].each_with_index do |line, index|
-        next unless line =~ /#{tests_and_line_numbers[i][:test]}/
+        next unless line =~ /\s+#{tests_and_line_numbers[i][:test]}(?:\s|\()/
         source_index += index
         tests_and_line_numbers[i][:line_number] = source_index + 1
         break

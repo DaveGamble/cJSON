@@ -119,7 +119,7 @@ static cJSON_bool test_apply_patch(const cJSON * const test)
     return successful;
 }
 
-static cJSON_bool test_generate_test(cJSON *test __attribute__((unused)))
+static cJSON_bool test_generate_test(cJSON *test)
 {
     cJSON *doc = NULL;
     cJSON *patch = NULL;

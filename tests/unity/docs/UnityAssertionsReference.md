@@ -290,6 +290,60 @@ Asserts the specified bit of the `actual` parameter is high.
 
 Asserts the specified bit of the `actual` parameter is low.
 
+### Integer Less Than / Greater Than
+
+These assertions verify that the `actual` parameter is less than or greater
+than `threshold` (exclusive). For example, if the threshold value is 0 for the
+greater than assertion will fail if it is 0 or less.
+
+##### `TEST_ASSERT_GREATER_THAN (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_INT (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_INT8 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_INT16 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_INT32 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_UINT (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_UINT8 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_UINT16 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_UINT32 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_HEX8 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_HEX16 (threshold, actual)`
+
+##### `TEST_ASSERT_GREATER_THAN_HEX32 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_INT (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_INT8 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_INT16 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_INT32 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_UINT (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_UINT8 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_UINT16 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_UINT32 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_HEX8 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_HEX16 (threshold, actual)`
+
+##### `TEST_ASSERT_LESS_THAN_HEX32 (threshold, actual)`
+
 
 ### Integer Ranges (of all sizes)
 

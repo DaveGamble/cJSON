@@ -16,33 +16,46 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 set(custom_compiler_flags)
 
 include(CheckCCompilerFlag)
-option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags for Clang and GCC" ON)
+option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
-    list(APPEND custom_compiler_flags
-        -std=c89
-        -pedantic
-        -Wall
-        -Wextra
-        -Werror
-        -Wstrict-prototypes
-        -Wwrite-strings
-        -Wshadow
-        -Winit-self
-        -Wcast-align
-        -Wformat=2
-        -Wmissing-prototypes
-        -Wstrict-overflow=2
-        -Wcast-qual
-        -Wundef
-        -Wswitch-default
-        -Wconversion
-        -Wc++-compat
-        -fstack-protector-strong
-        -Wcomma
-        -Wdouble-promotion
-        -Wparentheses
-        -Wformat-overflow
+    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
+        list(APPEND custom_compiler_flags
+            -std=c89
+            -pedantic
+            -Wall
+            -Wextra
+            -Werror
+            -Wstrict-prototypes
+            -Wwrite-strings
+            -Wshadow
+            -Winit-self
+            -Wcast-align
+            -Wformat=2
+            -Wmissing-prototypes
+            -Wstrict-overflow=2
+            -Wcast-qual
+            -Wundef
+            -Wswitch-default
+            -Wconversion
+            -Wc++-compat
+            -fstack-protector-strong
+            -Wcomma
+            -Wdouble-promotion
+            -Wparentheses
+            -Wformat-overflow
+            -Wunused-macros
+            -Wmissing-variable-declarations
+            -Wused-but-marked-unused
+            -Wswitch-enum
         )
+    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+        list(APPEND custom_compiler_flags
+            /GS
+            /Za
+            /sdl
+            /W4
+        )
+    endif()
 endif()
 
 option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
@@ -57,6 +70,16 @@ if (ENABLE_SANITIZERS)
         -fsanitize=integer
         -01
         -fno-sanitize-recover
+        )
+endif()
+
+option(ENABLE_SAFE_STACK "Enables the SafeStack instrumentation pass by the Code Pointer Integrity Project" OFF)
+if (ENABLE_SAFE_STACK)
+    if (ENABLE_SANITIZERS)
+        message(FATAL_ERROR "ENABLE_SAFE_STACK cannot be used in combination with ENABLE_SANITIZERS")
+    endif()
+    list(APPEND custom_compiler_flags
+        -fsanitize=safe-stack
         )
 endif()
 
@@ -99,7 +122,17 @@ set(CJSON_LIB cjson)
 file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
 
-add_library("${CJSON_LIB}" "${HEADERS}" "${SOURCES}")
+option(BUILD_SHARED_AND_STATIC_LIBS "Build both shared and static libraries" Off)
+
+if (NOT BUILD_SHARED_AND_STATIC_LIBS)
+    add_library("${CJSON_LIB}" "${HEADERS}" "${SOURCES}")
+else()
+    # See https://cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
+    add_library("${CJSON_LIB}" SHARED "${HEADERS}" "${SOURCES}")
+    add_library("${CJSON_LIB}-static" STATIC "${HEADERS}" "${SOURCES}")
+    set_target_properties("${CJSON_LIB}-static" PROPERTIES OUTPUT_NAME "${CJSON_LIB}")
+    set_target_properties("${CJSON_LIB}-static" PROPERTIES PREFIX "lib")
+endif()
 if (NOT WIN32)
     target_link_libraries("${CJSON_LIB}" m)
 endif()
@@ -110,6 +143,9 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"
 install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 install(TARGETS "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_LIB}")
+if (BUILD_SHARED_AND_STATIC_LIBS)
+    install(TARGETS "${CJSON_LIB}-static" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+endif()
 if(ENABLE_TARGET_EXPORT)
     # export library information for CMake projects
     install(EXPORT "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
@@ -128,13 +164,25 @@ if(ENABLE_CJSON_UTILS)
     file(GLOB HEADERS_UTILS cJSON_Utils.h)
     set(SOURCES_UTILS cJSON_Utils.c)
 
-    add_library("${CJSON_UTILS_LIB}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
-    target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
+    if (NOT BUILD_SHARED_AND_STATIC_LIBS)
+        add_library("${CJSON_UTILS_LIB}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
+        target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
+    else()
+        add_library("${CJSON_UTILS_LIB}" SHARED "${HEADERS_UTILS}" "${SOURCES_UTILS}")
+        target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
+        add_library("${CJSON_UTILS_LIB}-static" STATIC "${HEADERS_UTILS}" "${SOURCES_UTILS}")
+        target_link_libraries("${CJSON_UTILS_LIB}-static" "${CJSON_LIB}-static")
+        set_target_properties("${CJSON_UTILS_LIB}-static" PROPERTIES OUTPUT_NAME "${CJSON_UTILS_LIB}")
+        set_target_properties("${CJSON_UTILS_LIB}-static" PROPERTIES PREFIX "lib")
+    endif()
 
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson_utils.pc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
     install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_UTILS_LIB}")
+    if (BUILD_SHARED_AND_STATIC_LIBS)
+        install(TARGETS "${CJSON_UTILS_LIB}-static" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    endif()
     install(FILES cJSON_Utils.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
     install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
     if(ENABLE_TARGET_EXPORT)

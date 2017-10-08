@@ -1,0 +1,86 @@
+os: Visual Studio 2015
+
+# ENABLE_CUSTOM_COMPILER_FLAGS - on by default
+# ENABLE_SANITIZERS - off by default
+# ENABLE_PUBLIC_SYMBOLS - on by default
+# BUILD_SHARED_LIBS - on by default
+# ENABLE_TARGET_EXPORT - on by default
+# ENABLE_CJSON_UTILS - off by default
+# ENABLE_CJSON_TEST -on by default
+# ENABLE_VALGRIND - off by default
+# ENABLE_FUZZING - off by default
+
+environment:
+  matrix:
+    - GENERATOR: "Visual Studio 14 2015"
+      BUILD_SHARED_LIBS: ON
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 14 2015"
+      BUILD_SHARED_LIBS: OFF
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 12 2013"
+      BUILD_SHARED_LIBS: ON
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 12 2013"
+      BUILD_SHARED_LIBS: OFF
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 11 2012"
+      BUILD_SHARED_LIBS: ON
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 11 2012"
+      BUILD_SHARED_LIBS: OFF
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 10 2010"
+      BUILD_SHARED_LIBS: ON
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 10 2010"
+      BUILD_SHARED_LIBS: OFF
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 9 2008"
+      BUILD_SHARED_LIBS: ON
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+    - GENERATOR: "Visual Studio 9 2008"
+      BUILD_SHARED_LIBS: OFF
+      ENABLE_CJSON_TEST: OFF
+      ENABLE_CJSON_UTILS: ON
+
+
+platform:
+  - x86
+  - x64
+matrix:
+  exclude:
+  - platform: x64
+    GENERATOR: "Visual Studio 9 2008"
+
+configuration:
+  - Release
+
+
+build_script:
+  - ps: if($env:PLATFORM -eq "x64") { $env:CMAKE_GEN_SUFFIX=" Win64" }
+  - cmake "-G%GENERATOR%%CMAKE_GEN_SUFFIX%" -DBUILD_SHARED_LIBS=%BUILD_SHARED_LIBS% -DENABLE_CJSON_TEST=%ENABLE_CJSON_TEST%  -H. -Bbuild
+  - cmake --build build --config "%CONFIGURATION%"
+
+
+on_failure:
+  - ps: if(Test-Path builds/CMakeFiles/CMakeOutput.log) { cat builds/CMakeFiles/CMakeOutput.log }
+  - ps: if(Test-Path builds/CMakeFiles/CMakeError.log) { cat builds/CMakeFiles/CMakeError.log }
