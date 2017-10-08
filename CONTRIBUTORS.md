@@ -1,11 +1,14 @@
 Contributors
 ============
 
+Original Author: [Dave Gamble](https://github.com/DaveGamble)
+Current Maintainer: [Max Bruckner](https://github.com/FSMaxB)
+
 * [Ajay Bhargav](https://github.com/ajaybhargav)
 * [Alper Akcan](https://github.com/alperakcan)
 * [Anton Sergeev](https://github.com/anton-sergeev)
 * [Christian Schulze](https://github.com/ChristianSch)
-* [Dave Gamble](https://github.com/DaveGamble)
+* [Casperinous](https://github.com/Casperinous)
 * [Debora Grosse](https://github.com/DeboraG)
 * [dieyushi](https://github.com/dieyushi)
 * [Dōngwén Huáng (黄东文)](https://github.com/DongwenHuang)
@@ -22,7 +25,6 @@ Contributors
 * [Kevin Branigan](https://github.com/kbranigan)
 * [Kyle Chisholm](https://github.com/ChisholmKyle)
 * [Linus Wallgren](https://github.com/ecksun)
-* [Max Bruckner](https://github.com/FSMaxB)
 * Mike Pontillo
 * [Mike Jerris](https://github.com/mjerris)
 * [Mike Robinson](https://github.com/mhrobinson)
@@ -34,6 +36,7 @@ Contributors
 * [Rod Vagg](https://github.com/rvagg)
 * [Roland Meertens](https://github.com/rmeertens)
 * [Romain Porte](https://github.com/MicroJoe)
+* [Simon Ricaldone](https://github.com/simon-p-r)
 * [Stephan Gatzka](https://github.com/gatzka)
 * [Weston Schmidt](https://github.com/schmidtw)
 
