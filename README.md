@@ -114,6 +114,13 @@ make all
 
 If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`.
 
+### Including cJSON
+If you installed it via the CMake or the Makefile, you can include cJSON like this:
+
+```c
+#include <cjson/cJSON.h>
+```
+
 ### Some JSON:
 
 ```json
