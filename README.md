@@ -7,6 +7,7 @@ Ultralightweight JSON parser in ANSI C.
 * [Usage](#usage)
   * [Welcome to cJSON](#welcome-to-cjson)
   * [Building](#building)
+  * [Including cJSON](#including-cjson)
   * [Some JSON](#some-json)
   * [Here's the structure](#heres-the-structure)
   * [Caveats](#caveats)
@@ -115,7 +116,7 @@ make all
 If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`.
 
 ### Including cJSON
-If you installed it via the CMake or the Makefile, you can include cJSON like this:
+If you installed it via CMake or the Makefile, you can include cJSON like this:
 
 ```c
 #include <cjson/cJSON.h>
