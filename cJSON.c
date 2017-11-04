@@ -1062,7 +1062,7 @@ fail:
         {
             *return_parse_end = (const char*)local_error.json + local_error.position;
         }
- 
+
         global_error = local_error;
     }
 
