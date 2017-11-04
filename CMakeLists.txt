@@ -238,7 +238,7 @@ endif()
 option(ENABLE_LOCALES "Enable the use of locales" ON)
 if(ENABLE_LOCALES)
 	add_definitions(-DENABLE_LOCALES)
-endif() 
+endif()
 
 add_subdirectory(tests)
 add_subdirectory(fuzzing)

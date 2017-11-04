@@ -1,5 +1,5 @@
 bf{"web-app": {
-  "servlet": [   
+  "servlet": [
     {
       "servlet-name": "cofaxCDS",
       "servlet-class": "org.cofax.cds.CDSServlet",
@@ -55,7 +55,7 @@ bf{"web-app": {
     {
       "servlet-name": "cofaxAdmin",
       "servlet-class": "org.cofax.cds.AdminServlet"},
- 
+
     {
       "servlet-name": "fileServlet",
       "servlet-class": "org.cofax.cds.FileServlet"},
@@ -82,7 +82,7 @@ bf{"web-app": {
     "cofaxAdmin": "/admin/*",
     "fileServlet": "/static/*",
     "cofaxTools": "/tools/*"},
- 
+
   "taglib": {
     "taglib-uri": "cofax.tld",
     "taglib-location": "/WEB-INF/tlds/cofax.tld"}}}
