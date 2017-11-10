@@ -9,6 +9,7 @@ Ultralightweight JSON parser in ANSI C.
   * [Building](#building)
   * [Including cJSON](#including-cjson)
   * [Data Structure](#data-structure)
+  * [Parsing JSON](#parsing-json)
   * [Some JSON](#some-json)
   * [Here's the structure](#heres-the-structure)
   * [Caveats](#caveats)
@@ -162,6 +163,24 @@ The type can be one of the following:
 Additionally there are the following two flags:
 * `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not it's children/valuestring.
 * `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
+
+### Parsing JSON
+
+Given some JSON in a zero terminated string, you can parse it with `cJSON_Parse`.
+
+```c
+cJSON *json = cJSON_Parse(string);
+```
+
+It will parse the JSON and allocate a tree of `cJSON` items that represents it. Once it returns, you are fully responsible for deallocating it after use with `cJSON_Delete`.
+
+The allocator used by `cJSON_Parse` is `malloc` and `free` by default but can be changed (globally) with `cJSON_InitHooks`.
+
+If an error occurs a pointer to the position of the error in the input string can be accessed using `cJSON_GetErrorPtr`. Note though that this can produce race conditions in multithreading scenarios, in that case it is better to use `cJSON_ParseWithOpts` with `return_parse_end`.
+By default, characters in the input string that follow the parsed JSON will not be considered as an error.
+
+If you want more options, use `cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)`.
+`return_parse_end` returns a pointer to the end of the JSON in the input string or the position that an error occurs at (thereby replacing `cJSON_GetErrorPtr` in a thread safe way). `require_null_terminated`, if set to `1` will make it an error if the input string contains data after the JSON.
 
 ### Some JSON:
 
