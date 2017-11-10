@@ -8,6 +8,7 @@ Ultralightweight JSON parser in ANSI C.
   * [Welcome to cJSON](#welcome-to-cjson)
   * [Building](#building)
   * [Including cJSON](#including-cjson)
+  * [Data Structure](#data-structure)
   * [Some JSON](#some-json)
   * [Here's the structure](#heres-the-structure)
   * [Caveats](#caveats)
@@ -122,6 +123,45 @@ If you installed it via CMake or the Makefile, you can include cJSON like this:
 ```c
 #include <cjson/cJSON.h>
 ```
+
+### Data Structure
+
+cJSON represents JSON data using the `cJSON` struct data type:
+
+```c
+/* The cJSON structure: */
+typedef struct cJSON
+{
+    struct cJSON *next;
+    struct cJSON *prev;
+    struct cJSON *child;
+    int type;
+    char *valuestring;
+    /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
+    int valueint;
+    double valuedouble;
+    char *string;
+} cJSON;
+```
+
+An item of this type represents a JSON value. The type is stored in `type` as a bit-flag (**this means that you cannot find out the type by just comparing the value of `type`**).
+
+To check the type of an item, use the corresponding `cJSON_Is...` function. It does a `NULL` check followed by a type check and returns a boolean value if the item is of this type.
+
+The type can be one of the following:
+* `cJSON_Invalid` (check with `cJSON_IsInvalid`): Represents an invalid item that doesn't contain any value. You automatically have this type if you set the item to all zero bytes.
+* `cJSON_False` (check with `cJSON_IsFalse`): Represents a `false` boolean value. You can also check for boolean values in general with `cJSON_IsBool`.
+* `cJSON_True` (check with `cJSON_IsTrue`): Represents a `true` boolean value. You can also check for boolean values in general with `cJSON_IsBool`.
+* `cJSON_NULL` (check with `cJSON_IsNull`): Represents a `null` value.
+* `cJSON_Number` (check with `cJSON_IsNumber`): Represents a number value. The value is stored as a double in `valuedouble` and also in `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`.
+* `cJSON_String` (check with `cJSON_IsString`): Represents a string value. It is stored in the form of a zero terminated string in `valuestring`.
+* `cJSON_Array` (check with `cJSON_IsArray`): Represent an array value. This is implemented by pointing `child` to a linked list of `cJSON` items that represent the values in the array. The elements are linked together using `next` and `prev`, where the first element has `prev == NULL` and the last element `next == NULL`.
+* `cJSON_Object` (check with `cJSON_IsObject`): Represents an object value. Objects are stored same way as an array, the only difference is that the items in the object store their keys in `string`.
+* `cJSON_Raw` (check with `cJSON_IsRaw`): Represents any kind of JSON that is stored as a zero terminated array of characters in `valuestring`. This can be used, for example, to avoid printing the same static JSON over and over again to save performance. cJSON will never create this type when parsing. Also note that cJSON doesn't check if it is valid JSON.
+
+Additionally there are the following two flags:
+* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not it's children/valuestring.
+* `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
 
 ### Some JSON:
 
