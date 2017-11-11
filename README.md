@@ -10,6 +10,7 @@ Ultralightweight JSON parser in ANSI C.
   * [Including cJSON](#including-cjson)
   * [Data Structure](#data-structure)
   * [Parsing JSON](#parsing-json)
+  * [Printing JSON](#printing-json)
   * [Some JSON](#some-json)
   * [Here's the structure](#heres-the-structure)
   * [Caveats](#caveats)
@@ -181,6 +182,22 @@ By default, characters in the input string that follow the parsed JSON will not 
 
 If you want more options, use `cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)`.
 `return_parse_end` returns a pointer to the end of the JSON in the input string or the position that an error occurs at (thereby replacing `cJSON_GetErrorPtr` in a thread safe way). `require_null_terminated`, if set to `1` will make it an error if the input string contains data after the JSON.
+
+### Printing JSON
+
+Given a tree of `cJSON` items, you can print them as a string using `cJSON_Print`.
+
+```c
+char *string = cJSON_Print(json);
+```
+
+It will allocate a string and print a JSON representation of the tree into it. Once it returns, you are fully responsible for deallocating it after use with your allocator. (usually `free`, depends on what has been set with `cJSON_InitHooks`).
+
+`cJSON_Print` will print with whitespace for formatting. If you want to print without formatting, use `cJSON_PrintUnformatted`.
+
+If you have a rough idea of how big your resulting string will be, you can use `cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)`. `fmt` is a boolean to turn formatting with whitespace on and off. `prebuffer` specifies the first buffer size to use for printing. `cJSON_Print` currently uses 256 bytes for it's first buffer size. Once printing runs out of space, a new buffer is allocated and the old gets copied over before printing is continued.
+
+These dynamic buffer allocations can be completely avoided by using `cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)`. It takes a buffer to a pointer to print to and it's length. If the length is reached, printing will fail and it returns `0`. In case of success, `1` is returned. Note that you should provide 5 bytes more than is actually needed, because cJSON is not 100% accurate in estimating if the provided memory is enough.
 
 ### Some JSON:
 
