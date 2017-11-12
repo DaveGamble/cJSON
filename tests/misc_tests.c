@@ -450,6 +450,19 @@ static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
     TEST_ASSERT_NULL(skip_utf8_bom(&buffer));
 }
 
+static void cjson_get_string_value_should_get_a_string(void)
+{
+    cJSON *string = cJSON_CreateString("test");
+    cJSON *number = cJSON_CreateNumber(1);
+
+    TEST_ASSERT_TRUE(cJSON_GetStringValue(string) == string->valuestring);
+    TEST_ASSERT_NULL(cJSON_GetStringValue(number));
+    TEST_ASSERT_NULL(cJSON_GetStringValue(NULL));
+
+    cJSON_Delete(number);
+    cJSON_Delete(string);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -468,6 +481,7 @@ int main(void)
     RUN_TEST(ensure_should_fail_on_failed_realloc);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
+    RUN_TEST(cjson_get_string_value_should_get_a_string);
 
     return UNITY_END();
 }

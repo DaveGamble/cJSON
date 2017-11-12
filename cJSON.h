@@ -165,6 +165,9 @@ CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *st
 /* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when cJSON_Parse() returns 0. 0 when cJSON_Parse() succeeds. */
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
 
+/* Check if the item is a string and return its valuestring */
+CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item);
+
 /* These functions check the type of an item */
 CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsFalse(const cJSON * const item);

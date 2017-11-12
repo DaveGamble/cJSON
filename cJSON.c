@@ -73,6 +73,14 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
     return (const char*) (global_error.json + global_error.position);
 }
 
+CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) {
+    if (!cJSON_IsString(item)) {
+        return NULL;
+    }
+
+    return item->valuestring;
+}
+
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
 #if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 6) || (CJSON_VERSION_PATCH != 0)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
