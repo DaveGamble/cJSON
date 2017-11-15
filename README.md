@@ -9,6 +9,7 @@ Ultralightweight JSON parser in ANSI C.
   * [Building](#building)
   * [Including cJSON](#including-cjson)
   * [Data Structure](#data-structure)
+  * [Working with the data structure](#working-with-the-data-structure)
   * [Parsing JSON](#parsing-json)
   * [Printing JSON](#printing-json)
   * [Some JSON](#some-json)
@@ -164,6 +165,58 @@ The type can be one of the following:
 Additionally there are the following two flags:
 * `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not it's children/valuestring.
 * `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
+
+### Working with the data structure
+
+For every value type there is a `cJSON_Create...` function that can be used to create an item of that type.
+All of these will allocate a `cJSON` struct that can later be deleted with `cJSON_Delete`.
+Note that you have to delete them at some point, otherwise you will get a memory leak.
+**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, it gets deleted as well.
+
+#### Basic types
+* **null** is created with `cJSON_CreateNull`
+* **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
+* **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
+* **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for it's lifetime, useful for constants)
+
+#### Arrays
+
+You can create an empty array with `cJSON_CreateArray`. `cJSON_CreateArrayReference` can be used to create an array that doesn't "own" its content, so its content doesn't get deleted by `cJSON_Delete`.
+
+To add items to an array, use `cJSON_AddItemToArray` to append items to the end.
+Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another item, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occuring if they are already used elsewhere.
+To insert items in the middle, use `cJSON_InsertItemInArray`. It will insert an item at the given 0 based index and shift all the existing items to the right.
+
+If you want to take an item out of an array at a given index and continue using it, use `cJSON_DetachItemFromArray`, it will return the detached item, so be sure to assign it to a pointer, otherwise you will have a memory leak.
+
+Deleting items is done with `cJSON_DeleteItemFromArray`. It works like `cJSON_DetachItemFromArray`, but deletes the detached item via `cJSON_Delete`.
+
+You can also replace an item in an array in place. Either with `cJSON_ReplaceItemInArray` using an index or with `cJSON_ReplaceItemViaPointer` given a pointer to an element. `cJSON_ReplaceItemViaPointer` will return `0` if it fails. What this does internally is to detach the old item, delete it and insert the new item in its place.
+
+To get the size of an array, use `cJSON_GetArraySize`. Use `cJSON_GetArrayItem` to get an element at a given index.
+
+Because an array is stored as a linked list, iterating it via index is inefficient (`O(n²)`), so you can iterate over an array using the `cJSON_ArrayForEach` macro in `O(n)` time complexity.
+
+#### Objects
+
+You can create an empty object with `cJSON_CreateObject`. `cJSON_CreateObjectReference` can be used to create an object that doesn't "own" its content, so its content doesn't get deleted by `cJSON_Delete`.
+
+To add items to an object, use `cJSON_AddItemToObject`. Use `cJSON_AddItemToObjectCS` to add an item to an object with a name that is a constant or reference (key of the item, `string` in the `cJSON` struct), so that it doesn't get freed by `cJSON_Delete`.
+Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another object, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occuring if they are already used elsewhere.
+
+If you want to take an item out of an object, use `cJSON_DetachItemFromObjectCaseSensitive`, it will return the detached item, so be sure to assign it to a pointer, otherwise you will have a memory leak.
+
+Deleting items is done with `cJSON_DeleteItemFromObjectCaseSensitive`. It works like `cJSON_DetachItemFromObjectCaseSensitive` followed by `cJSON_Delete`.
+
+You can also replace an item in an object in place. Either with `cJSON_ReplaceItemInObjectCaseSensitive` using a key or with `cJSON_ReplaceItemViaPointer` given a pointer to an element. `cJSON_ReplaceItemViaPointer` will return `0` if it fails. What this does internally is to detach the old item, delete it and insert the new item in its place.
+
+To get the size of an object, you can use `cJSON_GetArraySize`, this works because internally objects are stored as arrays.
+
+If you want to access an item in an object, use `cJSON_GetObjectItemCaseSensitive`.
+
+To iterate over an object, you can use the `cJSON_ArrayForEach` macro the same way as for arrays.
+
+cJSON also provides convenient helper functions for quickly creating a new item and adding it to an object, like `cJSON_AddNullToObject`. They return a pointer to the new item or `NULL` if they failed.
 
 ### Parsing JSON
 
