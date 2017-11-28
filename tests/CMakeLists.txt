@@ -57,8 +57,6 @@ if(ENABLE_CJSON_TEST)
         compare_tests
     )
 
-    add_library(test-common common.c)
-
     option(ENABLE_VALGRIND OFF "Enable the valgrind memory checker for the tests.")
     if (ENABLE_VALGRIND)
         find_program(MEMORYCHECK_COMMAND valgrind)
@@ -72,7 +70,7 @@ if(ENABLE_CJSON_TEST)
 
     foreach(unity_test ${unity_tests})
         add_executable("${unity_test}" "${unity_test}.c")
-        target_link_libraries("${unity_test}" "${CJSON_LIB}" unity test-common)
+        target_link_libraries("${unity_test}" "${CJSON_LIB}" unity)
         if(MEMORYCHECK_COMMAND)
             add_test(NAME "${unity_test}"
                 COMMAND "${MEMORYCHECK_COMMAND}" ${MEMORYCHECK_COMMAND_OPTIONS} "${CMAKE_CURRENT_BINARY_DIR}/${unity_test}")
@@ -97,7 +95,7 @@ if(ENABLE_CJSON_TEST)
 
         foreach (cjson_utils_test ${cjson_utils_tests})
             add_executable("${cjson_utils_test}" "${cjson_utils_test}.c")
-            target_link_libraries("${cjson_utils_test}" "${CJSON_LIB}" "${CJSON_UTILS_LIB}" unity test-common)
+            target_link_libraries("${cjson_utils_test}" "${CJSON_LIB}" "${CJSON_UTILS_LIB}" unity)
             if(MEMORYCHECK_COMMAND)
                 add_test(NAME "${cjson_utils_test}"
                     COMMAND "${MEMORYCHECK_COMMAND}" ${MEMORYCHECK_COMMAND_OPTIONS} "${CMAKE_CURRENT_BINARY_DIR}/${cjson_utils_test}")
