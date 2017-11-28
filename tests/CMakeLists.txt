@@ -1,5 +1,5 @@
 if(ENABLE_CJSON_TEST)
-    add_library(unity unity/src/unity.c)
+    add_library(unity "${CJSON_LIBRARY_TYPE}" unity/src/unity.c)
 
     # Disable -Werror for Unity
     if (FLAG_SUPPORTED_Werror)

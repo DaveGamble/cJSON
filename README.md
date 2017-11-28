@@ -94,6 +94,7 @@ You can change the build process with a list of different options that you can p
 * `-DBUILD_SHARED_AND_STATIC_LIBS=On`: Build both shared and static libraries. (off by default)
 * `-DCMAKE_INSTALL_PREFIX=/usr`: Set a prefix for the installation.
 * `-DENABLE_LOCALES=On`: Enable the usage of localeconv method. ( on by default )
+* `-DCJSON_OVERRIDE_BUILD_SHARED_LIBS=On`: Enable overriding the value of `BUILD_SHARED_LIBS` with `-DCJSON_BUILD_SHARED_LIBS`.
 
 If you are packaging cJSON for a distribution of Linux, you would probably take these steps for example:
 ```
