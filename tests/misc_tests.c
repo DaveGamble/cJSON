@@ -473,6 +473,41 @@ static void cjson_create_string_reference_should_create_a_string_reference(void)
     cJSON_Delete(string_reference);
 }
 
+static void cjson_create_object_reference_should_create_an_object_reference(void) {
+    cJSON *number_reference = NULL;
+    cJSON *number_object = cJSON_CreateObject();
+    cJSON *number = cJSON_CreateNumber(42);
+    const char key[] = "number";
+
+    TEST_ASSERT_TRUE(cJSON_IsNumber(number));
+    TEST_ASSERT_TRUE(cJSON_IsObject(number_object));
+    cJSON_AddItemToObjectCS(number_object, key, number);
+
+    number_reference = cJSON_CreateObjectReference(number);
+    TEST_ASSERT_TRUE(number_reference->child == number);
+    TEST_ASSERT_EQUAL_INT(cJSON_Object | cJSON_IsReference, number_reference->type);
+
+    cJSON_Delete(number_object);
+    cJSON_Delete(number_reference);
+}
+
+static void cjson_create_array_reference_should_create_an_array_reference(void) {
+    cJSON *number_reference = NULL;
+    cJSON *number_array = cJSON_CreateArray();
+    cJSON *number = cJSON_CreateNumber(42);
+
+    TEST_ASSERT_TRUE(cJSON_IsNumber(number));
+    TEST_ASSERT_TRUE(cJSON_IsArray(number_array));
+    cJSON_AddItemToArray(number_array, number);
+
+    number_reference = cJSON_CreateArrayReference(number);
+    TEST_ASSERT_TRUE(number_reference->child == number);
+    TEST_ASSERT_EQUAL_INT(cJSON_Array | cJSON_IsReference, number_reference->type);
+
+    cJSON_Delete(number_array);
+    cJSON_Delete(number_reference);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -493,6 +528,8 @@ int main(void)
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
     RUN_TEST(cjson_get_string_value_should_get_a_string);
     RUN_TEST(cjson_create_string_reference_should_create_a_string_reference);
+    RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
+    RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
 
     return UNITY_END();
 }
