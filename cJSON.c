@@ -1891,6 +1891,14 @@ CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSO
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
+/* helper function to cast away const */
+static char* cast_away_const_from_string(const char* string)
+{
+    return (char*)string;
+}
+#if defined(__clang__) || (defined(__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
+    #pragma GCC diagnostic pop
+#endif
 
 /* Add an item to an object with constant string as key */
 CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
@@ -1903,13 +1911,10 @@ CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJ
     {
         global_hooks.deallocate(item->string);
     }
-    item->string = (char*)string;
+    item->string = cast_away_const_from_string(string);
     item->type |= cJSON_StringIsConst;
     cJSON_AddItemToArray(object, item);
 }
-#if defined(__clang__) || (defined(__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
-    #pragma GCC diagnostic pop
-#endif
 
 CJSON_PUBLIC(void) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
 {
