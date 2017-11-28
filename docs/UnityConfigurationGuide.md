@@ -79,18 +79,7 @@ _Example:_
         #define UNITY_EXCLUDE_LIMITS_H
 
 
-##### `UNITY_EXCLUDE_SIZEOF`
-
-The third and final attempt to guess your types is to use the `sizeof()`
-operator. Even if the first two options don't work, this one covers most cases.
-There _is_ a rare compiler or two out there that doesn't support sizeof() in the
-preprocessing stage, though. For these, you have the ability to disable this
-feature as well.
-
-_Example:_
-        #define UNITY_EXCLUDE_SIZEOF
-
-If you've disabled all of the automatic options above, you're going to have to
+If you've disabled both of the automatic options above, you're going to have to
 do the configuration yourself. Don't worry. Even this isn't too bad... there are
 just a handful of defines that you are going to specify if you don't like the
 defaults.
@@ -127,7 +116,7 @@ _Example:_
         #define UNITY_POINTER_WIDTH 64
 
 
-##### `UNITY_INCLUDE_64`
+##### `UNITY_SUPPORT_64`
 
 Unity will automatically include 64-bit support if it auto-detects it, or if
 your `int`, `long`, or pointer widths are greater than 32-bits. Define this to
@@ -136,7 +125,7 @@ can be a significant size and speed impact to enabling 64-bit support on small
 targets, so don't define it if you don't need it.
 
 _Example:_
-        #define UNITY_INCLUDE_64
+        #define UNITY_SUPPORT_64
 
 
 ### Floating Point Types
@@ -170,24 +159,20 @@ _Example:_
         #define UNITY_INCLUDE_DOUBLE
 
 
-##### `UNITY_FLOAT_VERBOSE`
-
-##### `UNITY_DOUBLE_VERBOSE`
+##### `UNITY_EXCLUDE_FLOAT_PRINT`
 
 Unity aims for as small of a footprint as possible and avoids most standard
-library calls (some embedded platforms don't have a standard library!). Because
+library calls (some embedded platforms don’t have a standard library!). Because
 of this, its routines for printing integer values are minimalist and hand-coded.
-To keep Unity universal, though, we chose to _not_ develop our own floating
-point print routines. Instead, the display of floating point values during a
-failure are optional. By default, Unity will not print the actual results of
-floating point assertion failure. So a failed assertion will produce a message
-like `"Values Not Within Delta"`. If you would like verbose failure messages for
-floating point assertions, use these options to give more explicit failure
-messages (e.g. `"Expected 4.56 Was 4.68"`). Note that this feature requires the
-use of `sprintf` so might not be desirable in all cases.
+Therefore, the display of floating point values during a failure are optional.
+By default, Unity will print the actual results of floating point assertion
+failure (e.g. ”Expected 4.56 Was 4.68”). To not include this extra support, you
+can use this define to instead respond to a failed assertion with a message like
+”Values Not Within Delta”. If you would like verbose failure messages for floating
+point assertions, use these options to give more explicit failure messages.
 
 _Example:_
-        #define UNITY_DOUBLE_VERBOSE
+        #define UNITY_EXCLUDE_FLOAT_PRINT
 
 
 ##### `UNITY_FLOAT_TYPE`
@@ -277,25 +262,32 @@ will declare an instance of your function by default. If you want to disable
 this behavior, add `UNITY_OMIT_OUTPUT_FLUSH_HEADER_DECLARATION`.
 
 
-##### `UNITY_SUPPORT_WEAK`
+##### `UNITY_WEAK_ATTRIBUTE`
 
-For some targets, Unity can make the otherwise required `setUp()` and
-`tearDown()` functions optional. This is a nice convenience for test writers
-since `setUp` and `tearDown` don't often actually _do_ anything. If you're using
-gcc or clang, this option is automatically defined for you. Other compilers can
-also support this behavior, if they support a C feature called weak functions. A
-weak function is a function that is compiled into your executable _unless_ a
-non-weak version of the same function is defined elsewhere. If a non-weak
-version is found, the weak version is ignored as if it never existed. If your
-compiler supports this feature, you can let Unity know by defining
-`UNITY_SUPPORT_WEAK` as the function attributes that would need to be applied to
-identify a function as weak. If your compiler lacks support for weak functions,
-you will always need to define `setUp` and `tearDown` functions (though they can
-be and often will be just empty). The most common options for this feature are:
+##### `UNITY_WEAK_PRAGMA`
+
+##### `UNITY_NO_WEAK`
+
+For some targets, Unity can make the otherwise required setUp() and tearDown()
+functions optional. This is a nice convenience for test writers since setUp and
+tearDown don’t often actually do anything. If you’re using gcc or clang, this
+option is automatically defined for you. Other compilers can also support this
+behavior, if they support a C feature called weak functions. A weak function is
+a function that is compiled into your executable unless a non-weak version of
+the same function is defined elsewhere. If a non-weak version is found, the weak
+version is ignored as if it never existed. If your compiler supports this feature,
+you can let Unity know by defining UNITY_WEAK_ATTRIBUTE or UNITY_WEAK_PRAGMA as
+the function attributes that would need to be applied to identify a function as
+weak. If your compiler lacks support for weak functions, you will always need to
+define setUp and tearDown functions (though they can be and often will be just
+empty). You can also force Unity to NOT use weak functions by defining
+UNITY_NO_WEAK. The most common options for this feature are:
 
 _Example:_
-        #define UNITY_SUPPORT_WEAK weak
-        #define UNITY_SUPPORT_WEAK __attribute__((weak))
+        #define UNITY_WEAK_ATTRIBUTE weak
+        #define UNITY_WEAK_ATTRIBUTE __attribute__((weak))
+        #define UNITY_WEAK_PRAGMA
+        #define UNITY_NO_WEAK
 
 
 ##### `UNITY_PTR_ATTRIBUTE`
@@ -307,6 +299,51 @@ defining this option with the attribute you would like.
 _Example:_
         #define UNITY_PTR_ATTRIBUTE __attribute__((far))
         #define UNITY_PTR_ATTRIBUTE near
+
+
+##### `UNITY_PRINT_EOL`
+
+By default, Unity outputs \n at the end of each line of output. This is easy
+to parse by the scripts, by Ceedling, etc, but it might not be ideal for YOUR
+system. Feel free to override this and to make it whatever you wish.
+
+_Example:_
+        #define UNITY_PRINT_EOL { UNITY_OUTPUT_CHAR('\r'); UNITY_OUTPUT_CHAR('\n') }
+
+
+
+##### `UNITY_EXCLUDE_DETAILS`
+
+This is an option for if you absolutely must squeeze every byte of memory out of
+your system. Unity stores a set of internal scratchpads which are used to pass
+extra detail information around. It's used by systems like CMock in order to
+report which function or argument flagged an error. If you're not using CMock and
+you're not using these details for other things, then you can exclude them.
+
+_Example:_
+        #define UNITY_EXCLUDE_DETAILS
+
+
+
+##### `UNITY_EXCLUDE_SETJMP`
+
+If your embedded system doesn't support the standard library setjmp, you can
+exclude Unity's reliance on this by using this define. This dropped dependence
+comes at a price, though. You will be unable to use custom helper functions for
+your tests, and you will be unable to use tools like CMock. Very likely, if your
+compiler doesn't support setjmp, you wouldn't have had the memory space for those
+things anyway, though... so this option exists for those situations.
+
+_Example:_
+        #define UNITY_EXCLUDE_SETJMP
+
+##### `UNITY_OUTPUT_COLOR`
+
+If you want to add color using ANSI escape codes you can use this define.
+t
+_Example:_
+        #define UNITY_OUTPUT_COLOR
+
 
 
 ## Getting Into The Guts
