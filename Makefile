@@ -31,7 +31,7 @@ else
     CFLAGS += -fstack-protector
 endif
 
-R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes -Wstrict-overflow=2 -Wcast-qual -Wc++-compat -Wundef -Wswitch-default -Wconversion $(CFLAGS)
+R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes -Wstrict-overflow=2 -Wcast-qual -Wc++-compat -Wundef -Wswitch-default -Wconversion -Iinclude $(CFLAGS)
 
 uname := $(shell sh -c 'uname -s 2>/dev/null || echo false')
 
@@ -76,8 +76,8 @@ test: tests
 
 #tests
 #cJSON
-$(CJSON_TEST): $(CJSON_TEST_SRC) cJSON.h
-	$(CC) $(R_CFLAGS) $(CJSON_TEST_SRC)  -o $@ $(LDLIBS) -I.
+$(CJSON_TEST): $(CJSON_TEST_SRC) include/cjson/cJSON.h
+	$(CC) $(R_CFLAGS) $(CJSON_TEST_SRC)  -o $@ $(LDLIBS)
 
 #static libraries
 #cJSON
@@ -97,9 +97,9 @@ $(UTILS_SHARED_VERSION): $(UTILS_OBJ)
 
 #objects
 #cJSON
-$(CJSON_OBJ): cJSON.c cJSON.h
+$(CJSON_OBJ): cJSON.c include/cjson/cJSON.h
 #cJSON_Utils
-$(UTILS_OBJ): cJSON_Utils.c cJSON_Utils.h
+$(UTILS_OBJ): cJSON_Utils.c include/cjson/cJSON_Utils.h
 
 
 #links .so -> .so.1 -> .so.1.0.0
@@ -118,11 +118,11 @@ $(UTILS_SHARED): $(UTILS_SHARED_SO)
 #cJSON
 install-cjson:
 	mkdir -p $(INSTALL_LIBRARY_PATH) $(INSTALL_INCLUDE_PATH)
-	$(INSTALL) cJSON.h $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) include/cjson/cJSON.h $(INSTALL_INCLUDE_PATH)
 	$(INSTALL) $(CJSON_SHARED) $(CJSON_SHARED_SO) $(CJSON_SHARED_VERSION) $(INSTALL_LIBRARY_PATH)
 #cJSON_Utils
 install-utils: install-cjson
-	$(INSTALL) cJSON_Utils.h $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) include/cjson/cJSON_Utils.h $(INSTALL_INCLUDE_PATH)
 	$(INSTALL) $(UTILS_SHARED) $(UTILS_SHARED_SO) $(UTILS_SHARED_VERSION) $(INSTALL_LIBRARY_PATH)
 
 install: install-cjson install-utils
