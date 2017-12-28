@@ -1844,14 +1844,13 @@ static cJSON *create_reference(const cJSON *item, const internal_hooks * const h
     return reference;
 }
 
-/* Add item to array/object. */
-CJSON_PUBLIC(void) cJSON_AddItemToArray(cJSON *array, cJSON *item)
+static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
 {
     cJSON *child = NULL;
 
     if ((item == NULL) || (array == NULL))
     {
-        return;
+        return false;
     }
 
     child = array->child;
@@ -1870,6 +1869,14 @@ CJSON_PUBLIC(void) cJSON_AddItemToArray(cJSON *array, cJSON *item)
         }
         suffix_object(child, item);
     }
+
+    return true;
+}
+
+/* Add item to array/object. */
+CJSON_PUBLIC(void) cJSON_AddItemToArray(cJSON *array, cJSON *item)
+{
+    add_item_to_array(array, item);
 }
 
 CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
@@ -1913,7 +1920,7 @@ CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJ
     }
     item->string = (char*)cast_away_const(string);
     item->type |= cJSON_StringIsConst;
-    cJSON_AddItemToArray(object, item);
+    add_item_to_array(object, item);
 }
 
 CJSON_PUBLIC(void) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
@@ -1923,7 +1930,7 @@ CJSON_PUBLIC(void) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
         return;
     }
 
-    cJSON_AddItemToArray(array, create_reference(item, &global_hooks));
+    add_item_to_array(array, create_reference(item, &global_hooks));
 }
 
 CJSON_PUBLIC(void) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item)
@@ -2018,7 +2025,7 @@ CJSON_PUBLIC(void) cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newit
     after_inserted = get_array_item(array, (size_t)which);
     if (after_inserted == NULL)
     {
-        cJSON_AddItemToArray(array, newitem);
+        add_item_to_array(array, newitem);
         return;
     }
 
