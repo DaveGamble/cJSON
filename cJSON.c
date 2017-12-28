@@ -1879,19 +1879,6 @@ CJSON_PUBLIC(void) cJSON_AddItemToArray(cJSON *array, cJSON *item)
     add_item_to_array(array, item);
 }
 
-CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
-{
-    if (item == NULL)
-    {
-        return;
-    }
-
-    /* call cJSON_AddItemToObjectCS for code reuse */
-    cJSON_AddItemToObjectCS(object, (char*)cJSON_strdup((const unsigned char*)string, &global_hooks), item);
-    /* remove cJSON_StringIsConst flag */
-    item->type &= ~cJSON_StringIsConst;
-}
-
 #if defined(__clang__) || (defined(__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
     #pragma GCC diagnostic push
 #endif
@@ -1907,20 +1894,48 @@ static void* cast_away_const(const void* string)
     #pragma GCC diagnostic pop
 #endif
 
+
+static cJSON_bool add_item_to_object(cJSON * const object, const char * const string, cJSON * const item, const internal_hooks * const hooks, const cJSON_bool constant_key)
+{
+    if ((object == NULL) || (string == NULL) || (item == NULL))
+    {
+        return false;
+    }
+
+    if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
+    {
+        hooks->deallocate(item->string);
+    }
+
+    if (constant_key)
+    {
+        item->string = (char*)cast_away_const(string);
+        item->type |= cJSON_StringIsConst;
+    }
+    else
+    {
+        char *key = (char*)cJSON_strdup((const unsigned char*)string, hooks);
+        if (key == NULL)
+        {
+            return false;
+        }
+
+        item->string = key;
+        item->type &= ~cJSON_StringIsConst;
+    }
+
+    return add_item_to_array(object, item);
+}
+
+CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
+{
+    add_item_to_object(object, string, item, &global_hooks, false);
+}
+
 /* Add an item to an object with constant string as key */
 CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
 {
-    if ((item == NULL) || (string == NULL))
-    {
-        return;
-    }
-    if (!(item->type & cJSON_StringIsConst) && item->string)
-    {
-        global_hooks.deallocate(item->string);
-    }
-    item->string = (char*)cast_away_const(string);
-    item->type |= cJSON_StringIsConst;
-    add_item_to_array(object, item);
+    add_item_to_object(object, string, item, &global_hooks, true);
 }
 
 CJSON_PUBLIC(void) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
@@ -1940,7 +1955,7 @@ CJSON_PUBLIC(void) cJSON_AddItemReferenceToObject(cJSON *object, const char *str
         return;
     }
 
-    cJSON_AddItemToObject(object, string, create_reference(item, &global_hooks));
+    add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, false);
 }
 
 CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const item)
