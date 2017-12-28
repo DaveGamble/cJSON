@@ -130,6 +130,30 @@ static void cjson_add_raw_should_add_raw(void)
     cJSON_Delete(root);
 }
 
+static void cJSON_add_object_should_add_object(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *object = NULL;
+
+    cJSON_AddObjectToObject(root, "object");
+    TEST_ASSERT_NOT_NULL(object = cJSON_GetObjectItemCaseSensitive(root, "object"));
+    TEST_ASSERT_EQUAL_INT(object->type, cJSON_Object);
+
+    cJSON_Delete(root);
+}
+
+static void cJSON_add_array_should_add_array(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *array = NULL;
+
+    cJSON_AddArrayToObject(root, "array");
+    TEST_ASSERT_NOT_NULL(array = cJSON_GetObjectItemCaseSensitive(root, "array"));
+    TEST_ASSERT_EQUAL_INT(array->type, cJSON_Array);
+
+    cJSON_Delete(root);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -140,6 +164,9 @@ int main(void)
     RUN_TEST(cjson_add_bool_should_add_bool);
     RUN_TEST(cjson_add_number_should_add_number);
     RUN_TEST(cjson_add_string_should_add_string);
+    RUN_TEST(cjson_add_raw_should_add_raw);
+    RUN_TEST(cJSON_add_object_should_add_object);
+    RUN_TEST(cJSON_add_array_should_add_array);
 
     return UNITY_END();
 }
