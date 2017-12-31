@@ -1,3 +1,26 @@
+1.7.0
+=====
+Features:
+---------
+* Large rewrite of the documentation, see #215
+* Added the `cJSON_GetStringValue` function
+* Added the `cJSON_CreateStringReference` function
+* Added the `cJSON_CreateArrayReference` function
+* Added the `cJSON_CreateObjectReference` function
+* The `cJSON_Add...ToObject` macros are now functions that return a pointer to the added item, see #226
+
+Fixes:
+------
+* Fix a problem with `GNUInstallDirs` in the CMakeLists.txt, thanks @yangfl, see #210
+* Fix linking the tests when building as static library, see #213
+* New overrides for the CMake option `BUILD_SHARED_LIBS`, see #207
+
+Other Changes:
+--------------
+* Readme: Explain how to include cJSON, see #211
+* Removed some trailing spaces in the code, thanks @yangfl, see#212
+* Updated [Unity](https://github.com/ThrowTheSwitch/Unity) and [json-patch-tests](https://github.com/json-patch/json-patch-tests)
+
 1.6.0
 =====
 Features:

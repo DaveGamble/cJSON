@@ -124,7 +124,7 @@ demonstrates using a Ruby hash.
 
 ##### `:includes`
 
-This option specifies an array of file names to be ?#include?'d at the top of
+This option specifies an array of file names to be `#include`'d at the top of
 your runner C file. You might use it to reference custom types or anything else
 universally needed in your generated runners.
 
@@ -133,11 +133,23 @@ universally needed in your generated runners.
 
 Define this option with C code to be executed _before any_ test cases are run.
 
+Alternatively, if your C compiler supports weak symbols, you can leave this
+option unset and instead provide a `void suiteSetUp(void)` function in your test
+suite.  The linker will look for this symbol and fall back to a Unity-provided
+stub if it is not found.
+
 
 ##### `:suite_teardown`
 
-Define this option with C code to be executed ?after all?test cases have
-finished.
+Define this option with C code to be executed _after all_ test cases have
+finished.  An integer variable `num_failures` is available for diagnostics.
+The code should end with a `return` statement; the value returned will become
+the exit code of `main`.  You can normally just return `num_failures`.
+
+Alternatively, if your C compiler supports weak symbols, you can leave this
+option unset and instead provide a `int suiteTearDown(int num_failures)`
+function in your test suite.  The linker will look for this symbol and fall
+back to a Unity-provided stub if it is not found.
 
 
 ##### `:enforce_strict_ordering`

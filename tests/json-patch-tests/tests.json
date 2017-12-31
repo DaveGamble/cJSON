@@ -202,6 +202,11 @@
       "patch": [{"op": "replace", "path": "", "value": {"baz": "qux"}}],
       "expected": {"baz": "qux"} },
 
+    { "comment": "test replace with missing parent key should fail",
+      "doc": {"bar": "baz"},
+      "patch": [{"op": "replace", "path": "/foo/bar", "value": false}],
+      "error": "replace op should fail with missing parent key" },
+
     { "comment": "spurious patch properties",
       "doc": {"foo": 1},
       "patch": [{"op": "test", "path": "/foo", "value": 1, "spurious": 1}],

@@ -6,7 +6,7 @@ project(cJSON C)
 include(GNUInstallDirs)
 
 set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 6)
+set(PROJECT_VERSION_MINOR 7)
 set(PROJECT_VERSION_PATCH 0)
 set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
@@ -123,9 +123,18 @@ file(GLOB HEADERS cJSON.h)
 set(SOURCES cJSON.c)
 
 option(BUILD_SHARED_AND_STATIC_LIBS "Build both shared and static libraries" Off)
+option(CJSON_OVERRIDE_BUILD_SHARED_LIBS "Override BUILD_SHARED_LIBS with CJSON_BUILD_SHARED_LIBS" OFF)
+option(CJSON_BUILD_SHARED_LIBS "Overrides BUILD_SHARED_LIBS if CJSON_OVERRIDE_BUILD_SHARED_LIBS is enabled" ON)
+
+if ((CJSON_OVERRIDE_BUILD_SHARED_LIBS AND CJSON_BUILD_SHARED_LIBS) OR ((NOT CJSON_OVERRIDE_BUILD_SHARED_LIBS) AND BUILD_SHARED_LIBS))
+    set(CJSON_LIBRARY_TYPE SHARED)
+else()
+    set(CJSON_LIBRARY_TYPE STATIC)
+endif()
+
 
 if (NOT BUILD_SHARED_AND_STATIC_LIBS)
-    add_library("${CJSON_LIB}" "${HEADERS}" "${SOURCES}")
+    add_library("${CJSON_LIB}" "${CJSON_LIBRARY_TYPE}" "${HEADERS}" "${SOURCES}")
 else()
     # See https://cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
     add_library("${CJSON_LIB}" SHARED "${HEADERS}" "${SOURCES}")
@@ -165,7 +174,7 @@ if(ENABLE_CJSON_UTILS)
     set(SOURCES_UTILS cJSON_Utils.c)
 
     if (NOT BUILD_SHARED_AND_STATIC_LIBS)
-        add_library("${CJSON_UTILS_LIB}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
+        add_library("${CJSON_UTILS_LIB}" "${CJSON_LIBRARY_TYPE}" "${HEADERS_UTILS}" "${SOURCES_UTILS}")
         target_link_libraries("${CJSON_UTILS_LIB}" "${CJSON_LIB}")
     else()
         add_library("${CJSON_UTILS_LIB}" SHARED "${HEADERS_UTILS}" "${SOURCES_UTILS}")
