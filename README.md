@@ -29,6 +29,7 @@ Ultralightweight JSON parser in ANSI C.
     * [Deep Nesting Of Arrays And Objects](#deep-nesting-of-arrays-and-objects)
     * [Thread Safety](#thread-safety)
     * [Case Sensitivity](#case-sensitivity)
+    * [Duplicate Object Members](#duplicate-object-members)
   * [Enjoy cJSON!](#enjoy-cjson)
 
 ## License
@@ -516,6 +517,10 @@ However it is thread safe under the following conditions:
 #### Case Sensitivity
 
 When cJSON was originally created, it didn't follow the JSON standard and didn't make a distinction between uppercase and lowercase letters. If you want the correct, standard compliant, behavior, you need to use the `CaseSensitive` functions where available.
+
+#### Duplicate Object Members
+
+cJSON supports parsing and printing JSON that contains objects that have multiple members with the same name. `cJSON_GetObjectItemCaseSensitive` however will always only return the first one.
 
 # Enjoy cJSON!
 
