@@ -1,3 +1,10 @@
+1.7.1
+=====
+Fixes:
+------
+* Fixed an Off-By-One error that could lead to an out of bounds write. Thanks @liuyunbin for reporting (see #230)
+* Fixed two errors with buffered printing. Thanks @liuyunbin for reporting (see #230)
+
 1.7.0
 =====
 Features:
