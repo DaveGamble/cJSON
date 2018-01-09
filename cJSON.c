@@ -512,7 +512,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
 
     /* reserve appropriate space in the output */
-    output_pointer = ensure(output_buffer, (size_t)length);
+    output_pointer = ensure(output_buffer, (size_t)length + sizeof(""));
     if (output_pointer == NULL)
     {
         return false;
