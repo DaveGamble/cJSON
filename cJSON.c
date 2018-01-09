@@ -1087,13 +1087,15 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
 {
+    static const size_t default_buffer_size = 256;
     printbuffer buffer[1];
     unsigned char *printed = NULL;
 
     memset(buffer, 0, sizeof(buffer));
 
     /* create buffer */
-    buffer->buffer = (unsigned char*) hooks->allocate(256);
+    buffer->buffer = (unsigned char*) hooks->allocate(default_buffer_size);
+    buffer->length = default_buffer_size;
     buffer->format = format;
     buffer->hooks = *hooks;
     if (buffer->buffer == NULL)
