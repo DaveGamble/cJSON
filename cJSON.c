@@ -1277,7 +1277,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
     switch ((item->type) & 0xFF)
     {
         case cJSON_NULL:
-            output = ensure(output_buffer, 5);
+            output = ensure(output_buffer, sizeof("null"));
             if (output == NULL)
             {
                 return false;
@@ -1286,7 +1286,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             return true;
 
         case cJSON_False:
-            output = ensure(output_buffer, 6);
+            output = ensure(output_buffer, sizeof("false"));
             if (output == NULL)
             {
                 return false;
@@ -1295,7 +1295,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             return true;
 
         case cJSON_True:
-            output = ensure(output_buffer, 5);
+            output = ensure(output_buffer, sizeof("true"));
             if (output == NULL)
             {
                 return false;
