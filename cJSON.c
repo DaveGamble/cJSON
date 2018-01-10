@@ -871,7 +871,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
                 escape_characters++;
                 break;
             default:
-                if (*input_pointer < 32)
+                if (*input_pointer < '\x20')
                 {
                     /* UTF-16 escape sequence */
                     escape_characters += static_strlen("uXXXX");
@@ -903,7 +903,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
     /* copy the string */
     for (input_pointer = input; *input_pointer != '\0'; (void)input_pointer++, output_pointer++)
     {
-        if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\'))
+        if ((*input_pointer >= '\x20') && (*input_pointer != '\"') && (*input_pointer != '\\'))
         {
             /* normal character, copy */
             *output_pointer = *input_pointer;
@@ -971,7 +971,7 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
         return NULL;
     }
 
-    while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= 32))
+    while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= '\x20'))
     {
        buffer->offset++;
     }
