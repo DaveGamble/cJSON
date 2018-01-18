@@ -1110,6 +1110,8 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     }
     update_offset(buffer);
 
+    /* Reallocate the buffer so that it only uses as much as it needs.
+        This can save up to 50% because ensure increases the buffer size by a factor of 2 */
     /* check if reallocate is available */
     if (hooks->reallocate != NULL)
     {
