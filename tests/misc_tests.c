@@ -527,6 +527,24 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
     cJSON_Delete(object);
 }
 
+static void is_nan_should_detect_nan(void)
+{
+    double nan = 0.0/0.0;
+
+    TEST_ASSERT_TRUE(is_nan(nan));
+    TEST_ASSERT_FALSE(is_nan(1));
+}
+
+static void is_infinity_should_detect_infinity(void)
+{
+    double negative_infinity = -1.0/0.0;
+    double positive_infinity = 1.0/0.0;
+
+    TEST_ASSERT_TRUE(is_infinity(negative_infinity));
+    TEST_ASSERT_TRUE(is_infinity(positive_infinity));
+    TEST_ASSERT_FALSE(is_infinity(1));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -550,6 +568,8 @@ int main(void)
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
     RUN_TEST(cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased);
+    RUN_TEST(is_nan_should_detect_nan);
+    RUN_TEST(is_infinity_should_detect_infinity);
 
     return UNITY_END();
 }
