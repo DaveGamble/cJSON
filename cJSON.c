@@ -235,6 +235,20 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
     }
 }
 
+static int double_to_saturated_integer(double number)
+{
+    if (number >= INT_MAX)
+    {
+        return INT_MAX;
+    }
+    else if (number <= INT_MIN)
+    {
+        return INT_MIN;
+    }
+
+    return (int)number;
+}
+
 /* get the decimal point character of the current locale */
 static unsigned char get_decimal_point(void)
 {
@@ -319,21 +333,7 @@ loop_end:
     }
 
     item->valuedouble = number;
-
-    /* use saturation in case of overflow */
-    if (number >= INT_MAX)
-    {
-        item->valueint = INT_MAX;
-    }
-    else if (number <= INT_MIN)
-    {
-        item->valueint = INT_MIN;
-    }
-    else
-    {
-        item->valueint = (int)number;
-    }
-
+    item->valueint = double_to_saturated_integer(number);
     item->type = cJSON_Number;
 
     input_buffer->offset += (size_t)(after_end - number_c_string);
@@ -343,18 +343,7 @@ loop_end:
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 {
-    if (number >= INT_MAX)
-    {
-        object->valueint = INT_MAX;
-    }
-    else if (number <= INT_MIN)
-    {
-        object->valueint = INT_MIN;
-    }
-    else
-    {
-        object->valueint = (int)number;
-    }
+    object->valueint = double_to_saturated_integer(number);
 
     return object->valuedouble = number;
 }
@@ -2298,20 +2287,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
     {
         item->type = cJSON_Number;
         item->valuedouble = num;
-
-        /* use saturation in case of overflow */
-        if (num >= INT_MAX)
-        {
-            item->valueint = INT_MAX;
-        }
-        else if (num <= INT_MIN)
-        {
-            item->valueint = INT_MIN;
-        }
-        else
-        {
-            item->valueint = (int)num;
-        }
+        item->valueint = double_to_saturated_integer(num);
     }
 
     return item;
