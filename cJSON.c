@@ -467,7 +467,8 @@ static void update_offset(printbuffer * const buffer)
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
 {
     unsigned char *output_pointer = NULL;
-    double d = item->valuedouble;
+    double number = item->valuedouble;
+    int integer = double_to_saturated_integer(number);
     int length = 0;
     size_t i = 0;
     unsigned char number_buffer[26]; /* temporary buffer to print the number into */
@@ -479,20 +480,24 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
         return false;
     }
 
-    if (is_nan(d) || is_infinity(d))
+    if (is_nan(number) || is_infinity(number))
     {
         length = sprintf((char*)number_buffer, "null");
+    }
+    else if (number == integer) /* avoid overhead for integers */
+    {
+        length = sprintf((char*)number_buffer, "%d", integer);
     }
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = sprintf((char*)number_buffer, "%1.15g", d);
+        length = sprintf((char*)number_buffer, "%1.15g", number);
 
         /* Check whether the original double can be recovered */
-        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || ((double)test != d))
+        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || ((double)test != number))
         {
             /* If not, print with 17 decimal places of precision */
-            length = sprintf((char*)number_buffer, "%1.17g", d);
+            length = sprintf((char*)number_buffer, "%1.17g", number);
         }
     }
 
