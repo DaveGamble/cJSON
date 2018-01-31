@@ -432,7 +432,7 @@ static void skip_utf8_bom_should_skip_bom(void)
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.hooks = global_hooks;
+    buffer.configuration = global_configuration;
 
     TEST_ASSERT_TRUE(skip_utf8_bom(&buffer) == &buffer);
     TEST_ASSERT_EQUAL_UINT(3U, (unsigned int)buffer.offset);
@@ -444,7 +444,7 @@ static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.hooks = global_hooks;
+    buffer.configuration = global_configuration;
     buffer.offset = 1;
 
     TEST_ASSERT_NULL(skip_utf8_bom(&buffer));
