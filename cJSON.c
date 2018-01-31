@@ -1215,51 +1215,75 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
         return false; /* no input */
     }
 
-    /* parse the different types of values */
-    /* null */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+    if (!can_read(input_buffer, 1))
     {
-        item->type = cJSON_NULL;
-        input_buffer->offset += 4;
-        return true;
-    }
-    /* false */
-    if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
-    {
-        item->type = cJSON_False;
-        input_buffer->offset += 5;
-        return true;
-    }
-    /* true */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
-    {
-        item->type = cJSON_True;
-        item->valueint = 1;
-        input_buffer->offset += 4;
-        return true;
-    }
-    /* string */
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '\"'))
-    {
-        return parse_string(item, input_buffer);
-    }
-    /* number */
-    if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
-    {
-        return parse_number(item, input_buffer);
-    }
-    /* array */
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '['))
-    {
-        return parse_array(item, input_buffer);
-    }
-    /* object */
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '{'))
-    {
-        return parse_object(item, input_buffer);
+        return false;
     }
 
-    return false;
+    /* parse the different types of values */
+    switch (buffer_at_offset(input_buffer)[0])
+    {
+        /* number */
+        case '-':
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            return parse_number(item, input_buffer);
+
+        /* string */
+        case '\"':
+            return parse_string(item, input_buffer);
+
+        /* array */
+        case '[':
+            return parse_array(item, input_buffer);
+
+        /* object */
+        case '{':
+            return parse_object(item, input_buffer);
+
+        /* null */
+        case 'n':
+            if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+            {
+                item->type = cJSON_NULL;
+                input_buffer->offset += 4;
+                return true;
+            }
+            return false;
+
+        /* true */
+        case 't':
+            if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
+            {
+                item->type = cJSON_True;
+                item->valueint = 1;
+                input_buffer->offset += 4;
+                return true;
+            }
+            return false;
+
+        /* false */
+        case 'f':
+            if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
+            {
+                item->type = cJSON_False;
+                input_buffer->offset += 5;
+                return true;
+            }
+            return false;
+
+
+        default:
+            return false;
+    }
 }
 
 /* Render a value to text. */
