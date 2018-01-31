@@ -55,7 +55,7 @@ static void assert_not_object(const char *json)
     parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     parsebuffer.content = (const unsigned char*)json;
     parsebuffer.length = strlen(json) + sizeof("");
-    parsebuffer.hooks = global_hooks;
+    parsebuffer.configuration = global_configuration;
 
     TEST_ASSERT_FALSE(parse_object(item, &parsebuffer));
     assert_is_invalid(item);
@@ -67,7 +67,7 @@ static void assert_parse_object(const char *json)
     parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     parsebuffer.content = (const unsigned char*)json;
     parsebuffer.length = strlen(json) + sizeof("");
-    parsebuffer.hooks = global_hooks;
+    parsebuffer.configuration = global_configuration;
 
     TEST_ASSERT_TRUE(parse_object(item, &parsebuffer));
     assert_is_object(item);

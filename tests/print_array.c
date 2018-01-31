@@ -37,21 +37,21 @@ static void assert_print_array(const char * const expected, const char * const i
     parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.hooks = global_hooks;
+    parsebuffer.configuration = global_configuration;
 
     /* buffer for formatted printing */
     formatted_buffer.buffer = printed_formatted;
     formatted_buffer.length = sizeof(printed_formatted);
     formatted_buffer.offset = 0;
     formatted_buffer.noalloc = true;
-    formatted_buffer.hooks = global_hooks;
+    formatted_buffer.configuration = global_configuration;
 
     /* buffer for unformatted printing */
     unformatted_buffer.buffer = printed_unformatted;
     unformatted_buffer.length = sizeof(printed_unformatted);
     unformatted_buffer.offset = 0;
     unformatted_buffer.noalloc = true;
-    unformatted_buffer.hooks = global_hooks;
+    unformatted_buffer.configuration = global_configuration;
 
     memset(item, 0, sizeof(item));
     TEST_ASSERT_TRUE_MESSAGE(parse_array(item, &parsebuffer), "Failed to parse array.");

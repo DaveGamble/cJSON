@@ -10,8 +10,7 @@
 
   The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -432,7 +431,7 @@ static void skip_utf8_bom_should_skip_bom(void)
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.hooks = global_hooks;
+    buffer.configuration = global_configuration;
 
     TEST_ASSERT_TRUE(skip_utf8_bom(&buffer) == &buffer);
     TEST_ASSERT_EQUAL_UINT(3U, (unsigned int)buffer.offset);
@@ -444,7 +443,7 @@ static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.hooks = global_hooks;
+    buffer.configuration = global_configuration;
     buffer.offset = 1;
 
     TEST_ASSERT_NULL(skip_utf8_bom(&buffer));
@@ -512,7 +511,7 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
 {
     cJSON *object = cJSON_CreateObject();
     cJSON *number = cJSON_CreateNumber(42);
-    char *name = (char*)cJSON_strdup((const unsigned char*)"number", &global_hooks);
+    char *name = (char*)custom_strdup((const unsigned char*)"number", &global_configuration);
 
     TEST_ASSERT_NOT_NULL(object);
     TEST_ASSERT_NOT_NULL(number);

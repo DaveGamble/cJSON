@@ -38,11 +38,11 @@ static void assert_print_value(const char *input)
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
-    buffer.hooks = global_hooks;
+    buffer.configuration = global_configuration;
 
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.hooks = global_hooks;
+    parsebuffer.configuration = global_configuration;
 
     memset(item, 0, sizeof(item));
 

@@ -32,7 +32,7 @@ static void assert_print_string(const char *expected, const char *input)
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
-    buffer.hooks = global_hooks;
+    buffer.configuration = global_configuration;
 
     TEST_ASSERT_TRUE_MESSAGE(print_string_ptr((const unsigned char*)input, &buffer), "Failed to print string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed, "The printed string isn't as expected.");
