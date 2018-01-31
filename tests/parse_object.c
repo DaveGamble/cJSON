@@ -52,7 +52,7 @@ static void assert_is_child(cJSON *child_item, const char *name, int type)
 
 static void assert_not_object(const char *json)
 {
-    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0, 0 } };
     parsebuffer.content = (const unsigned char*)json;
     parsebuffer.length = strlen(json) + sizeof("");
     parsebuffer.configuration = global_configuration;
@@ -64,7 +64,7 @@ static void assert_not_object(const char *json)
 
 static void assert_parse_object(const char *json)
 {
-    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0, 0 } };
     parsebuffer.content = (const unsigned char*)json;
     parsebuffer.length = strlen(json) + sizeof("");
     parsebuffer.configuration = global_configuration;
