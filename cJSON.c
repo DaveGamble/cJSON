@@ -120,6 +120,7 @@ static int case_insensitive_strcmp(const unsigned char *string1, const unsigned 
 
 typedef struct internal_configuration
 {
+    cJSON_bool format;
     void *(*allocate)(size_t size);
     void (*deallocate)(void *pointer);
     void *(*reallocate)(void *pointer, size_t size);
@@ -145,7 +146,7 @@ static void *internal_realloc(void *pointer, size_t size)
 #define internal_realloc realloc
 #endif
 
-static internal_configuration global_configuration = { internal_malloc, internal_free, internal_realloc };
+static internal_configuration global_configuration = { true, internal_malloc, internal_free, internal_realloc };
 
 static unsigned char* custom_strdup(const unsigned char* string, const internal_configuration * const configuration)
 {
@@ -355,7 +356,6 @@ typedef struct
     size_t offset;
     size_t depth; /* current nesting depth (for formatted printing) */
     cJSON_bool noalloc;
-    cJSON_bool format; /* is this print a formatted print */
     internal_configuration configuration;
 } printbuffer;
 
@@ -996,7 +996,7 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 /* Parse an object - create a new root, and populate. */
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0 } };
     cJSON *item = NULL;
 
     /* reset error position */
@@ -1081,7 +1081,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
 
 #define cjson_min(a, b) ((a < b) ? a : b)
 
-static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_configuration * const configuration)
+static unsigned char *print(const cJSON * const item, const internal_configuration * const configuration)
 {
     static const size_t default_buffer_size = 256;
     printbuffer buffer[1];
@@ -1092,7 +1092,6 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     /* create buffer */
     buffer->buffer = (unsigned char*) configuration->allocate(default_buffer_size);
     buffer->length = default_buffer_size;
-    buffer->format = format;
     buffer->configuration = *configuration;
     if (buffer->buffer == NULL)
     {
@@ -1150,17 +1149,19 @@ fail:
 /* Render a cJSON item/entity/structure to text. */
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)
 {
-    return (char*)print(item, true, &global_configuration);
+    return (char*)print(item, &global_configuration);
 }
 
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
 {
-    return (char*)print(item, false, &global_configuration);
+    internal_configuration configuration = global_configuration;
+    configuration.format = false;
+    return (char*)print(item, &configuration);
 }
 
-CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)
+CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool format)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0 } };
 
     if (prebuffer < 0)
     {
@@ -1176,8 +1177,8 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
     p.length = (size_t)prebuffer;
     p.offset = 0;
     p.noalloc = false;
-    p.format = fmt;
     p.configuration = global_configuration;
+    p.configuration.format = format;
 
     if (!print_value(item, &p))
     {
@@ -1190,7 +1191,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0 } };
 
     if ((length < 0) || (buffer == NULL))
     {
@@ -1201,8 +1202,8 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, cons
     p.length = (size_t)length;
     p.offset = 0;
     p.noalloc = true;
-    p.format = format;
     p.configuration = global_configuration;
+    p.configuration.format = format;
 
     return print_value(item, &p);
 }
@@ -1491,14 +1492,14 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
         update_offset(output_buffer);
         if (current_element->next)
         {
-            length = (size_t) (output_buffer->format ? 2 : 1);
+            length = (size_t) (output_buffer->configuration.format ? 2 : 1);
             output_pointer = ensure(output_buffer, length + 1);
             if (output_pointer == NULL)
             {
                 return false;
             }
             *output_pointer++ = ',';
-            if(output_buffer->format)
+            if(output_buffer->configuration.format)
             {
                 *output_pointer++ = ' ';
             }
@@ -1642,7 +1643,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     }
 
     /* Compose the output: */
-    length = (size_t) (output_buffer->format ? 2 : 1); /* fmt: {\n */
+    length = (size_t) (output_buffer->configuration.format ? 2 : 1); /* fmt: {\n */
     output_pointer = ensure(output_buffer, length + 1);
     if (output_pointer == NULL)
     {
@@ -1651,7 +1652,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
 
     *output_pointer++ = '{';
     output_buffer->depth++;
-    if (output_buffer->format)
+    if (output_buffer->configuration.format)
     {
         *output_pointer++ = '\n';
     }
@@ -1659,7 +1660,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
 
     while (current_item)
     {
-        if (output_buffer->format)
+        if (output_buffer->configuration.format)
         {
             size_t i;
             output_pointer = ensure(output_buffer, output_buffer->depth);
@@ -1681,14 +1682,14 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         }
         update_offset(output_buffer);
 
-        length = (size_t) (output_buffer->format ? 2 : 1);
+        length = (size_t) (output_buffer->configuration.format ? 2 : 1);
         output_pointer = ensure(output_buffer, length);
         if (output_pointer == NULL)
         {
             return false;
         }
         *output_pointer++ = ':';
-        if (output_buffer->format)
+        if (output_buffer->configuration.format)
         {
             *output_pointer++ = '\t';
         }
@@ -1702,7 +1703,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         update_offset(output_buffer);
 
         /* print comma if not last */
-        length = (size_t) ((output_buffer->format ? 1 : 0) + (current_item->next ? 1 : 0));
+        length = (size_t) ((output_buffer->configuration.format ? 1 : 0) + (current_item->next ? 1 : 0));
         output_pointer = ensure(output_buffer, length + 1);
         if (output_pointer == NULL)
         {
@@ -1713,7 +1714,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
             *output_pointer++ = ',';
         }
 
-        if (output_buffer->format)
+        if (output_buffer->configuration.format)
         {
             *output_pointer++ = '\n';
         }
@@ -1723,12 +1724,12 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         current_item = current_item->next;
     }
 
-    output_pointer = ensure(output_buffer, output_buffer->format ? (output_buffer->depth + 1) : 2);
+    output_pointer = ensure(output_buffer, output_buffer->configuration.format ? (output_buffer->depth + 1) : 2);
     if (output_pointer == NULL)
     {
         return false;
     }
-    if (output_buffer->format)
+    if (output_buffer->configuration.format)
     {
         size_t i;
         for (i = 0; i < (output_buffer->depth - 1); i++)
