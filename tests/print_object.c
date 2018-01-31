@@ -31,9 +31,9 @@ static void assert_print_object(const char * const expected, const char * const 
 
     cJSON item[1];
 
-    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0 } };
-    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0 } };
-    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0, 0 } };
+    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
 
     /* buffer for parsing */
     parsebuffer.content = (const unsigned char*)input;
