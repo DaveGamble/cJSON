@@ -419,7 +419,7 @@ static void *failing_realloc(void *pointer, size_t size)
 
 static void ensure_should_fail_on_failed_realloc(void)
 {
-    printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, &malloc, &free, &failing_realloc}};
+    printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, true, &malloc, &free, &failing_realloc}};
     buffer.buffer = (unsigned char*)malloc(100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
 
@@ -429,7 +429,7 @@ static void ensure_should_fail_on_failed_realloc(void)
 static void skip_utf8_bom_should_skip_bom(void)
 {
     const unsigned char string[] = "\xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
     buffer.content = string;
     buffer.length = sizeof(string);
     buffer.configuration = global_configuration;
@@ -441,7 +441,7 @@ static void skip_utf8_bom_should_skip_bom(void)
 static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
 {
     const unsigned char string[] = " \xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
     buffer.content = string;
     buffer.length = sizeof(string);
     buffer.configuration = global_configuration;

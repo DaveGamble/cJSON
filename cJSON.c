@@ -122,6 +122,7 @@ typedef struct internal_configuration
 {
     size_t buffer_size;
     cJSON_bool format;
+    cJSON_bool allow_data_after_json;
     void *(*allocate)(size_t size);
     void (*deallocate)(void *pointer);
     void *(*reallocate)(void *pointer, size_t size);
@@ -150,6 +151,7 @@ static void *internal_realloc(void *pointer, size_t size)
 static internal_configuration global_configuration = {
     256, /* default buffer size */
     true, /* enable formatting by default */
+    true, /* allow data after the JSON by default */
     internal_malloc,
     internal_free,
     internal_realloc
@@ -1007,39 +1009,38 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 }
 
 /* Parse an object - create a new root, and populate. */
-CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
+static cJSON *parse(const char * const json, const internal_configuration * const configuration, size_t *end_position)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
     cJSON *item = NULL;
 
-    /* reset error position */
+    /* reset global error position */
     global_error.json = NULL;
     global_error.position = 0;
 
-    if (value == NULL)
+    if (json == NULL)
     {
         goto fail;
     }
 
-    buffer.content = (const unsigned char*)value;
-    buffer.length = strlen((const char*)value) + sizeof("");
+    buffer.content = (const unsigned char*)json;
+    buffer.length = strlen((const char*)json) + sizeof("");
     buffer.offset = 0;
-    buffer.configuration = global_configuration;
+    buffer.configuration = *configuration;
 
-    item = create_item(&global_configuration);
-    if (item == NULL) /* memory fail */
+    item = create_item(configuration);
+    if (item == NULL)
     {
         goto fail;
     }
 
     if (!parse_value(item, buffer_skip_whitespace(skip_utf8_bom(&buffer))))
     {
-        /* parse failure. ep is set. */
+        /* parse failure. error position is set. */
         goto fail;
     }
 
-    /* if we require null-terminated JSON without appended garbage, skip and then check for a null terminator */
-    if (require_null_terminated)
+    if (!configuration->allow_data_after_json)
     {
         buffer_skip_whitespace(&buffer);
         if ((buffer.offset >= buffer.length) || buffer_at_offset(&buffer)[0] != '\0')
@@ -1047,23 +1048,20 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
             goto fail;
         }
     }
-    if (return_parse_end)
-    {
-        *return_parse_end = (const char*)buffer_at_offset(&buffer);
-    }
+    *end_position = buffer.offset;
 
     return item;
 
 fail:
     if (item != NULL)
     {
-        delete_item(item, &global_configuration);
+        delete_item(item, configuration);
     }
 
-    if (value != NULL)
+    if (json != NULL)
     {
         error local_error;
-        local_error.json = (const unsigned char*)value;
+        local_error.json = (const unsigned char*)json;
         local_error.position = 0;
 
         if (buffer.offset < buffer.length)
@@ -1075,21 +1073,36 @@ fail:
             local_error.position = buffer.length - 1;
         }
 
-        if (return_parse_end != NULL)
-        {
-            *return_parse_end = (const char*)local_error.json + local_error.position;
-        }
-
+        *end_position = local_error.position;
         global_error = local_error;
     }
 
     return NULL;
 }
 
-/* Default options for cJSON_Parse */
-CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
+/* Parse an object - create a new root, and populate. */
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *json, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    return cJSON_ParseWithOpts(value, 0, 0);
+    size_t end_position = 0;
+    internal_configuration configuration = global_configuration;
+    cJSON *item = NULL;
+
+    configuration.allow_data_after_json = !require_null_terminated;
+    item = parse(json, &configuration, &end_position);
+
+    if (return_parse_end != NULL)
+    {
+        *return_parse_end = json + end_position;
+    }
+
+    return item;
+}
+
+/* Default options for cJSON_Parse */
+CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *json)
+{
+    size_t end_position = 0;
+    return parse(json, &global_configuration, &end_position);
 }
 
 #define cjson_min(a, b) ((a < b) ? a : b)
@@ -1188,7 +1201,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
 
     if ((length < 0) || (buffer == NULL))
     {
