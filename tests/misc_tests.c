@@ -429,7 +429,7 @@ static void ensure_should_fail_on_failed_realloc(void)
 static void skip_utf8_bom_should_skip_bom(void)
 {
     const unsigned char string[] = "\xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
     buffer.content = string;
     buffer.length = sizeof(string);
     buffer.configuration = global_configuration;
@@ -441,7 +441,7 @@ static void skip_utf8_bom_should_skip_bom(void)
 static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
 {
     const unsigned char string[] = " \xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
     buffer.content = string;
     buffer.length = sizeof(string);
     buffer.configuration = global_configuration;

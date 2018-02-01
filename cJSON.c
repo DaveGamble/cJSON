@@ -149,15 +149,17 @@ static void *internal_realloc(void *pointer, size_t size)
 #define internal_realloc realloc
 #endif
 
-static internal_configuration global_configuration = {
-    256, /* default buffer size */
-    true, /* enable formatting by default */
-    true, /* allow data after the JSON by default */
-    true, /* case sensitive by default */
-    internal_malloc,
-    internal_free,
-    internal_realloc
-};
+#define default_configuration {\
+    256, /* default buffer size */\
+    true, /* enable formatting by default */\
+    true, /* allow data after the JSON by default */\
+    true, /* case sensitive by default */\
+    internal_malloc,\
+    internal_free,\
+    internal_realloc\
+}
+
+static internal_configuration global_configuration = default_configuration;
 
 static unsigned char* custom_strdup(const unsigned char* string, const internal_configuration * const configuration)
 {
@@ -1013,7 +1015,7 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 /* Parse an object - create a new root, and populate. */
 static cJSON *parse(const char * const json, const internal_configuration * const configuration, size_t *end_position)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
     cJSON *item = NULL;
 
     /* reset global error position */
@@ -1203,7 +1205,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, default_configuration};
 
     if ((length < 0) || (buffer == NULL))
     {

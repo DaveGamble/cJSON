@@ -27,7 +27,7 @@
 static void assert_print_string(const char *expected, const char *input)
 {
     unsigned char printed[1024];
-    printbuffer buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
+    printbuffer buffer = { 0, 0, 0, 0, 0, default_configuration };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
