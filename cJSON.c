@@ -166,6 +166,20 @@ static void global_deallocate_wrapper(void *pointer, void *userdata)
     global_allocators.free_fn(pointer);
 }
 
+/* helpers to allocate memory from a configuration */
+static void *allocate(const internal_configuration * const configuration, size_t size)
+{
+    return configuration->allocators.allocate(size, configuration->userdata);
+}
+static void *reallocate(const internal_configuration * const configuration, void *pointer, size_t size)
+{
+    return configuration->allocators.reallocate(pointer, size, configuration->userdata);
+}
+static void deallocate(const internal_configuration * const configuration, void *pointer)
+{
+    configuration->allocators.deallocate(pointer, configuration->userdata);
+}
+
 #define default_configuration {\
     256, /* default buffer size */\
     true, /* enable formatting by default */\
@@ -192,7 +206,7 @@ static unsigned char* custom_strdup(const unsigned char* string, const internal_
     }
 
     length = strlen((const char*)string) + sizeof("");
-    copy = (unsigned char*)configuration->allocators.allocate(length, configuration->userdata);
+    copy = (unsigned char*)allocate(configuration, length);
     if (copy == NULL)
     {
         return NULL;
@@ -242,7 +256,7 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 /* Internal constructor. */
 static cJSON *create_item(const internal_configuration * const configuration)
 {
-    cJSON* node = (cJSON*)configuration->allocators.allocate(sizeof(cJSON), configuration->userdata);
+    cJSON* node = (cJSON*)allocate(configuration, sizeof(cJSON));
     if (node)
     {
         memset(node, '\0', sizeof(cJSON));
@@ -264,13 +278,13 @@ static void delete_item(cJSON *item, const internal_configuration * const config
         }
         if (!(item->type & cJSON_IsReference) && (item->valuestring != NULL))
         {
-            configuration->allocators.deallocate(item->valuestring, configuration->userdata);
+            deallocate(configuration, item->valuestring);
         }
         if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
         {
-            configuration->allocators.deallocate(item->string, configuration->userdata);
+            deallocate(configuration, item->string);
         }
-        configuration->allocators.deallocate(item, configuration->userdata);
+        deallocate(configuration, item);
         item = next;
     }
 }
@@ -455,13 +469,13 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
         newsize = needed * 2;
     }
 
-    if (*p->configuration.allocators.reallocate != NULL)
+    if (p->configuration.allocators.reallocate != NULL)
     {
         /* reallocate with realloc if available */
-        newbuffer = (unsigned char*)p->configuration.allocators.reallocate(p->buffer, newsize, p->configuration.userdata);
+        newbuffer = (unsigned char*)reallocate(&p->configuration, p->buffer, newsize);
         if (newbuffer == NULL)
         {
-            p->configuration.allocators.deallocate(p->buffer, p->configuration.userdata);
+            deallocate(&p->configuration, p->buffer);
             p->length = 0;
             p->buffer = NULL;
 
@@ -471,10 +485,10 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
     else
     {
         /* otherwise reallocate manually */
-        newbuffer = (unsigned char*)p->configuration.allocators.allocate(newsize, p->configuration.userdata);
+        newbuffer = (unsigned char*)allocate(&p->configuration, newsize);
         if (!newbuffer)
         {
-            p->configuration.allocators.deallocate(p->buffer, p->configuration.userdata);
+            deallocate(&p->configuration, p->buffer);
             p->length = 0;
             p->buffer = NULL;
 
@@ -484,7 +498,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
         {
             memcpy(newbuffer, p->buffer, p->offset + 1);
         }
-        p->configuration.allocators.deallocate(p->buffer, p->configuration.userdata);
+        deallocate(&p->configuration, p->buffer);
     }
     p->length = newsize;
     p->buffer = newbuffer;
@@ -776,7 +790,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 
         /* This is at most how much we need for the output */
         allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
-        output = (unsigned char*)input_buffer->configuration.allocators.allocate(allocation_length + sizeof(""), input_buffer->configuration.userdata);
+        output = (unsigned char*)allocate(&input_buffer->configuration, allocation_length + sizeof(""));
         if (output == NULL)
         {
             goto fail; /* allocation failure */
@@ -854,7 +868,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 fail:
     if (output != NULL)
     {
-        input_buffer->configuration.allocators.deallocate(output, input_buffer->configuration.userdata);
+        deallocate(&input_buffer->configuration, output);
     }
 
     if (input_pointer != NULL)
@@ -1145,7 +1159,7 @@ static unsigned char *print(const cJSON * const item, const internal_configurati
     memset(buffer, 0, sizeof(buffer));
 
     /* create buffer */
-    buffer->buffer = (unsigned char*)configuration->allocators.allocate(configuration->buffer_size, configuration->userdata);
+    buffer->buffer = (unsigned char*)allocate(configuration, configuration->buffer_size);
     buffer->length = configuration->buffer_size;
     buffer->configuration = *configuration;
     if (buffer->buffer == NULL)
@@ -1165,7 +1179,7 @@ static unsigned char *print(const cJSON * const item, const internal_configurati
     /* check if reallocate is available */
     if (configuration->allocators.reallocate != NULL)
     {
-        printed = (unsigned char*)configuration->allocators.reallocate(buffer->buffer, buffer->offset + 1, configuration->userdata);
+        printed = (unsigned char*)reallocate(configuration, buffer->buffer, buffer->offset + 1);
         buffer->buffer = NULL;
         if (printed == NULL) {
             goto fail;
@@ -1173,7 +1187,7 @@ static unsigned char *print(const cJSON * const item, const internal_configurati
     }
     else /* otherwise copy the JSON over to a new buffer */
     {
-        printed = (unsigned char*)configuration->allocators.allocate(buffer->offset + 1, configuration->userdata);
+        printed = (unsigned char*)allocate(configuration, buffer->offset + 1);
         if (printed == NULL)
         {
             goto fail;
@@ -1182,7 +1196,7 @@ static unsigned char *print(const cJSON * const item, const internal_configurati
         printed[buffer->offset] = '\0'; /* just to be sure */
 
         /* free the buffer */
-        configuration->allocators.deallocate(buffer->buffer, configuration->userdata);
+        deallocate(configuration, buffer->buffer);
     }
 
     return printed;
@@ -1190,12 +1204,12 @@ static unsigned char *print(const cJSON * const item, const internal_configurati
 fail:
     if (buffer->buffer != NULL)
     {
-        configuration->allocators.deallocate(buffer->buffer, configuration->userdata);
+        deallocate(configuration, buffer->buffer);
     }
 
     if (printed != NULL)
     {
-        configuration->allocators.deallocate(printed, configuration->userdata);
+        deallocate(configuration, printed);
     }
 
     return NULL;
@@ -1999,7 +2013,7 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
 
     if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
     {
-        configuration->allocators.deallocate(item->string, configuration->userdata);
+        deallocate(configuration, item->string);
     }
 
     item->string = new_key;
@@ -2992,10 +3006,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
 
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size)
 {
-    return global_configuration.allocators.allocate(size, global_configuration.userdata);
+    return global_allocators.malloc_fn(size);
 }
 
 CJSON_PUBLIC(void) cJSON_free(void *object)
 {
-    global_configuration.allocators.deallocate(object, global_configuration.userdata);
+    global_allocators.free_fn(object);
 }
