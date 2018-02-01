@@ -87,6 +87,7 @@ typedef struct cJSON_Allocators
 } cJSON_Allocators;
 
 typedef int cJSON_bool;
+typedef void* cJSON_Configuration;
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 #define __WINDOWS__
@@ -140,7 +141,46 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 
-/* Supply malloc, realloc and free functions to cJSON */
+/* Create a configuration object that can be passed to several functions
+ * to configure their behavior.
+ * A configuration is given in JSON form (case sensitive) and can optionally contain any
+ * of the following options:
+ * - buffer_size: number of bytes that the printbuffer should be initially
+ * - format: boolean that indicates if the output should be formatted
+ * - case_sensitive: boolean that indicates if object keys should be considered case_sensitive
+ * - allow_data_after_json: boolean that indicates if parsing succeeds if the JSON in the
+ *                          input is followed by non JSON data
+ *
+ *
+ * If NULL is passed to a function that expects an object of type cJSON_Configuration,
+ * the following default configuration is used:
+ * {
+ *  "buffer_size": 256,
+ *  "format": true,
+ *  "case_sensitive": true,
+ *  "allow_data_after_json": true
+ * }
+ *
+ * A cJSON_Configuration object is dynamically allocated and you are responsible to free it
+ * after use.
+ *
+ * If allocators is a NULL pointer, the global default allocators are used (the one that is set
+ * by cJSON_InitHooks, malloc/free by default).
+ * The allocator is automatically attached to the configuration, so it will be used by functions
+ * that the configuration is passed to. This can be changed later with
+ * cJSON_ConfigurationChangeAllocator.
+ *
+ * allocator_userdata can be used to pass custom data to your allocator. It also gets attached to
+ * the configuration automatically. This can later be changed with
+ * cJSON_ConfigurationChangeUserdata.
+ * */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const json, const cJSON_Allocators * const allocators, void *allocator_userdata);
+/* Change the allocators of a cJSON_Configuration and reset the userdata */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators);
+/* Change the allocator userdata attached to a cJSON_Configuration */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Configuration configuration, void *userdata);
+
+/* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
 /* Memory Management: the caller is always responsible to free the results from all variants of cJSON_Parse (with cJSON_Delete) and cJSON_Print (with stdlib free, cJSON_Hooks.free_fn, or cJSON_free as appropriate). The exception is cJSON_PrintPreallocated, where the caller has full responsibility of the buffer. */
