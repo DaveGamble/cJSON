@@ -53,7 +53,7 @@ static void assert_parse_string(const char *string, const char *expected)
     TEST_ASSERT_TRUE_MESSAGE(parse_string(item, &buffer), "Couldn't parse string.");
     assert_is_string(item);
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, item->valuestring, "The parsed result isn't as expected.");
-    global_configuration.deallocate(item->valuestring);
+    global_configuration.allocators.deallocate(item->valuestring, global_configuration.userdata);
     item->valuestring = NULL;
 }
 

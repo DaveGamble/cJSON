@@ -78,6 +78,14 @@ typedef struct cJSON_Hooks
       void (*free_fn)(void *ptr);
 } cJSON_Hooks;
 
+/* new style allocators with userdata (e.g. for pool allocators) */
+typedef struct cJSON_Allocators
+{
+    void *(*allocate)(size_t size, void *userdata);
+    void (*deallocate)(void *pointer, void *userdata);
+    void *(*reallocate)(void *pointer, size_t size, void *userdata); /* optional */
+} cJSON_Allocators;
+
 typedef int cJSON_bool;
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))

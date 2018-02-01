@@ -410,16 +410,18 @@ static void cjson_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
-static void *failing_realloc(void *pointer, size_t size)
+static void *failing_realloc(void *pointer, size_t size, void *userdata)
 {
     (void)size;
     (void)pointer;
+    (void)userdata;
     return NULL;
 }
 
 static void ensure_should_fail_on_failed_realloc(void)
 {
-    printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, true, true, &malloc, &free, &failing_realloc}};
+    printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, true, true, {global_allocate_wrapper, global_deallocate_wrapper, failing_realloc}, NULL } };
+    buffer.configuration.userdata = &buffer;
     buffer.buffer = (unsigned char*)malloc(100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
 
