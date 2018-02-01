@@ -62,6 +62,10 @@
 #define true ((cJSON_bool)1)
 #define false ((cJSON_bool)0)
 
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+
 typedef struct {
     const unsigned char *json;
     size_t position;
@@ -126,8 +130,6 @@ typedef struct internal_configuration
     cJSON_bool case_sensitive;
     cJSON_Allocators allocators;
     void *userdata;
-
-
 } internal_configuration;
 
 #if defined(_MSC_VER)
@@ -194,6 +196,9 @@ static void deallocate(const internal_configuration * const configuration, void 
     },\
     NULL /* no userdata */\
 }
+
+/* this is necessary to assign the default configuration after initialization */
+static const internal_configuration global_default_configuration = default_configuration;
 
 static internal_configuration global_configuration = default_configuration;
 
@@ -2879,6 +2884,133 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     }
 
     return (item->type & 0xFF) == cJSON_Raw;
+}
+
+static size_t get_size_from_number(const cJSON * const number)
+{
+    if (number->valuedouble >= SIZE_MAX)
+    {
+        return SIZE_MAX;
+    }
+
+    if (number->valuedouble <= 0)
+    {
+        return 0;
+    }
+
+    return (size_t)number->valuedouble;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const json, const cJSON_Allocators * const allocators, void *allocator_userdata)
+{
+    internal_configuration *configuration = NULL;
+    cJSON *option = NULL;
+    const cJSON_Allocators *local_allocators = &global_configuration.allocators;
+
+    if (allocators != NULL)
+    {
+        if ((allocators->allocate == NULL) || (allocators->deallocate == NULL))
+        {
+            goto fail;
+        }
+
+        local_allocators = allocators;
+    }
+
+    if ((json != NULL) && !cJSON_IsObject(json))
+    {
+        goto fail;
+    }
+
+    configuration = (internal_configuration*)local_allocators->allocate(sizeof(internal_configuration), allocator_userdata);
+    if (configuration == NULL)
+    {
+        goto fail;
+    }
+
+    /* initialize with the default */
+    *configuration = global_default_configuration;
+    configuration->userdata = allocator_userdata;
+    configuration->allocators = *local_allocators;
+
+    if (json == NULL)
+    {
+        /* default configuration */
+        return configuration;
+    }
+
+    /* then overwrite with other options if they exist */
+
+    option = get_object_item(json, "buffer_size", &global_configuration);
+    if (cJSON_IsNumber(option))
+    {
+        configuration->buffer_size = get_size_from_number(option);
+    }
+
+    option = get_object_item(json, "format", &global_configuration);
+    if (cJSON_IsTrue(option))
+    {
+        configuration->format = true;
+    }
+    else if (cJSON_IsFalse(option))
+    {
+        configuration->format = false;
+    }
+
+    option = get_object_item(json, "case_sensitive", &global_configuration);
+    if (cJSON_IsTrue(option))
+    {
+        configuration->case_sensitive = true;
+    }
+    else if (cJSON_IsFalse(option))
+    {
+        configuration->case_sensitive = false;
+    }
+
+    option = get_object_item(json, "allow_data_after_json", &global_configuration);
+    if (cJSON_IsTrue(option))
+    {
+        configuration->allow_data_after_json = true;
+    }
+    else if (cJSON_IsFalse(option))
+    {
+        configuration->allow_data_after_json = false;
+    }
+
+    return (cJSON_Configuration)configuration;
+
+fail:
+    if (configuration != NULL)
+    {
+        local_allocators->deallocate(configuration, allocator_userdata);
+    }
+
+    return NULL;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators)
+{
+    if ((configuration == NULL) || (allocators.allocate == NULL) || (allocators.deallocate == NULL))
+    {
+        return NULL;
+    }
+
+    ((internal_configuration*)configuration)->allocators = allocators;
+    ((internal_configuration*)configuration)->userdata = NULL;
+
+    return configuration;
+}
+
+/* Change the allocator userdata attached to a cJSON_Configuration */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Configuration configuration, void *userdata)
+{
+    if (configuration == NULL)
+    {
+        return NULL;
+    }
+
+    ((internal_configuration*)configuration)->userdata = userdata;
+    return configuration;
 }
 
 static cJSON_bool compare(const cJSON * const a, const cJSON * const b, const internal_configuration * const configuration)
