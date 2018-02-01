@@ -128,6 +128,7 @@ typedef struct internal_configuration
     cJSON_bool case_sensitive;
     cJSON_Allocators allocators;
     void *userdata;
+    size_t *end_position;
 } internal_configuration;
 
 #if defined(_MSC_VER)
@@ -192,7 +193,8 @@ static void deallocate(const internal_configuration * const configuration, void 
         global_deallocate_wrapper,\
         global_reallocate_wrapper\
     },\
-    NULL /* no userdata */\
+    NULL, /* no userdata */\
+    NULL /* no end position */\
 }
 
 /* this is necessary to assign the default configuration after initialization */
@@ -1058,7 +1060,7 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 }
 
 /* Parse an object - create a new root, and populate. */
-static cJSON *parse(const char * const json, const internal_configuration * const configuration, size_t *end_position)
+static cJSON *parse(const char * const json, const internal_configuration * const configuration)
 {
     parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
     cJSON *item = NULL;
@@ -1097,7 +1099,10 @@ static cJSON *parse(const char * const json, const internal_configuration * cons
             goto fail;
         }
     }
-    *end_position = buffer.offset;
+    if (configuration->end_position != NULL)
+    {
+        *configuration->end_position = buffer.offset;
+    }
 
     return item;
 
@@ -1122,7 +1127,10 @@ fail:
             local_error.position = buffer.length - 1;
         }
 
-        *end_position = local_error.position;
+        if (configuration->end_position != NULL)
+        {
+            *configuration->end_position = local_error.position;
+        }
         global_error = local_error;
     }
 
@@ -1137,7 +1145,8 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *json, const char **return_
     cJSON *item = NULL;
 
     configuration.allow_data_after_json = !require_null_terminated;
-    item = parse(json, &configuration, &end_position);
+    configuration.end_position = &end_position;
+    item = parse(json, &configuration);
 
     if (return_parse_end != NULL)
     {
@@ -1150,8 +1159,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *json, const char **return_
 /* Default options for cJSON_Parse */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *json)
 {
-    size_t end_position = 0;
-    return parse(json, &global_configuration, &end_position);
+    return parse(json, &global_configuration);
 }
 
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
@@ -3009,6 +3017,17 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Config
     }
 
     ((internal_configuration*)configuration)->userdata = userdata;
+    return configuration;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeParseEnd(cJSON_Configuration configuration, size_t * const parse_end)
+{
+    if (configuration == NULL)
+    {
+        return NULL;
+    }
+
+    ((internal_configuration*)configuration)->end_position = parse_end;
     return configuration;
 }
 
