@@ -31,10 +31,10 @@ static void assert_print_array(const char * const expected, const char * const i
 
     cJSON item[1];
 
-    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
-    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
+    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
+    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
 
-    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
     parsebuffer.configuration = global_configuration;
