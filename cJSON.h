@@ -179,6 +179,8 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators);
 /* Change the allocator userdata attached to a cJSON_Configuration */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Configuration configuration, void *userdata);
+/* Change the pointer where the end of parsing is written to */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeParseEnd(cJSON_Configuration configuration, size_t * const parse_end);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);

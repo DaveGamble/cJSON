@@ -129,6 +129,20 @@ static void configuration_change_userdata_should_change_userdata(void)
     free(configuration);
 }
 
+static void configuration_change_parse_end_should_change_parse_end(void)
+{
+    size_t end_position = 0;
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    configuration = (internal_configuration*)cJSON_ConfigurationChangeParseEnd(configuration, &end_position);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_TRUE_MESSAGE(configuration->end_position == &end_position, "Failed to set parse end.");
+
+    free(configuration);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -138,6 +152,7 @@ int main(void)
     RUN_TEST(create_configuration_should_take_custom_allocators);
     RUN_TEST(configuration_change_allocators_should_change_allocators);
     RUN_TEST(configuration_change_userdata_should_change_userdata);
+    RUN_TEST(configuration_change_parse_end_should_change_parse_end);
 
     return UNITY_END();
 }
