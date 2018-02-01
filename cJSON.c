@@ -123,6 +123,7 @@ typedef struct internal_configuration
     size_t buffer_size;
     cJSON_bool format;
     cJSON_bool allow_data_after_json;
+    cJSON_bool case_sensitive;
     void *(*allocate)(size_t size);
     void (*deallocate)(void *pointer);
     void *(*reallocate)(void *pointer, size_t size);
@@ -152,6 +153,7 @@ static internal_configuration global_configuration = {
     256, /* default buffer size */
     true, /* enable formatting by default */
     true, /* allow data after the JSON by default */
+    true, /* case sensitive by default */
     internal_malloc,
     internal_free,
     internal_realloc
@@ -1011,7 +1013,7 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 /* Parse an object - create a new root, and populate. */
 static cJSON *parse(const char * const json, const internal_configuration * const configuration, size_t *end_position)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
     cJSON *item = NULL;
 
     /* reset global error position */
@@ -1201,7 +1203,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 } };
 
     if ((length < 0) || (buffer == NULL))
     {
