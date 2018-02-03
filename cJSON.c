@@ -2929,16 +2929,6 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
 
     /* then overwrite with other options if they exist */
 
-    option = get_object_item(json, "format", &global_configuration);
-    if (cJSON_IsTrue(option))
-    {
-        configuration->format = true;
-    }
-    else if (cJSON_IsFalse(option))
-    {
-        configuration->format = false;
-    }
-
     option = get_object_item(json, "case_sensitive", &global_configuration);
     if (cJSON_IsTrue(option))
     {
@@ -3014,6 +3004,30 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_C
     }
 
     ((internal_configuration*)configuration)->buffer_size = buffer_size;
+    return configuration;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeFormat(cJSON_Configuration configuration, cJSON_Format format)
+{
+    if (configuration == NULL)
+    {
+        return NULL;
+    }
+
+    switch (format)
+    {
+        case CJSON_FORMAT_MINIFIED:
+            ((internal_configuration*)configuration)->format = false;
+            break;
+
+        case CJSON_FORMAT_DEFAULT:
+            ((internal_configuration*)configuration)->format = true;
+            break;
+
+        default:
+            return NULL;
+    }
+
     return configuration;
 }
 

@@ -34,14 +34,14 @@ static void create_configuration_should_create_a_configuration(void)
     internal_configuration *configuration = NULL;
     int userdata = 1;
 
-    json = cJSON_Parse("{\"format\":false,\"case_sensitive\":false,\"allow_data_after_json\":false}");
+    json = cJSON_Parse("{\"case_sensitive\":false,\"allow_data_after_json\":false}");
     TEST_ASSERT_NOT_NULL(json);
     configuration = (internal_configuration*)cJSON_CreateConfiguration(json, NULL, &userdata);
     cJSON_Delete(json);
     json = NULL;
     TEST_ASSERT_NOT_NULL(configuration);
     TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 256, "buffer_size has an incorrect value.");
-    TEST_ASSERT_FALSE_MESSAGE(configuration->format, "format has an incorrect value.");
+    TEST_ASSERT_TRUE_MESSAGE(configuration->format, "format has an incorrect value.");
     TEST_ASSERT_FALSE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
     TEST_ASSERT_FALSE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->userdata == &userdata, "Incorrect userdata");
@@ -165,6 +165,25 @@ static void configuration_change_prebuffer_size_should_not_allow_empty_sizes(voi
 
     free(configuration);
 }
+
+static void configuration_change_format_should_change_format(void)
+{
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    configuration = (internal_configuration*)cJSON_ConfigurationChangeFormat(configuration, CJSON_FORMAT_MINIFIED);
+    TEST_ASSERT_NOT_NULL(configuration);
+    TEST_ASSERT_FALSE_MESSAGE(configuration->format, "Failed to set CJSON_FORMAT_MINIFIED.");
+
+    configuration = (internal_configuration*)cJSON_ConfigurationChangeFormat(configuration, CJSON_FORMAT_DEFAULT);
+    TEST_ASSERT_NOT_NULL(configuration);
+    TEST_ASSERT_TRUE_MESSAGE(configuration->format, "Failed to set CJSON_FORMAT_DEFAULT.");
+
+    TEST_ASSERT_NULL_MESSAGE(cJSON_ConfigurationChangeFormat(configuration, (cJSON_Format)3), "Failed to detect invalid format.");
+
+    free(configuration);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -177,6 +196,7 @@ int main(void)
     RUN_TEST(configuration_change_parse_end_should_change_parse_end);
     RUN_TEST(configuration_change_prebuffer_size_should_change_buffer_size);
     RUN_TEST(configuration_change_prebuffer_size_should_not_allow_empty_sizes);
+    RUN_TEST(configuration_change_format_should_change_format);
 
     return UNITY_END();
 }
