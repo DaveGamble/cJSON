@@ -43,7 +43,7 @@ static void create_configuration_should_create_a_configuration(void)
     TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 256, "buffer_size has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->format, "format has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
-    TEST_ASSERT_FALSE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
+    TEST_ASSERT_TRUE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->userdata == &userdata, "Incorrect userdata");
     TEST_ASSERT_TRUE_MESSAGE(global_allocate_wrapper == configuration->allocators.allocate, "Wrong malloc.");
     TEST_ASSERT_TRUE_MESSAGE(global_reallocate_wrapper == configuration->allocators.reallocate, "Wrong realloc.");
@@ -197,6 +197,19 @@ static void configuration_change_case_sensitivity_should_change_case_sensitivity
     free(configuration);
 }
 
+static void configuration_change_allow_data_after_json_should_change_allow_data_after_json(void)
+{
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    configuration = (internal_configuration*)cJSON_ConfigurationChangeAllowDataAfterJson(configuration, false);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_FALSE_MESSAGE(configuration->allow_data_after_json, "Didn't set allow_data_after_json property correctly.");
+
+    free(configuration);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -211,6 +224,7 @@ int main(void)
     RUN_TEST(configuration_change_prebuffer_size_should_not_allow_empty_sizes);
     RUN_TEST(configuration_change_format_should_change_format);
     RUN_TEST(configuration_change_case_sensitivity_should_change_case_sensitivity);
+    RUN_TEST(configuration_change_allow_data_after_json_should_change_allow_data_after_json);
 
     return UNITY_END();
 }
