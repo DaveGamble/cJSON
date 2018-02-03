@@ -34,13 +34,13 @@ static void create_configuration_should_create_a_configuration(void)
     internal_configuration *configuration = NULL;
     int userdata = 1;
 
-    json = cJSON_Parse("{\"buffer_size\":1024,\"format\":false,\"case_sensitive\":false,\"allow_data_after_json\":false}");
+    json = cJSON_Parse("{\"format\":false,\"case_sensitive\":false,\"allow_data_after_json\":false}");
     TEST_ASSERT_NOT_NULL(json);
     configuration = (internal_configuration*)cJSON_CreateConfiguration(json, NULL, &userdata);
     cJSON_Delete(json);
     json = NULL;
     TEST_ASSERT_NOT_NULL(configuration);
-    TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 1024, "buffer_size has an incorrect value.");
+    TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 256, "buffer_size has an incorrect value.");
     TEST_ASSERT_FALSE_MESSAGE(configuration->format, "format has an incorrect value.");
     TEST_ASSERT_FALSE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
     TEST_ASSERT_FALSE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
@@ -143,6 +143,28 @@ static void configuration_change_parse_end_should_change_parse_end(void)
     free(configuration);
 }
 
+static void configuration_change_prebuffer_size_should_change_buffer_size(void)
+{
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    configuration = (internal_configuration*)cJSON_ConfigurationChangePrebufferSize(configuration, 1024);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 1024, "Didn't set the buffer size correctly.");
+
+    free(configuration);
+}
+
+static void configuration_change_prebuffer_size_should_not_allow_empty_sizes(void)
+{
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_NULL(cJSON_ConfigurationChangePrebufferSize(configuration, 0));
+
+    free(configuration);
+}
 int main(void)
 {
     UNITY_BEGIN();
@@ -153,6 +175,8 @@ int main(void)
     RUN_TEST(configuration_change_allocators_should_change_allocators);
     RUN_TEST(configuration_change_userdata_should_change_userdata);
     RUN_TEST(configuration_change_parse_end_should_change_parse_end);
+    RUN_TEST(configuration_change_prebuffer_size_should_change_buffer_size);
+    RUN_TEST(configuration_change_prebuffer_size_should_not_allow_empty_sizes);
 
     return UNITY_END();
 }
