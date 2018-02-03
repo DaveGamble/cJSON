@@ -83,6 +83,42 @@ static void create_configuration_should_not_take_incomplete_allocators(void)
     TEST_ASSERT_NULL(cJSON_CreateConfiguration(&allocators2, &userdata));
 }
 
+static void duplicate_configuration_should_duplicate_a_configuration(void)
+{
+    internal_configuration *configuration = NULL;
+
+    configuration = (internal_configuration*)cJSON_DuplicateConfiguration(&global_configuration, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_EQUAL_MEMORY(&global_configuration, configuration, sizeof(internal_configuration));
+
+    free(configuration);
+}
+
+static void duplicate_configuration_should_take_custom_allocators(void)
+{
+    internal_configuration *configuration = NULL;
+    cJSON_Allocators allocators = {custom_allocator, custom_deallocator, NULL};
+    size_t userdata = 0;
+
+    configuration = (internal_configuration*)cJSON_DuplicateConfiguration(&global_configuration, &allocators, &userdata);
+    TEST_ASSERT_NOT_NULL(configuration);
+    TEST_ASSERT_EQUAL_MESSAGE(userdata, sizeof(internal_configuration), "custom allocator wasn't run properly");
+
+    TEST_ASSERT_EQUAL_MEMORY(&global_configuration, configuration, sizeof(internal_configuration));
+    free(configuration);
+}
+
+static void duplicate_configuration_should_not_take_incomplete_allocators(void)
+{
+    cJSON_Allocators allocators1 = {custom_allocator, NULL, NULL};
+    cJSON_Allocators allocators2 = {NULL, custom_deallocator, NULL};
+    size_t userdata = 0;
+
+    TEST_ASSERT_NULL(cJSON_DuplicateConfiguration(&global_configuration, &allocators1, &userdata));
+    TEST_ASSERT_NULL(cJSON_DuplicateConfiguration(&global_configuration, &allocators2, &userdata));
+}
+
 static void configuration_change_allocators_should_change_allocators(void)
 {
     internal_configuration *configuration = NULL;
@@ -211,6 +247,9 @@ int main(void)
     RUN_TEST(create_configuration_should_create_a_configuration);
     RUN_TEST(create_configuration_should_take_custom_allocators);
     RUN_TEST(create_configuration_should_not_take_incomplete_allocators);
+    RUN_TEST(duplicate_configuration_should_duplicate_a_configuration);
+    RUN_TEST(duplicate_configuration_should_take_custom_allocators);
+    RUN_TEST(duplicate_configuration_should_not_take_incomplete_allocators);
     RUN_TEST(configuration_change_allocators_should_change_allocators);
     RUN_TEST(configuration_change_allocators_should_not_change_incomplete_allocators);
     RUN_TEST(configuration_change_userdata_should_change_userdata);

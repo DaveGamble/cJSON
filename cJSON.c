@@ -208,7 +208,7 @@ static void deallocate(const internal_configuration * const configuration, void 
 }
 
 /* this is necessary to assign the default configuration after initialization */
-static const internal_configuration global_default_configuration = default_configuration;
+static internal_configuration global_default_configuration = default_configuration;
 
 static internal_configuration global_configuration = default_configuration;
 
@@ -2888,10 +2888,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
-CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocators * const allocators, void *allocator_userdata)
+CJSON_PUBLIC(cJSON_Configuration) cJSON_DuplicateConfiguration(const cJSON_Configuration configuration, const cJSON_Allocators * const allocators, void *allocator_userdata)
 {
-    internal_configuration *configuration = NULL;
-    const cJSON_Allocators *local_allocators = &global_configuration.allocators;
+    internal_configuration *duplicate = NULL;
+    const cJSON_Allocators *local_allocators = &global_default_configuration.allocators;
 
     if (allocators != NULL)
     {
@@ -2903,24 +2903,20 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocato
         local_allocators = allocators;
     }
 
-    configuration = (internal_configuration*)local_allocators->allocate(sizeof(internal_configuration), allocator_userdata);
-    if (configuration == NULL)
+    duplicate = (internal_configuration*)local_allocators->allocate(sizeof(internal_configuration), allocator_userdata);
+    if (duplicate == NULL)
     {
-        goto fail;
+        return NULL;
     }
 
-    /* initialize with the default */
-    *configuration = global_default_configuration;
+    memcpy(duplicate, configuration, sizeof(internal_configuration));
 
-    return (cJSON_Configuration)configuration;
+    return duplicate;
+}
 
-fail:
-    if (configuration != NULL)
-    {
-        local_allocators->deallocate(configuration, allocator_userdata);
-    }
-
-    return NULL;
+CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocators * const allocators, void *allocator_userdata)
+{
+    return cJSON_DuplicateConfiguration((cJSON_Configuration)&global_default_configuration, allocators, allocator_userdata);
 }
 
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators)

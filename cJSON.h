@@ -154,6 +154,8 @@ CJSON_PUBLIC(const char*) cJSON_Version(void);
  * allocator_userdata can be used to pass custom data to your allocator (e.g. for pool allocators).
  * */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocators * const allocators, void *allocator_userdata);
+/* Create a copy of an existing configuration */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_DuplicateConfiguration(const cJSON_Configuration, const cJSON_Allocators * const allocators, void *allocator_userdata);
 /* Change the allocators of a cJSON_Configuration and reset the userdata */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators);
 /* Change the allocator userdata attached to a cJSON_Configuration */
