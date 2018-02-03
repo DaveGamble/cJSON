@@ -1816,7 +1816,7 @@ CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index)
     return get_array_item(array, (size_t)index);
 }
 
-static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_bool case_sensitive)
+static cJSON *get_object_item(const cJSON * const object, const char * const name, const internal_configuration * const configuration)
 {
     cJSON *current_element = NULL;
 
@@ -1826,7 +1826,7 @@ static cJSON *get_object_item(const cJSON * const object, const char * const nam
     }
 
     current_element = object->child;
-    if (case_sensitive)
+    if (configuration->case_sensitive)
     {
         while ((current_element != NULL) && (strcmp(name, current_element->string) != 0))
         {
@@ -1846,12 +1846,16 @@ static cJSON *get_object_item(const cJSON * const object, const char * const nam
 
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON * const object, const char * const string)
 {
-    return get_object_item(object, string, false);
+    internal_configuration configuration = default_configuration;
+    configuration.case_sensitive = false;
+    return get_object_item(object, string, &configuration);
 }
 
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string)
 {
-    return get_object_item(object, string, true);
+    internal_configuration configuration = default_configuration;
+    configuration.case_sensitive = true;
+    return get_object_item(object, string, &configuration);
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string)
@@ -2259,7 +2263,7 @@ CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newi
     cJSON_ReplaceItemViaPointer(array, get_array_item(array, (size_t)which), newitem);
 }
 
-static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSON *replacement, cJSON_bool case_sensitive)
+static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSON *replacement, const internal_configuration * const configuration)
 {
     if ((replacement == NULL) || (string == NULL))
     {
@@ -2274,19 +2278,23 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
     replacement->string = (char*)custom_strdup((const unsigned char*)string, &global_configuration);
     replacement->type &= ~cJSON_StringIsConst;
 
-    cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
+    cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, configuration), replacement);
 
     return true;
 }
 
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
 {
-    replace_item_in_object(object, string, newitem, false);
+    internal_configuration configuration = global_configuration;
+    configuration.case_sensitive = false;
+    replace_item_in_object(object, string, newitem, &configuration);
 }
 
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object, const char *string, cJSON *newitem)
 {
-    replace_item_in_object(object, string, newitem, true);
+    internal_configuration configuration = global_configuration;
+    configuration.case_sensitive = true;
+    replace_item_in_object(object, string, newitem, &configuration);
 }
 
 /* Create basic types: */
@@ -2830,7 +2838,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+static cJSON_bool compare(const cJSON * const a, const cJSON * const b, const internal_configuration * const configuration)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)) || cJSON_IsInvalid(a))
     {
@@ -2895,7 +2903,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
 
             for (; (a_element != NULL) && (b_element != NULL);)
             {
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                if (!compare(a_element, b_element, configuration))
                 {
                     return false;
                 }
@@ -2927,13 +2935,13 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
             cJSON_ArrayForEach(a_element, a)
             {
                 /* TODO This has O(n^2) runtime, which is horrible! */
-                b_element = get_object_item(b, a_element->string, case_sensitive);
+                b_element = get_object_item(b, a_element->string, configuration);
                 if (b_element == NULL)
                 {
                     return false;
                 }
 
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                if (!compare(a_element, b_element, configuration))
                 {
                     return false;
                 }
@@ -2945,6 +2953,13 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         default:
             return false;
     }
+}
+
+CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+{
+    internal_configuration configuration = global_configuration;
+    configuration.case_sensitive = case_sensitive;
+    return compare(a, b, &configuration);
 }
 
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size)
