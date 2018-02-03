@@ -34,7 +34,7 @@ static void create_configuration_should_create_a_configuration(void)
     internal_configuration *configuration = NULL;
     int userdata = 1;
 
-    json = cJSON_Parse("{\"case_sensitive\":false,\"allow_data_after_json\":false}");
+    json = cJSON_Parse("{\"allow_data_after_json\":false}");
     TEST_ASSERT_NOT_NULL(json);
     configuration = (internal_configuration*)cJSON_CreateConfiguration(json, NULL, &userdata);
     cJSON_Delete(json);
@@ -42,7 +42,7 @@ static void create_configuration_should_create_a_configuration(void)
     TEST_ASSERT_NOT_NULL(configuration);
     TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 256, "buffer_size has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->format, "format has an incorrect value.");
-    TEST_ASSERT_FALSE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
+    TEST_ASSERT_TRUE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
     TEST_ASSERT_FALSE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->userdata == &userdata, "Incorrect userdata");
     TEST_ASSERT_TRUE_MESSAGE(global_allocate_wrapper == configuration->allocators.allocate, "Wrong malloc.");
@@ -184,6 +184,19 @@ static void configuration_change_format_should_change_format(void)
     free(configuration);
 }
 
+static void configuration_change_case_sensitivity_should_change_case_sensitivity(void)
+{
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    configuration = (internal_configuration*)cJSON_ConfigurationChangeCaseSensitivity(configuration, false);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_FALSE_MESSAGE(configuration->case_sensitive, "Didn't set the case sensitivity correctly.");
+
+    free(configuration);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -197,6 +210,7 @@ int main(void)
     RUN_TEST(configuration_change_prebuffer_size_should_change_buffer_size);
     RUN_TEST(configuration_change_prebuffer_size_should_not_allow_empty_sizes);
     RUN_TEST(configuration_change_format_should_change_format);
+    RUN_TEST(configuration_change_case_sensitivity_should_change_case_sensitivity);
 
     return UNITY_END();
 }

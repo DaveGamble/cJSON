@@ -185,6 +185,8 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_C
 typedef enum { CJSON_FORMAT_MINIFIED = 0, CJSON_FORMAT_DEFAULT = 1 } cJSON_Format;
 /* Change the format for printing */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeFormat(cJSON_Configuration configuration, cJSON_Format format);
+/* Change the case sensitivity */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeCaseSensitivity(cJSON_Configuration configuration, cJSON_bool case_sensitive);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
