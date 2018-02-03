@@ -2892,7 +2892,6 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
 CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const json, const cJSON_Allocators * const allocators, void *allocator_userdata)
 {
     internal_configuration *configuration = NULL;
-    cJSON *option = NULL;
     const cJSON_Allocators *local_allocators = &global_configuration.allocators;
 
     if (allocators != NULL)
@@ -2925,18 +2924,6 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
     {
         /* default configuration */
         return configuration;
-    }
-
-    /* then overwrite with other options if they exist */
-
-    option = get_object_item(json, "allow_data_after_json", &global_configuration);
-    if (cJSON_IsTrue(option))
-    {
-        configuration->allow_data_after_json = true;
-    }
-    else if (cJSON_IsFalse(option))
-    {
-        configuration->allow_data_after_json = false;
     }
 
     return (cJSON_Configuration)configuration;
@@ -3029,6 +3016,17 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeCaseSensitivity(cJSON
     }
 
     ((internal_configuration*)configuration)->case_sensitive = case_sensitive;
+    return configuration;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllowDataAfterJson(cJSON_Configuration configuration, cJSON_bool allow_data_after_json)
+{
+    if (configuration == NULL)
+    {
+        return NULL;
+    }
+
+    ((internal_configuration*)configuration)->allow_data_after_json = allow_data_after_json;
     return configuration;
 }
 

@@ -187,6 +187,8 @@ typedef enum { CJSON_FORMAT_MINIFIED = 0, CJSON_FORMAT_DEFAULT = 1 } cJSON_Forma
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeFormat(cJSON_Configuration configuration, cJSON_Format format);
 /* Change the case sensitivity */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeCaseSensitivity(cJSON_Configuration configuration, cJSON_bool case_sensitive);
+/* Change if data is allowed after the JSON */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllowDataAfterJson(cJSON_Configuration configuration, cJSON_bool allow_data_after_json);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
