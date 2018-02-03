@@ -30,43 +30,18 @@
 
 static void create_configuration_should_create_a_configuration(void)
 {
-    cJSON *json = NULL;
     internal_configuration *configuration = NULL;
-    int userdata = 1;
 
-    json = cJSON_Parse("{\"allow_data_after_json\":false}");
-    TEST_ASSERT_NOT_NULL(json);
-    configuration = (internal_configuration*)cJSON_CreateConfiguration(json, NULL, &userdata);
-    cJSON_Delete(json);
-    json = NULL;
+    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
     TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 256, "buffer_size has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->format, "format has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
-    TEST_ASSERT_TRUE_MESSAGE(configuration->userdata == &userdata, "Incorrect userdata");
-    TEST_ASSERT_TRUE_MESSAGE(global_allocate_wrapper == configuration->allocators.allocate, "Wrong malloc.");
-    TEST_ASSERT_TRUE_MESSAGE(global_reallocate_wrapper == configuration->allocators.reallocate, "Wrong realloc.");
-    TEST_ASSERT_TRUE_MESSAGE(global_deallocate_wrapper == configuration->allocators.deallocate, "Wrong realloc.");
-
-    free(configuration);
-}
-
-static void create_configuration_should_work_with_an_empty_object(void)
-{
-    internal_configuration *configuration = NULL;
-    int userdata = 1;
-
-    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, &userdata);
-    TEST_ASSERT_NOT_NULL(configuration);
-    TEST_ASSERT_EQUAL_MESSAGE(configuration->buffer_size, 256, "buffer_size has an incorrect value.");
-    TEST_ASSERT_TRUE_MESSAGE(configuration->format, "format has an incorrect value.");
-    TEST_ASSERT_TRUE_MESSAGE(configuration->case_sensitive, "case_sensitive has an incorrect value.");
-    TEST_ASSERT_TRUE_MESSAGE(configuration->allow_data_after_json, "allow_data_after_json has an incorrect value.");
-    TEST_ASSERT_TRUE_MESSAGE(configuration->userdata == &userdata, "Incorrect userdata");
-    TEST_ASSERT_TRUE_MESSAGE(global_allocate_wrapper == configuration->allocators.allocate, "Wrong malloc.");
-    TEST_ASSERT_TRUE_MESSAGE(global_reallocate_wrapper == configuration->allocators.reallocate, "Wrong realloc.");
-    TEST_ASSERT_TRUE_MESSAGE(global_deallocate_wrapper == configuration->allocators.deallocate, "Wrong free.");
+    TEST_ASSERT_NULL_MESSAGE(configuration->userdata, "Userdata should be NULL");
+    TEST_ASSERT_TRUE_MESSAGE(malloc_wrapper == configuration->allocators.allocate, "Wrong malloc.");
+    TEST_ASSERT_TRUE_MESSAGE(realloc_wrapper == configuration->allocators.reallocate, "Wrong realloc.");
+    TEST_ASSERT_TRUE_MESSAGE(free_wrapper == configuration->allocators.deallocate, "Wrong free.");
 
     free(configuration);
 }
@@ -88,14 +63,24 @@ static void create_configuration_should_take_custom_allocators(void)
     cJSON_Allocators allocators = {custom_allocator, custom_deallocator, NULL};
     size_t userdata = 0;
 
-    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, &allocators, &userdata);
+    configuration = (internal_configuration*)cJSON_CreateConfiguration(&allocators, &userdata);
     TEST_ASSERT_NOT_NULL(configuration);
     TEST_ASSERT_EQUAL_MESSAGE(userdata, sizeof(internal_configuration), "custom allocator wasn't run properly.");
-    TEST_ASSERT_TRUE_MESSAGE(custom_allocator == configuration->allocators.allocate, "Wrong allocator.");
-    TEST_ASSERT_TRUE_MESSAGE(custom_deallocator == configuration->allocators.deallocate, "Wrong deallocator.");
-    TEST_ASSERT_NULL_MESSAGE(configuration->allocators.reallocate, "Reallocator is not null");
+    TEST_ASSERT_TRUE_MESSAGE(global_default_configuration.allocators.allocate == configuration->allocators.allocate, "Wrong allocator.");
+    TEST_ASSERT_TRUE_MESSAGE(global_default_configuration.allocators.deallocate == configuration->allocators.deallocate, "Wrong deallocator.");
+    TEST_ASSERT_TRUE_MESSAGE(global_default_configuration.allocators.reallocate == configuration->allocators.reallocate, "Wrong reallocator.");
 
     custom_deallocator(configuration, &userdata);
+}
+
+static void create_configuration_should_not_take_incomplete_allocators(void)
+{
+    cJSON_Allocators allocators1 = {custom_allocator, NULL, NULL};
+    cJSON_Allocators allocators2 = {NULL, custom_deallocator, NULL};
+    size_t userdata = 0;
+
+    TEST_ASSERT_NULL(cJSON_CreateConfiguration(&allocators1, &userdata));
+    TEST_ASSERT_NULL(cJSON_CreateConfiguration(&allocators2, &userdata));
 }
 
 static void configuration_change_allocators_should_change_allocators(void)
@@ -104,7 +89,7 @@ static void configuration_change_allocators_should_change_allocators(void)
     cJSON_Allocators allocators = {custom_allocator, custom_deallocator, NULL};
     size_t userdata = 0;
 
-    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, &allocators, &userdata);
+    configuration = (internal_configuration*)cJSON_CreateConfiguration(&allocators, &userdata);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangeAllocators(configuration, allocators);
@@ -116,11 +101,26 @@ static void configuration_change_allocators_should_change_allocators(void)
     custom_deallocator(configuration, &userdata);
 }
 
+static void configuration_change_allocators_should_not_change_incomplete_allocators(void)
+{
+    internal_configuration *configuration = NULL;
+    cJSON_Allocators allocators1 = {custom_allocator, NULL, NULL};
+    cJSON_Allocators allocators2 = {NULL, custom_deallocator, NULL};
+
+    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
+    TEST_ASSERT_NOT_NULL(configuration);
+
+    TEST_ASSERT_NULL(cJSON_ConfigurationChangeAllocators(configuration, allocators1));
+    TEST_ASSERT_NULL(cJSON_ConfigurationChangeAllocators(configuration, allocators2));
+
+    free(configuration);
+}
+
 static void configuration_change_userdata_should_change_userdata(void)
 {
     internal_configuration *configuration = NULL;
     size_t userdata = 0;
-    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangeUserdata(configuration, &userdata);
@@ -132,7 +132,7 @@ static void configuration_change_userdata_should_change_userdata(void)
 static void configuration_change_parse_end_should_change_parse_end(void)
 {
     size_t end_position = 0;
-    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangeParseEnd(configuration, &end_position);
@@ -145,7 +145,7 @@ static void configuration_change_parse_end_should_change_parse_end(void)
 
 static void configuration_change_prebuffer_size_should_change_buffer_size(void)
 {
-    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangePrebufferSize(configuration, 1024);
@@ -158,7 +158,7 @@ static void configuration_change_prebuffer_size_should_change_buffer_size(void)
 
 static void configuration_change_prebuffer_size_should_not_allow_empty_sizes(void)
 {
-    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     TEST_ASSERT_NULL(cJSON_ConfigurationChangePrebufferSize(configuration, 0));
@@ -168,7 +168,7 @@ static void configuration_change_prebuffer_size_should_not_allow_empty_sizes(voi
 
 static void configuration_change_format_should_change_format(void)
 {
-    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangeFormat(configuration, CJSON_FORMAT_MINIFIED);
@@ -186,7 +186,7 @@ static void configuration_change_format_should_change_format(void)
 
 static void configuration_change_case_sensitivity_should_change_case_sensitivity(void)
 {
-    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangeCaseSensitivity(configuration, false);
@@ -199,7 +199,7 @@ static void configuration_change_case_sensitivity_should_change_case_sensitivity
 
 static void configuration_change_allow_data_after_json_should_change_allow_data_after_json(void)
 {
-    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL, NULL);
+    internal_configuration *configuration = (internal_configuration*)cJSON_CreateConfiguration(NULL, NULL);
     TEST_ASSERT_NOT_NULL(configuration);
 
     configuration = (internal_configuration*)cJSON_ConfigurationChangeAllowDataAfterJson(configuration, false);
@@ -215,9 +215,10 @@ int main(void)
     UNITY_BEGIN();
 
     RUN_TEST(create_configuration_should_create_a_configuration);
-    RUN_TEST(create_configuration_should_work_with_an_empty_object);
     RUN_TEST(create_configuration_should_take_custom_allocators);
+    RUN_TEST(create_configuration_should_not_take_incomplete_allocators);
     RUN_TEST(configuration_change_allocators_should_change_allocators);
+    RUN_TEST(configuration_change_allocators_should_not_change_incomplete_allocators);
     RUN_TEST(configuration_change_userdata_should_change_userdata);
     RUN_TEST(configuration_change_parse_end_should_change_parse_end);
     RUN_TEST(configuration_change_prebuffer_size_should_change_buffer_size);

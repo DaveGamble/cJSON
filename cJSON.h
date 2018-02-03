@@ -141,39 +141,19 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 
-/* Create a configuration object that can be passed to several functions
- * to configure their behavior.
- * A configuration is given in JSON form (case sensitive) and can optionally contain any
- * of the following options:
- * - buffer_size: number of bytes that the printbuffer should be initially
- * - format: boolean that indicates if the output should be formatted
- * - case_sensitive: boolean that indicates if object keys should be considered case_sensitive
- * - allow_data_after_json: boolean that indicates if parsing succeeds if the JSON in the
- *                          input is followed by non JSON data
- *
- *
- * If NULL is passed to a function that expects an object of type cJSON_Configuration,
- * the following default configuration is used:
- * {
- *  "format": true,
- *  "case_sensitive": true,
- *  "allow_data_after_json": true
- * }
+/*
+ * Create a configuration object that can be passed to several functions
+ * to configure their behavior. It will be set to the default values initially, they
+ * can be changed later.
  *
  * A cJSON_Configuration object is dynamically allocated and you are responsible to free it
  * after use.
  *
- * If allocators is a NULL pointer, the global default allocators are used (the one that is set
- * by cJSON_InitHooks, malloc/free by default).
- * The allocator is automatically attached to the configuration, so it will be used by functions
- * that the configuration is passed to. This can be changed later with
- * cJSON_ConfigurationChangeAllocator.
+ * If allocators is a NULL pointer, malloc and free are used.
  *
- * allocator_userdata can be used to pass custom data to your allocator. It also gets attached to
- * the configuration automatically. This can later be changed with
- * cJSON_ConfigurationChangeUserdata.
+ * allocator_userdata can be used to pass custom data to your allocator (e.g. for pool allocators).
  * */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const json, const cJSON_Allocators * const allocators, void *allocator_userdata);
+CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocators * const allocators, void *allocator_userdata);
 /* Change the allocators of a cJSON_Configuration and reset the userdata */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators);
 /* Change the allocator userdata attached to a cJSON_Configuration */
