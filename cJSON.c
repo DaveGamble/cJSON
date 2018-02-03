@@ -151,20 +151,32 @@ static cJSON_Hooks global_allocators = {
 };
 
 /* wrappers around global old style allocators */
-static void *global_allocate_wrapper(size_t size, void *userdata)
+static void *global_allocate(size_t size, void *userdata)
 {
     (void)userdata;
     return global_allocators.malloc_fn(size);
 }
-static void *global_reallocate_wrapper(void *pointer, size_t size, void *userdata)
+static void global_deallocate(void *pointer, void *userdata)
+{
+    (void)userdata;
+    free(pointer);
+}
+
+/* wrappers around standard allocators */
+static void *malloc_wrapper(size_t size, void *userdata)
+{
+    (void)userdata;
+    return malloc(size);
+}
+static void *realloc_wrapper(void *pointer, size_t size, void *userdata)
 {
     (void)userdata;
     return realloc(pointer, size);
 }
-static void global_deallocate_wrapper(void *pointer, void *userdata)
+static void free_wrapper(void *pointer, void *userdata)
 {
     (void)userdata;
-    global_allocators.free_fn(pointer);
+    free(pointer);
 }
 
 /* helpers to allocate memory from a configuration */
@@ -187,9 +199,9 @@ static void deallocate(const internal_configuration * const configuration, void 
     true, /* allow data after the JSON by default */\
     true, /* case sensitive by default */\
     {\
-        global_allocate_wrapper,\
-        global_deallocate_wrapper,\
-        global_reallocate_wrapper\
+        malloc_wrapper,\
+        free_wrapper,\
+        realloc_wrapper\
     },\
     NULL, /* no userdata */\
     NULL /* no end position */\
@@ -223,17 +235,12 @@ static unsigned char* custom_strdup(const unsigned char* string, const internal_
 
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 {
-    /* set the wrappers in the global configuration */
-    global_configuration.userdata = NULL;
-    global_configuration.allocators.allocate = global_allocate_wrapper;
-    global_configuration.allocators.deallocate = global_deallocate_wrapper;
-    global_configuration.allocators.reallocate = global_reallocate_wrapper;
-
     if (hooks == NULL)
     {
-        /* reset global allocators */
-        global_allocators.malloc_fn = internal_malloc;
-        global_allocators.free_fn = internal_free;
+        /* reset global configuration */
+        global_configuration.allocators.allocate = malloc_wrapper;
+        global_configuration.allocators.deallocate = free_wrapper;
+        global_configuration.allocators.reallocate = realloc_wrapper;
 
         return;
     }
@@ -250,12 +257,10 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
         global_allocators.free_fn = hooks->free_fn;
     }
 
-    /* use realloc only if both free and malloc are used */
+    /* set the wrappers in the global configuration */
+    global_configuration.allocators.allocate = global_allocate;
+    global_configuration.allocators.deallocate = global_deallocate;
     global_configuration.allocators.reallocate = NULL;
-    if ((hooks->malloc_fn == malloc) && (hooks->free_fn == free))
-    {
-        global_configuration.allocators.reallocate = global_reallocate_wrapper;
-    }
 }
 
 /* Internal constructor. */
@@ -2890,7 +2895,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
-CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const json, const cJSON_Allocators * const allocators, void *allocator_userdata)
+CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocators * const allocators, void *allocator_userdata)
 {
     internal_configuration *configuration = NULL;
     const cJSON_Allocators *local_allocators = &global_configuration.allocators;
@@ -2899,15 +2904,10 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
     {
         if ((allocators->allocate == NULL) || (allocators->deallocate == NULL))
         {
-            goto fail;
+            return NULL;
         }
 
         local_allocators = allocators;
-    }
-
-    if ((json != NULL) && !cJSON_IsObject(json))
-    {
-        goto fail;
     }
 
     configuration = (internal_configuration*)local_allocators->allocate(sizeof(internal_configuration), allocator_userdata);
@@ -2918,14 +2918,6 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
 
     /* initialize with the default */
     *configuration = global_default_configuration;
-    configuration->userdata = allocator_userdata;
-    configuration->allocators = *local_allocators;
-
-    if (json == NULL)
-    {
-        /* default configuration */
-        return configuration;
-    }
 
     return (cJSON_Configuration)configuration;
 
