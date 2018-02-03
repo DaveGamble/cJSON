@@ -44,10 +44,10 @@ static void assert_is_array(cJSON *array_item)
 
 static void assert_not_array(const char *json)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
+    parse_buffer buffer = { 0, 0, 0, 0, default_context };
     buffer.content = (const unsigned char*)json;
     buffer.length = strlen(json) + sizeof("");
-    buffer.configuration = global_configuration;
+    buffer.context = global_context;
 
     TEST_ASSERT_FALSE(parse_array(item, &buffer));
     assert_is_invalid(item);
@@ -55,10 +55,10 @@ static void assert_not_array(const char *json)
 
 static void assert_parse_array(const char *json)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
+    parse_buffer buffer = { 0, 0, 0, 0, default_context };
     buffer.content = (const unsigned char*)json;
     buffer.length = strlen(json) + sizeof("");
-    buffer.configuration = global_configuration;
+    buffer.context = global_context;
 
     TEST_ASSERT_TRUE(parse_array(item, &buffer));
     assert_is_array(item);

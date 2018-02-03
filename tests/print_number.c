@@ -28,12 +28,12 @@ static void assert_print_number(const char *expected, double input)
 {
     unsigned char printed[1024];
     cJSON item[1];
-    printbuffer buffer = { 0, 0, 0, 0, 0, default_configuration };
+    printbuffer buffer = { 0, 0, 0, 0, 0, default_context };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
-    buffer.configuration = global_configuration;
+    buffer.context = global_context;
 
     memset(item, 0, sizeof(item));
     cJSON_SetNumberValue(item, input);

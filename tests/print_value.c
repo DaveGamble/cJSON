@@ -32,18 +32,18 @@ static void assert_print_value(const char *input)
 {
     unsigned char printed[1024];
     cJSON item[1];
-    printbuffer buffer = { 0, 0, 0, 0, 0, default_configuration };
-    parse_buffer parsebuffer = { 0, 0, 0, 0, default_configuration };
+    printbuffer buffer = { 0, 0, 0, 0, 0, default_context };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, default_context };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
-    buffer.configuration = global_configuration;
-    buffer.configuration.format = false;
+    buffer.context = global_context;
+    buffer.context.format = false;
 
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.configuration = global_configuration;
+    parsebuffer.context = global_context;
 
     memset(item, 0, sizeof(item));
 

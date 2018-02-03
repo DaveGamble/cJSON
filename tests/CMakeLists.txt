@@ -57,7 +57,7 @@ if(ENABLE_CJSON_TEST)
         compare_tests
         cjson_add
         readme_examples
-        configuration_tests
+        context_tests
     )
 
     option(ENABLE_VALGRIND OFF "Enable the valgrind memory checker for the tests.")

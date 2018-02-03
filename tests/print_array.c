@@ -31,36 +31,36 @@ static void assert_print_array(const char * const expected, const char * const i
 
     cJSON item[1];
 
-    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, default_configuration };
-    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, default_configuration };
+    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, default_context };
+    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, default_context };
 
-    parse_buffer parsebuffer = { 0, 0, 0, 0, default_configuration };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, default_context };
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.configuration = global_configuration;
+    parsebuffer.context = global_context;
 
     /* buffer for formatted printing */
     formatted_buffer.buffer = printed_formatted;
     formatted_buffer.length = sizeof(printed_formatted);
     formatted_buffer.offset = 0;
     formatted_buffer.noalloc = true;
-    formatted_buffer.configuration = global_configuration;
+    formatted_buffer.context = global_context;
 
     /* buffer for unformatted printing */
     unformatted_buffer.buffer = printed_unformatted;
     unformatted_buffer.length = sizeof(printed_unformatted);
     unformatted_buffer.offset = 0;
     unformatted_buffer.noalloc = true;
-    unformatted_buffer.configuration = global_configuration;
+    unformatted_buffer.context = global_context;
 
     memset(item, 0, sizeof(item));
     TEST_ASSERT_TRUE_MESSAGE(parse_array(item, &parsebuffer), "Failed to parse array.");
 
-    unformatted_buffer.configuration.format = false;
+    unformatted_buffer.context.format = false;
     TEST_ASSERT_TRUE_MESSAGE(print_array(item, &unformatted_buffer), "Failed to print unformatted string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input, printed_unformatted, "Unformatted array is not correct.");
 
-    formatted_buffer.configuration.format = true;
+    formatted_buffer.context.format = true;
     TEST_ASSERT_TRUE_MESSAGE(print_array(item, &formatted_buffer), "Failed to print formatted string.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed_formatted, "Formatted array is not correct.");
 

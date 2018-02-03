@@ -87,7 +87,6 @@ typedef struct cJSON_Allocators
 } cJSON_Allocators;
 
 typedef int cJSON_bool;
-typedef void* cJSON_Configuration;
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 #define __WINDOWS__
@@ -141,36 +140,40 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 
+typedef void* cJSON_Context;
 /*
- * Create a configuration object that can be passed to several functions
- * to configure their behavior. It will be set to the default values initially, they
- * can be changed later.
+ * Create a context object that can be passed to several functions
+ * to configure their behavior and/or take their output. It will be set to the default values
+ * initially, they can be changed later using the builder pattern by passing it to functions
+ * that change one setting.
  *
- * A cJSON_Configuration object is dynamically allocated and you are responsible to free it
+ * A cJSON_Context object is dynamically allocated and you are responsible to free it
  * after use.
  *
  * If allocators is a NULL pointer, malloc and free are used.
  *
  * allocator_userdata can be used to pass custom data to your allocator (e.g. for pool allocators).
  * */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocators * const allocators, void *allocator_userdata);
-/* Create a copy of an existing configuration */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_DuplicateConfiguration(const cJSON_Configuration, const cJSON_Allocators * const allocators, void *allocator_userdata);
-/* Change the allocators of a cJSON_Configuration and reset the userdata */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators);
-/* Change the allocator userdata attached to a cJSON_Configuration */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Configuration configuration, void *userdata);
+CJSON_PUBLIC(cJSON_Context) cJSON_CreateContext(const cJSON_Allocators * const allocators, void *allocator_userdata);
+/* Create a copy of an existing context */
+CJSON_PUBLIC(cJSON_Context) cJSON_DuplicateContext(const cJSON_Context, const cJSON_Allocators * const allocators, void *allocator_userdata);
+
+/* The following functions work on a context in order to set and retrieve data: */
+/* Change the allocators of a cJSON_Context and reset the userdata */
+CJSON_PUBLIC(cJSON_Context) cJSON_SetAllocators(cJSON_Context context, const cJSON_Allocators allocators);
+/* Change the allocator userdata attached to a cJSON_Context */
+CJSON_PUBLIC(cJSON_Context) cJSON_SetUserdata(cJSON_Context context, void *userdata);
 /* Get the position relative to the JSON where the parser stopped, return 0 if invalid. */
-CJSON_PUBLIC(size_t) cJSON_ConfigurationGetParseEnd(cJSON_Configuration configuration);
+CJSON_PUBLIC(size_t) cJSON_GetParseEnd(cJSON_Context context);
 /* Set how many bytes should be initially allocated for printing */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_Configuration configuration, const size_t buffer_size);
+CJSON_PUBLIC(cJSON_Context) cJSON_SetPrebufferSize(cJSON_Context context, const size_t buffer_size);
 typedef enum { CJSON_FORMAT_MINIFIED = 0, CJSON_FORMAT_DEFAULT = 1 } cJSON_Format;
 /* Change the format for printing */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeFormat(cJSON_Configuration configuration, cJSON_Format format);
+CJSON_PUBLIC(cJSON_Context) cJSON_SetFormat(cJSON_Context context, cJSON_Format format);
 /* Change the case sensitivity */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeCaseSensitivity(cJSON_Configuration configuration, cJSON_bool case_sensitive);
+CJSON_PUBLIC(cJSON_Context) cJSON_MakeCaseSensitive(cJSON_Context context, cJSON_bool case_sensitive);
 /* Change if data is allowed after the JSON */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllowDataAfterJson(cJSON_Configuration configuration, cJSON_bool allow_data_after_json);
+CJSON_PUBLIC(cJSON_Context) cJSON_AllowDataAfterJson(cJSON_Context context, cJSON_bool allow_data_after_json);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
