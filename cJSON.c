@@ -2929,16 +2929,6 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
 
     /* then overwrite with other options if they exist */
 
-    option = get_object_item(json, "case_sensitive", &global_configuration);
-    if (cJSON_IsTrue(option))
-    {
-        configuration->case_sensitive = true;
-    }
-    else if (cJSON_IsFalse(option))
-    {
-        configuration->case_sensitive = false;
-    }
-
     option = get_object_item(json, "allow_data_after_json", &global_configuration);
     if (cJSON_IsTrue(option))
     {
@@ -3028,6 +3018,17 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeFormat(cJSON_Configur
             return NULL;
     }
 
+    return configuration;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeCaseSensitivity(cJSON_Configuration configuration, cJSON_bool case_sensitive)
+{
+    if (configuration == NULL)
+    {
+        return NULL;
+    }
+
+    ((internal_configuration*)configuration)->case_sensitive = case_sensitive;
     return configuration;
 }
 
