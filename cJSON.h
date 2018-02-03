@@ -158,8 +158,8 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON_Allocato
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Configuration configuration, const cJSON_Allocators allocators);
 /* Change the allocator userdata attached to a cJSON_Configuration */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Configuration configuration, void *userdata);
-/* Change the pointer where the end of parsing is written to */
-CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeParseEnd(cJSON_Configuration configuration, size_t * const parse_end);
+/* Get the position relative to the JSON where the parser stopped, return 0 if invalid. */
+CJSON_PUBLIC(size_t) cJSON_ConfigurationGetParseEnd(cJSON_Configuration configuration);
 /* Set how many bytes should be initially allocated for printing */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_Configuration configuration, const size_t buffer_size);
 typedef enum { CJSON_FORMAT_MINIFIED = 0, CJSON_FORMAT_DEFAULT = 1 } cJSON_Format;
