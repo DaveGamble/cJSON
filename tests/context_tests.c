@@ -39,6 +39,7 @@ static void create_context_should_create_a_context(void)
     TEST_ASSERT_TRUE_MESSAGE(context->case_sensitive, "case_sensitive has an incorrect value.");
     TEST_ASSERT_TRUE_MESSAGE(context->allow_data_after_json, "allow_data_after_json has an incorrect value.");
     TEST_ASSERT_NULL_MESSAGE(context->userdata, "Userdata should be NULL");
+    TEST_ASSERT_TRUE_MESSAGE(context->duplicate_recursive, "Duplicating is not recursive.");
     TEST_ASSERT_TRUE_MESSAGE(malloc_wrapper == context->allocators.allocate, "Wrong malloc.");
     TEST_ASSERT_TRUE_MESSAGE(realloc_wrapper == context->allocators.reallocate, "Wrong realloc.");
     TEST_ASSERT_TRUE_MESSAGE(free_wrapper == context->allocators.deallocate, "Wrong free.");

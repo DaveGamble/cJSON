@@ -122,6 +122,7 @@ typedef struct internal_context
     cJSON_bool format;
     cJSON_bool allow_data_after_json;
     cJSON_bool case_sensitive;
+    cJSON_bool duplicate_recursive;
     cJSON_Allocators allocators;
     void *userdata;
     size_t end_position;
@@ -196,6 +197,7 @@ static void deallocate(const internal_context * const context, void *pointer)
     true, /* enable formatting by default */\
     true, /* allow data after the JSON by default */\
     true, /* case sensitive by default */\
+    true, /* Do cJSON_Duplicate recursively by default */\
     {\
         malloc_wrapper,\
         free_wrapper,\
@@ -2637,56 +2639,60 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char **strings, int count)
     return a;
 }
 
-/* Duplication */
-CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
+static cJSON *duplicate_json(const cJSON *item, const internal_context * const context)
 {
     cJSON *newitem = NULL;
     cJSON *child = NULL;
     cJSON *next = NULL;
     cJSON *newchild = NULL;
 
-    /* Bail on bad ptr */
-    if (!item)
+    if (item == NULL)
     {
         goto fail;
     }
-    /* Create new item */
-    newitem = create_item(&global_context);
-    if (!newitem)
+
+    newitem = create_item(context);
+    if (newitem == NULL)
     {
         goto fail;
     }
+
     /* Copy over all vars */
     newitem->type = item->type & (~cJSON_IsReference);
     newitem->valueint = item->valueint;
     newitem->valuedouble = item->valuedouble;
-    if (item->valuestring)
+
+    if (item->valuestring != NULL)
     {
-        newitem->valuestring = (char*)custom_strdup((unsigned char*)item->valuestring, &global_context);
-        if (!newitem->valuestring)
+        newitem->valuestring = (char*)custom_strdup((unsigned char*)item->valuestring, context);
+        if (newitem->valuestring == NULL)
         {
             goto fail;
         }
     }
-    if (item->string)
+
+    if (item->string != NULL)
     {
-        newitem->string = (item->type&cJSON_StringIsConst) ? item->string : (char*)custom_strdup((unsigned char*)item->string, &global_context);
+        newitem->string = (item->type&cJSON_StringIsConst) ? item->string : (char*)custom_strdup((unsigned char*)item->string, context);
         if (!newitem->string)
         {
             goto fail;
         }
     }
+
     /* If non-recursive, then we're done! */
-    if (!recurse)
+    if (!context->duplicate_recursive)
     {
         return newitem;
     }
+
     /* Walk the ->next chain for the child. */
     child = item->child;
     while (child != NULL)
     {
-        newchild = cJSON_Duplicate(child, true); /* Duplicate (with recurse) each item in the ->next chain */
-        if (!newchild)
+        /* Each item in the ->next chain */
+        newchild = duplicate_json(child, context);
+        if (newchild == NULL)
         {
             goto fail;
         }
@@ -2711,10 +2717,17 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
 fail:
     if (newitem != NULL)
     {
-        delete_item(newitem, &global_context);
+        delete_item(newitem, context);
     }
 
     return NULL;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
+{
+    internal_context context = global_context;
+    context.duplicate_recursive = recurse;
+    return duplicate_json(item, &context);
 }
 
 CJSON_PUBLIC(void) cJSON_Minify(char *json)

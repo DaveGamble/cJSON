@@ -419,7 +419,7 @@ static void *failing_realloc(void *pointer, size_t size, void *userdata)
 
 static void ensure_should_fail_on_failed_realloc(void)
 {
-    printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, true, true, {malloc_wrapper, free_wrapper, failing_realloc}, NULL, 0 } };
+    printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, true, true, true, {malloc_wrapper, free_wrapper, failing_realloc}, NULL, 0 } };
     buffer.context.userdata = &buffer;
     buffer.buffer = (unsigned char*)malloc(100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
