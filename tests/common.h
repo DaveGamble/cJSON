@@ -33,11 +33,11 @@ void reset(cJSON *item) {
     }
     if ((item->valuestring != NULL) && !(item->type & cJSON_IsReference))
     {
-        global_configuration.allocators.deallocate(item->valuestring, global_configuration.userdata);
+        global_context.allocators.deallocate(item->valuestring, global_context.userdata);
     }
     if ((item->string != NULL) && !(item->type & cJSON_StringIsConst))
     {
-        global_configuration.allocators.deallocate(item->string, global_configuration.userdata);
+        global_context.allocators.deallocate(item->string, global_context.userdata);
     }
 
     memset(item, 0, sizeof(cJSON));

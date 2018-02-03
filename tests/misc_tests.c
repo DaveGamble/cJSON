@@ -420,7 +420,7 @@ static void *failing_realloc(void *pointer, size_t size, void *userdata)
 static void ensure_should_fail_on_failed_realloc(void)
 {
     printbuffer buffer = {NULL, 10, 0, 0, false, {256, false, true, true, {malloc_wrapper, free_wrapper, failing_realloc}, NULL, 0 } };
-    buffer.configuration.userdata = &buffer;
+    buffer.context.userdata = &buffer;
     buffer.buffer = (unsigned char*)malloc(100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
 
@@ -430,10 +430,10 @@ static void ensure_should_fail_on_failed_realloc(void)
 static void skip_utf8_bom_should_skip_bom(void)
 {
     const unsigned char string[] = "\xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
+    parse_buffer buffer = { 0, 0, 0, 0, default_context };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.configuration = global_configuration;
+    buffer.context = global_context;
 
     TEST_ASSERT_TRUE(skip_utf8_bom(&buffer) == &buffer);
     TEST_ASSERT_EQUAL_UINT(3U, (unsigned int)buffer.offset);
@@ -442,10 +442,10 @@ static void skip_utf8_bom_should_skip_bom(void)
 static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
 {
     const unsigned char string[] = " \xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, default_configuration };
+    parse_buffer buffer = { 0, 0, 0, 0, default_context };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.configuration = global_configuration;
+    buffer.context = global_context;
     buffer.offset = 1;
 
     TEST_ASSERT_NULL(skip_utf8_bom(&buffer));
@@ -513,7 +513,7 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
 {
     cJSON *object = cJSON_CreateObject();
     cJSON *number = cJSON_CreateNumber(42);
-    char *name = (char*)custom_strdup((const unsigned char*)"number", &global_configuration);
+    char *name = (char*)custom_strdup((const unsigned char*)"number", &global_context);
 
     TEST_ASSERT_NOT_NULL(object);
     TEST_ASSERT_NOT_NULL(number);
