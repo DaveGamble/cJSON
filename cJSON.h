@@ -174,6 +174,8 @@ CJSON_PUBLIC(cJSON_Context) cJSON_SetFormat(cJSON_Context context, cJSON_Format 
 CJSON_PUBLIC(cJSON_Context) cJSON_MakeCaseSensitive(cJSON_Context context, cJSON_bool case_sensitive);
 /* Change if data is allowed after the JSON */
 CJSON_PUBLIC(cJSON_Context) cJSON_AllowDataAfterJson(cJSON_Context context, cJSON_bool allow_data_after_json);
+/* Change if cJSON_Duplicate copies recursively */
+CJSON_PUBLIC(cJSON_Context) cJSON_MakeDuplicateRecursive(cJSON_Context context, cJSON_bool recursive);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);

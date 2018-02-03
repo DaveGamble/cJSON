@@ -241,6 +241,18 @@ static void allow_data_after_json_should_change_allow_data_after_json(void)
     free(context);
 }
 
+static void make_duplicate_recursive_should_make_duplicate_recursive(void)
+{
+    internal_context *context = (internal_context*)cJSON_CreateContext(NULL, NULL);
+    TEST_ASSERT_NOT_NULL(context);
+
+    context = (internal_context*)cJSON_MakeDuplicateRecursive(context, false);
+    TEST_ASSERT_NOT_NULL(context);
+    TEST_ASSERT_FALSE_MESSAGE(context->duplicate_recursive, "Duplicating is not set correctly.");
+
+    free(context);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -260,6 +272,7 @@ int main(void)
     RUN_TEST(set_format_should_set_format);
     RUN_TEST(make_case_sensitive_should_change_case_sensitivity);
     RUN_TEST(allow_data_after_json_should_change_allow_data_after_json);
+    RUN_TEST(make_duplicate_recursive_should_make_duplicate_recursive);
 
     return UNITY_END();
 }

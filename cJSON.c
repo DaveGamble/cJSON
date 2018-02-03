@@ -3023,6 +3023,17 @@ CJSON_PUBLIC(cJSON_Context) cJSON_AllowDataAfterJson(cJSON_Context context, cJSO
     return context;
 }
 
+CJSON_PUBLIC(cJSON_Context) cJSON_MakeDuplicateRecursive(cJSON_Context context, cJSON_bool recursive)
+{
+    if (context == NULL)
+    {
+        return NULL;
+    }
+
+    ((internal_context*)context)->duplicate_recursive = recursive;
+    return context;
+}
+
 static cJSON_bool compare(const cJSON * const a, const cJSON * const b, const internal_context * const context)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)) || cJSON_IsInvalid(a))
