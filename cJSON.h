@@ -182,6 +182,9 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Config
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeParseEnd(cJSON_Configuration configuration, size_t * const parse_end);
 /* Set how many bytes should be initially allocated for printing */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_Configuration configuration, const size_t buffer_size);
+typedef enum { CJSON_FORMAT_MINIFIED = 0, CJSON_FORMAT_DEFAULT = 1 } cJSON_Format;
+/* Change the format for printing */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeFormat(cJSON_Configuration configuration, cJSON_Format format);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
