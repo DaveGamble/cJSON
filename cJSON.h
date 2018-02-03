@@ -155,7 +155,6 @@ CJSON_PUBLIC(const char*) cJSON_Version(void);
  * If NULL is passed to a function that expects an object of type cJSON_Configuration,
  * the following default configuration is used:
  * {
- *  "buffer_size": 256,
  *  "format": true,
  *  "case_sensitive": true,
  *  "allow_data_after_json": true
@@ -181,6 +180,8 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeAllocators(cJSON_Conf
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeUserdata(cJSON_Configuration configuration, void *userdata);
 /* Change the pointer where the end of parsing is written to */
 CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeParseEnd(cJSON_Configuration configuration, size_t * const parse_end);
+/* Set how many bytes should be initially allocated for printing */
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_Configuration configuration, const size_t buffer_size);
 
 /* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);

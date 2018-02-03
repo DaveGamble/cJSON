@@ -60,10 +60,6 @@
 #define true ((cJSON_bool)1)
 #define false ((cJSON_bool)0)
 
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t)-1)
-#endif
-
 typedef struct {
     const unsigned char *json;
     size_t position;
@@ -2893,21 +2889,6 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
-static size_t get_size_from_number(const cJSON * const number)
-{
-    if (number->valuedouble >= SIZE_MAX)
-    {
-        return SIZE_MAX;
-    }
-
-    if (number->valuedouble <= 0)
-    {
-        return 0;
-    }
-
-    return (size_t)number->valuedouble;
-}
-
 CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const json, const cJSON_Allocators * const allocators, void *allocator_userdata)
 {
     internal_configuration *configuration = NULL;
@@ -2947,12 +2928,6 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_CreateConfiguration(const cJSON * const 
     }
 
     /* then overwrite with other options if they exist */
-
-    option = get_object_item(json, "buffer_size", &global_configuration);
-    if (cJSON_IsNumber(option))
-    {
-        configuration->buffer_size = get_size_from_number(option);
-    }
 
     option = get_object_item(json, "format", &global_configuration);
     if (cJSON_IsTrue(option))
@@ -3028,6 +3003,17 @@ CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangeParseEnd(cJSON_Config
     }
 
     ((internal_configuration*)configuration)->end_position = parse_end;
+    return configuration;
+}
+
+CJSON_PUBLIC(cJSON_Configuration) cJSON_ConfigurationChangePrebufferSize(cJSON_Configuration configuration, const size_t buffer_size)
+{
+    if ((configuration == NULL) || (buffer_size == 0))
+    {
+        return NULL;
+    }
+
+    ((internal_configuration*)configuration)->buffer_size = buffer_size;
     return configuration;
 }
 
