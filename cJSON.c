@@ -1038,6 +1038,7 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
        buffer->offset++;
     }
 
+    /* step back if we went over the end */
     if (buffer->offset == buffer->length)
     {
         buffer->offset--;
@@ -1063,7 +1064,7 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 }
 
 /* Parse an object - create a new root, and populate. */
-static cJSON *parse(const char * const json, internal_context * const context)
+static cJSON *parse(const char * const json, const size_t length, internal_context * const context)
 {
     parse_buffer buffer = { 0, 0, 0, 0, default_context };
     cJSON *item = NULL;
@@ -1078,7 +1079,7 @@ static cJSON *parse(const char * const json, internal_context * const context)
     }
 
     buffer.content = (const unsigned char*)json;
-    buffer.length = strlen(json) + sizeof("");
+    buffer.length = length;
     buffer.offset = 0;
     buffer.context = *context;
 
@@ -1113,7 +1114,6 @@ fail:
         delete_item(item, context);
     }
 
-    if (json != NULL)
     {
         error local_error;
         local_error.json = (const unsigned char*)json;
@@ -1141,8 +1141,13 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *json, const char **return_
     internal_context context = global_context;
     cJSON *item = NULL;
 
+    if (json == NULL)
+    {
+        return NULL;
+    }
+
     context.allow_data_after_json = !require_null_terminated;
-    item = parse(json, &context);
+    item = parse(json, strlen((const char*)json) + sizeof(""), &context);
 
     if (return_parse_end != NULL)
     {
@@ -1155,7 +1160,12 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *json, const char **return_
 /* Default options for cJSON_Parse */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *json)
 {
-    return parse(json, &global_context);
+    if (json == NULL)
+    {
+        return NULL;
+    }
+
+    return parse(json, strlen((const char*)json) + sizeof(""), &global_context);
 }
 
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
