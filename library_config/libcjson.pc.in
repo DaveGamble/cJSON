@@ -1,6 +1,6 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/lib
-includedir=${prefix}/include
+includedir=${prefix}/include/cjson
 
 Name: libcjson
 Version: @version@
