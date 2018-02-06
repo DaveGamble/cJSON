@@ -1,9 +1,8 @@
-prefix=@prefix@
-libdir=${prefix}/@libdir@
-includedir=${prefix}/@includedir@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: libcjson
-Version: @version@
+Version: @PROJECT_VERSION@
 Description: Ultralightweight JSON parser in ANSI C
 URL: https://github.com/DaveGamble/cJSON
 Libs: -L${libdir} -lcjson

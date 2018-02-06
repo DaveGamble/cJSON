@@ -107,12 +107,6 @@ endforeach()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${supported_compiler_flags}")
 
-#variables for pkg-config
-set(prefix "${CMAKE_INSTALL_PREFIX}")
-set(libdir "${CMAKE_INSTALL_LIBDIR}")
-set(version "${PROJECT_VERSION}")
-set(includedir "${CMAKE_INSTALL_INCLUDEDIR}")
-
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(ENABLE_TARGET_EXPORT "Enable exporting of CMake targets. Disable when it causes problems!" ON)
 
@@ -149,15 +143,15 @@ endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
 
-install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-install(TARGETS "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_LIB}")
+install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/cjson")
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
+install(TARGETS "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}" EXPORT "${CJSON_LIB}")
 if (BUILD_SHARED_AND_STATIC_LIBS)
-    install(TARGETS "${CJSON_LIB}-static" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(TARGETS "${CJSON_LIB}-static" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 if(ENABLE_TARGET_EXPORT)
     # export library information for CMake projects
-    install(EXPORT "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
+    install(EXPORT "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
 endif()
 
 set_target_properties("${CJSON_LIB}"
@@ -188,15 +182,15 @@ if(ENABLE_CJSON_UTILS)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson_utils.pc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" @ONLY)
 
-    install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}" EXPORT "${CJSON_UTILS_LIB}")
+    install(TARGETS "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}" EXPORT "${CJSON_UTILS_LIB}")
     if (BUILD_SHARED_AND_STATIC_LIBS)
-        install(TARGETS "${CJSON_UTILS_LIB}-static" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+        install(TARGETS "${CJSON_UTILS_LIB}-static" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}")
     endif()
-    install(FILES cJSON_Utils.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cjson")
-    install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    install(FILES cJSON_Utils.h DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/cjson")
+    install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson_utils.pc" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
     if(ENABLE_TARGET_EXPORT)
       # export library information for CMake projects
-      install(EXPORT "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
+      install(EXPORT "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
     endif()
 
     set_target_properties("${CJSON_UTILS_LIB}"
@@ -216,7 +210,7 @@ configure_file(
 # Install package config files
 install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
     ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cJSON")
+    DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)

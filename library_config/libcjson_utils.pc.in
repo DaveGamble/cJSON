@@ -1,9 +1,8 @@
-prefix=@prefix@
-libdir=${prefix}/@libdir@
-includedir=${prefix}/@includedir@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: libcjson_utils
-Version: @version@
+Version: @PROJECT_VERSION@
 Description: An implementation of JSON Pointer, Patch and Merge Patch based on cJSON.
 URL: https://github.com/DaveGamble/cJSON
 Libs: -L${libdir} -lcjson_utils
