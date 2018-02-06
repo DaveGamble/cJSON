@@ -1,3 +1,9 @@
+1.7.2
+=====
+Fixes:
+------
+* Fix the use of GNUInstallDirs variables and the pkgconfig file. Thanks @zeerd for reporting (see #240)
+
 1.7.1
 =====
 Fixes:
