@@ -42,6 +42,7 @@ if(ENABLE_CJSON_TEST)
     set(unity_tests
         parse_examples
         parse_number
+        parse_memory
         parse_hex4
         parse_string
         parse_array
