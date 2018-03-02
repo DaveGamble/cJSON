@@ -1,4 +1,10 @@
-1.7.2
+1.7.4
+=====
+Fixes:
+------
+* Fix potential use after free if the `string` parameter to `cJSON_AddItemToObject` is an alias of the `string` property of the object that is added (#248). Thanks @hhallen for reporting.
+
+1.7.3
 =====
 Fixes:
 ------
