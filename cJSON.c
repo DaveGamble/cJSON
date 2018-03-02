@@ -1895,9 +1895,28 @@ static void* cast_away_const(const void* string)
 
 static cJSON_bool add_item_to_object(cJSON * const object, const char * const string, cJSON * const item, const internal_hooks * const hooks, const cJSON_bool constant_key)
 {
+    char *new_key = NULL;
+    int new_type = cJSON_Invalid;
+
     if ((object == NULL) || (string == NULL) || (item == NULL))
     {
         return false;
+    }
+
+    if (constant_key)
+    {
+        new_key = (char*)cast_away_const(string);
+        new_type = item->type | cJSON_StringIsConst;
+    }
+    else
+    {
+        new_key = (char*)cJSON_strdup((const unsigned char*)string, hooks);
+        if (new_key == NULL)
+        {
+            return false;
+        }
+
+        new_type = item->type & ~cJSON_StringIsConst;
     }
 
     if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
@@ -1905,22 +1924,8 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
         hooks->deallocate(item->string);
     }
 
-    if (constant_key)
-    {
-        item->string = (char*)cast_away_const(string);
-        item->type |= cJSON_StringIsConst;
-    }
-    else
-    {
-        char *key = (char*)cJSON_strdup((const unsigned char*)string, hooks);
-        if (key == NULL)
-        {
-            return false;
-        }
-
-        item->string = key;
-        item->type &= ~cJSON_StringIsConst;
-    }
+    item->string = new_key;
+    item->type = new_type;
 
     return add_item_to_array(object, item);
 }
