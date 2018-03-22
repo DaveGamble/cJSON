@@ -1,3 +1,9 @@
+1.7.5
+=====
+Fixes:
+------
+* Fix a bug in the JSON Patch implementation of `cJSON Utils` (see #251), thanks @bobkocisko.
+
 1.7.4
 =====
 Fixes:
