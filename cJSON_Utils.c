@@ -988,6 +988,12 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
         cJSON_AddItemToObject(parent, (char*)child_pointer, value);
         value = NULL;
     }
+    else /* parent is not an object */
+    {
+        /* Couldn't find object to add to. */
+        status = 9;
+        goto cleanup;
+    }
 
 cleanup:
     if (value != NULL)

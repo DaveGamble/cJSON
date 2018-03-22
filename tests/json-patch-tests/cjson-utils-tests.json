@@ -80,5 +80,12 @@
 	"doc": { "foo": ["bar"] },
 	"patch": [ { "op": "add", "path": "/foo/-", "value": ["abc", "def"] }],
 	"expected": {"foo": ["bar", ["abc", "def"]] }
-    }
+    },
+
+    { 
+        "comment": "15",
+        "doc": {"foo": {"bar": 1}},
+        "patch": [{"op": "add", "path": "/foo/bar/baz", "value": "5"}],
+        "error": "attempting to add to subfield of non-object"
+    } 
 ]
