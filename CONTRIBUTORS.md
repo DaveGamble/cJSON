@@ -42,3 +42,5 @@ Current Maintainer: [Max Bruckner](https://github.com/FSMaxB)
 * [yangfl](https://github.com/yangfl)
 
 And probably more people on [SourceForge](https://sourceforge.net/p/cjson/bugs/search/?q=status%3Aclosed-rejected+or+status%3Aclosed-out-of-date+or+status%3Awont-fix+or+status%3Aclosed-fixed+or+status%3Aclosed&page=0)
+
+Also thanks to all the people who reported bugs and suggested new features.
