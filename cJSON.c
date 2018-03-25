@@ -1077,7 +1077,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
-#define cjson_min(a, b) ((a < b) ? a : b)
+#define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
 
 static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
 {
