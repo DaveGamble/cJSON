@@ -458,8 +458,8 @@ static void update_offset(printbuffer * const buffer)
     buffer->offset += strlen((const char*)buffer_pointer);
 }
 
-#define is_nan(number) (number != number)
-#define is_infinity(number) (!is_nan(number) && (number * 0) != 0)
+#define is_nan(number) ((number) != (number))
+#define is_infinity(number) (!is_nan(number) && ((number) * 0) != 0)
 
 /* Render the number nicely from the given item into a string. */
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
