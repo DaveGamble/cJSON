@@ -119,13 +119,13 @@ static int case_insensitive_strcmp(const unsigned char *string1, const unsigned 
 typedef struct internal_context
 {
     size_t buffer_size;
+    size_t end_position;
+    void *userdata;
+    cJSON_Allocators allocators;
     cJSON_bool format;
     cJSON_bool allow_data_after_json;
     cJSON_bool case_sensitive;
     cJSON_bool duplicate_recursive;
-    cJSON_Allocators allocators;
-    void *userdata;
-    size_t end_position;
 } internal_context;
 
 #if defined(_MSC_VER)
@@ -194,17 +194,17 @@ static void deallocate(const internal_context * const context, void *pointer)
 
 #define default_context {\
     256, /* default buffer size */\
-    true, /* enable formatting by default */\
-    true, /* allow data after the JSON by default */\
-    true, /* case sensitive by default */\
-    true, /* Do cJSON_Duplicate recursively by default */\
+    0, /* default end position */\
+    NULL, /* no userdata */\
     {\
         malloc_wrapper,\
         free_wrapper,\
         realloc_wrapper\
     },\
-    NULL, /* no userdata */\
-    0 /* default end position */\
+    true, /* enable formatting by default */\
+    true, /* allow data after the JSON by default */\
+    true, /* case sensitive by default */\
+    true /* Do cJSON_Duplicate recursively by default */\
 }
 
 /* this is necessary to assign the default context after initialization */
