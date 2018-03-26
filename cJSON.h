@@ -78,6 +78,14 @@ typedef struct cJSON_Hooks
       void (*free_fn)(void *ptr);
 } cJSON_Hooks;
 
+/* new style allocators with userdata (e.g. for pool allocators) */
+typedef struct cJSON_Allocators
+{
+    void *(*allocate)(size_t size, void *userdata);
+    void (*deallocate)(void *pointer, void *userdata);
+    void *(*reallocate)(void *pointer, size_t size, void *userdata); /* optional */
+} cJSON_Allocators;
+
 typedef int cJSON_bool;
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
@@ -132,22 +140,59 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 
-/* Supply malloc, realloc and free functions to cJSON */
+typedef void* cJSON_Context;
+/*
+ * Create a context object that can be passed to several functions
+ * to configure their behavior and/or take their output. It will be set to the default values
+ * initially, they can be changed later using the builder pattern by passing it to functions
+ * that change one setting.
+ *
+ * A cJSON_Context object is dynamically allocated and you are responsible to free it
+ * after use.
+ *
+ * If allocators is a NULL pointer, malloc and free are used.
+ *
+ * allocator_userdata can be used to pass custom data to your allocator (e.g. for pool allocators).
+ * */
+CJSON_PUBLIC(cJSON_Context) cJSON_CreateContext(const cJSON_Allocators * const allocators, void *allocator_userdata);
+/* Create a copy of an existing context */
+CJSON_PUBLIC(cJSON_Context) cJSON_DuplicateContext(const cJSON_Context, const cJSON_Allocators * const allocators, void *allocator_userdata);
+
+/* The following functions work on a context in order to set and retrieve data: */
+/* Change the allocators of a cJSON_Context and reset the userdata */
+CJSON_PUBLIC(cJSON_Context) cJSON_SetAllocators(cJSON_Context context, const cJSON_Allocators allocators);
+/* Change the allocator userdata attached to a cJSON_Context */
+CJSON_PUBLIC(cJSON_Context) cJSON_SetUserdata(cJSON_Context context, void *userdata);
+/* Get the position relative to the JSON where the parser stopped, return 0 if invalid. */
+CJSON_PUBLIC(size_t) cJSON_GetParseEnd(cJSON_Context context);
+/* Set how many bytes should be initially allocated for printing */
+CJSON_PUBLIC(cJSON_Context) cJSON_SetPrebufferSize(cJSON_Context context, const size_t buffer_size);
+typedef enum { CJSON_FORMAT_MINIFIED = 0, CJSON_FORMAT_DEFAULT = 1 } cJSON_Format;
+/* Change the format for printing */
+CJSON_PUBLIC(cJSON_Context) cJSON_SetFormat(cJSON_Context context, cJSON_Format format);
+/* Change the case sensitivity */
+CJSON_PUBLIC(cJSON_Context) cJSON_MakeCaseSensitive(cJSON_Context context, cJSON_bool case_sensitive);
+/* Change if data is allowed after the JSON */
+CJSON_PUBLIC(cJSON_Context) cJSON_AllowDataAfterJson(cJSON_Context context, cJSON_bool allow_data_after_json);
+/* Change if cJSON_Duplicate copies recursively */
+CJSON_PUBLIC(cJSON_Context) cJSON_MakeDuplicateRecursive(cJSON_Context context, cJSON_bool recursive);
+
+/* Supply malloc and free functions to cJSON globally */
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
 /* Memory Management: the caller is always responsible to free the results from all variants of cJSON_Parse (with cJSON_Delete) and cJSON_Print (with stdlib free, cJSON_Hooks.free_fn, or cJSON_free as appropriate). The exception is cJSON_PrintPreallocated, where the caller has full responsibility of the buffer. */
 /* Supply a block of JSON, and this returns a cJSON object you can interrogate. */
-CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value);
+CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *json);
 /* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
 /* If you supply a ptr in return_parse_end and parsing fails, then return_parse_end will contain a pointer to the error so will match cJSON_GetErrorPtr(). */
-CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated);
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *json, const char **return_parse_end, cJSON_bool require_null_terminated);
 
 /* Render a cJSON entity to text for transfer/storage. */
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item);
 /* Render a cJSON entity to text for transfer/storage without any formatting. */
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item);
 /* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
-CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt);
+CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool format);
 /* Render a cJSON entity to text using a buffer already allocated in memory with given length. Returns 1 on success and 0 on failure. */
 /* NOTE: cJSON is not always 100% accurate in estimating how much memory it will use, so to be safe allocate 5 bytes more than you actually need */
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format);

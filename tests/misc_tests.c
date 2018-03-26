@@ -10,8 +10,7 @@
 
   The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -410,16 +409,18 @@ static void cjson_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
-static void *failing_realloc(void *pointer, size_t size)
+static void *failing_realloc(void *pointer, size_t size, void *userdata)
 {
     (void)size;
     (void)pointer;
+    (void)userdata;
     return NULL;
 }
 
 static void ensure_should_fail_on_failed_realloc(void)
 {
-    printbuffer buffer = {NULL, 10, 0, 0, false, false, {&malloc, &free, &failing_realloc}};
+    printbuffer buffer = {NULL, 10, 0, 0, false, {256, 0, NULL, {malloc_wrapper, free_wrapper, failing_realloc}, false, true, true, true} };
+    buffer.context.userdata = &buffer;
     buffer.buffer = (unsigned char*)malloc(100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
 
@@ -429,10 +430,10 @@ static void ensure_should_fail_on_failed_realloc(void)
 static void skip_utf8_bom_should_skip_bom(void)
 {
     const unsigned char string[] = "\xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, default_context };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.hooks = global_hooks;
+    buffer.context = global_context;
 
     TEST_ASSERT_TRUE(skip_utf8_bom(&buffer) == &buffer);
     TEST_ASSERT_EQUAL_UINT(3U, (unsigned int)buffer.offset);
@@ -441,10 +442,10 @@ static void skip_utf8_bom_should_skip_bom(void)
 static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
 {
     const unsigned char string[] = " \xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, default_context };
     buffer.content = string;
     buffer.length = sizeof(string);
-    buffer.hooks = global_hooks;
+    buffer.context = global_context;
     buffer.offset = 1;
 
     TEST_ASSERT_NULL(skip_utf8_bom(&buffer));
@@ -512,7 +513,7 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
 {
     cJSON *object = cJSON_CreateObject();
     cJSON *number = cJSON_CreateNumber(42);
-    char *name = (char*)cJSON_strdup((const unsigned char*)"number", &global_hooks);
+    char *name = (char*)custom_strdup((const unsigned char*)"number", &global_context);
 
     TEST_ASSERT_NOT_NULL(object);
     TEST_ASSERT_NOT_NULL(number);
