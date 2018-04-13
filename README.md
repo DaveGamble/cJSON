@@ -127,9 +127,11 @@ make DESTDIR=$pkgdir install
 On Windows CMake is usually used to create a Visual Studio solution file by running it inside the Developer Command Prompt for Visual Studio, for exact steps follow the official documentation from CMake and Microsoft and use the online search engine of your choice. The descriptions of the the options above still generally apply, although not all of them work on Windows.
 
 #### Makefile
+**NOTE:** This Method is deprecated. Use CMake if at all possible. Makefile support is limited to fixing bugs.
+
 If you don't have CMake available, but still have GNU make. You can use the makefile to build cJSON:
 
-Run this command in the directory with the source code and it will automatically compile static and shared libraries and a little test program.
+Run this command in the directory with the source code and it will automatically compile static and shared libraries and a little test program (not the full test suite).
 
 ```
 make all
