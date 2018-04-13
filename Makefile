@@ -12,6 +12,9 @@ LIBVERSION = 1.7.5
 CJSON_SOVERSION = 1
 UTILS_SOVERSION = 1
 
+CJSON_SO_LDFLAG=-Wl,-soname=$(CJSON_LIBNAME).so.$(CJSON_SOVERSION)
+UTILS_SO_LDFLAG=-Wl,-soname=$(UTILS_LIBNAME).so.$(UTILS_SOVERSION)
+
 PREFIX ?= /usr/local
 INCLUDE_PATH ?= include/cjson
 LIBRARY_PATH ?= lib
@@ -42,6 +45,8 @@ STATIC = a
 ## create dynamic (shared) library on Darwin (base OS for MacOSX and IOS)
 ifeq (Darwin, $(uname))
 	SHARED = dylib
+	CJSON_SO_LDFLAG = ""
+    UTILS_SO_LDFLAG = ""
 endif
 
 #cJSON library names
@@ -90,10 +95,10 @@ $(UTILS_STATIC): $(UTILS_OBJ)
 #shared libraries .so.1.0.0
 #cJSON
 $(CJSON_SHARED_VERSION): $(CJSON_OBJ)
-	$(CC) -shared -o $@ $< $(LDFLAGS)
+	$(CC) -shared -o $@ $< $(CJSON_SO_LDFLAG) $(LDFLAGS)
 #cJSON_Utils
 $(UTILS_SHARED_VERSION): $(UTILS_OBJ)
-	$(CC) -shared -o $@ $< $(LDFLAGS)
+	$(CC) -shared -o $@ $< $(UTILS_SO_LDFLAG) $(LDFLAGS)
 
 #objects
 #cJSON
