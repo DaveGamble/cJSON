@@ -1,3 +1,14 @@
+1.7.6
+=====
+Fixes:
+------
+* Add `SONAME` to the ELF files built by the Makefile (see #252), thanks @YanhaoMo for reporting
+* Add include guards and `extern "C"` to `cJSON_Utils.h` (see #256), thanks @daschfg for reporting
+
+Other changes:
+--------------
+* Mark the Makefile as deprecated in the README.
+
 1.7.5
 =====
 Fixes:
