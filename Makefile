@@ -26,7 +26,7 @@ INSTALL ?= cp -a
 
 # validate gcc version for use fstack-protector-strong
 MIN_GCC_VERSION = "4.9"
-GCC_VERSION := "`gcc -dumpversion`"
+GCC_VERSION := "`$(CC) -dumpversion`"
 IS_GCC_ABOVE_MIN_VERSION := $(shell expr "$(GCC_VERSION)" ">=" "$(MIN_GCC_VERSION)")
 ifeq "$(IS_GCC_ABOVE_MIN_VERSION)" "1"
     CFLAGS += -fstack-protector-strong
