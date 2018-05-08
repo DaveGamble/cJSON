@@ -156,7 +156,7 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *c);
 
 /* Returns the number of items in an array (or object). */
 CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array);
-/* Retrieve item number "item" from array "array". Returns NULL if unsuccessful. */
+/* Retrieve item number "index" from array "array". Returns NULL if unsuccessful. */
 CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index);
 /* Get item "string" from object. Case insensitive. */
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON * const object, const char * const string);
