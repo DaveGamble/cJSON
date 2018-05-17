@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
-CFLAGS = -g -O2 -fPIC
-CXXFLAG =  -std=c++14 -O2 -Wall -ggdb -m64 -D_GNU_SOURCE=1 -D_REENTRANT -D__GUNC__ -fPIC -DNODE_BEAT=10.0
+CFLAGS = -g -O2 
+CXXFLAG =  -O2 -Wall -ggdb -m64 -D_GNU_SOURCE=1 -D_REENTRANT -D__GUNC__ 
 
 ARCH:=$(shell uname -m)
 
@@ -14,26 +14,26 @@ else
 SYSTEM_LIB_PATH:=/usr/lib
 endif
 
-VPATH = .
+VPATH = . ..
+DIRS=$(VPATH)
 
 
 INC := $(INC) 
 
 
-LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ \
-           -L$(SYSTEM_LIB_PATH) -lc -lrt -ldl
+LDFLAGS := $(LDFLAGS) -D_LINUX_OS_ 
 
 CPP_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.cpp))
 C_SRCS = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
 OBJS = $(patsubst %.cpp,%.o,$(CPP_SRCS)) $(patsubst %.c,%.o,$(C_SRCS)) $(patsubst %.cc,%.o,$(CC_SRCS))
 
 
-TARGET = CJsonObject.so
+TARGET = CJsonObjectTest
 
 all: $(TARGET)
 
-CJsonObject.so:$(OBJS)
-	$(CXX) -fPIE -rdynamic -shared -g -o $@ $^ $(LDFLAGS)
+CJsonObjectTest:$(OBJS)
+	$(CXX) -g -o $@ $^ $(LDFLAGS)
 
 %.o:%.cpp
 	$(CXX) $(INC) $(CXXFLAG) -c -o $@ $< $(LDFLAGS)

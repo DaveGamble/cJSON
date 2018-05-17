@@ -135,27 +135,6 @@ extern void cJSON_ReplaceItemInObject(cJSON *object, const char *string,
 #define cJSON_AddStringToObject(object,name,s)	cJSON_AddItemToObject(object, name, cJSON_CreateString(s))
 
 
-/**
- * @brief 鍚堝苟Json瀛愬璞�
- * @param[in,out] destObject 鍚堝苟鍚庣殑json瀵硅薄锛堢洰鏍囧璞★級
- * @param[in] pDestKeyString 褰撳墠json鐩爣瀵硅薄鐨勫瓙瀵硅薄key
- * @param[in] beingCombinedChild 琚悎骞剁殑json瀛愬璞�
- * @param[in] pCombinedKeyString 琚悎骞剁殑json瀛愬璞ey
- * @author Bwar
- * @date 2014-07-08
- */
-extern void MergeCJsonChild(cJSON* destObject, const char* pDestKeyString, cJSON* beingCombinedChild, const char* pCombinedKeyString);
-
-/**
- * @brief 鍚堝苟Json瀵硅薄
- * @param[in,out] destObject 鍚堝苟鍚庣殑json瀵硅薄锛堢洰鏍囧璞★級
- * @param[in] beingCombinedObject 琚悎骞剁殑json瀵硅薄
- * @param[in] pCombinedKeyString 琚悎骞剁殑json瀵硅薄key
- * @author Bwar
- * @date 2014-07-08
- */
-extern void MergeCJson(cJSON* destObject, cJSON* beingCombinedObject, const char* pCombinedKeyString);
-
 #ifdef __cplusplus
 }
 #endif
