@@ -1,6 +1,6 @@
 [![Author](https://img.shields.io/badge/author-@Bwar-blue.svg?style=flat)](cqc@vip.qq.com) [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)<br/>
 
-CJsonObject is a newly developed C++ version based on an older version of cJSON. It has nothing to do with DaveGamble/cJSON of fork, and the reason for such a fork is respect for the original author of cJson.
+CJsonObject is a newly developed C++ version based on an older version of cJSON. It has nothing to do with DaveGamble/cJSON, and the reason for such a fork tell everyone CJsonObject comes from cJSON.
 
 Bwar's first use of cJSON was the development of a mobile push project in 2013. At that time, although cJSON was useful, but it was easy to forget about free the memory allocated by cJSON. In 2014, Bwar use cJSON again when developing another project. In order to improve the ease of use of cJSON and improve the development efficiency, cJSON was encapsulated and 64-bit integers were supported. In the development of CJsonObject, cJSON was modified slightly.
 
