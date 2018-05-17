@@ -1,0 +1,14 @@
+dist: CJsonObject
+sudo: false
+language: C++
+env:
+  matrix:
+    - VALGRIND=On SANITIZERS=Off
+    - VALGRIND=Off SANITIZERS=Off
+    - VALGRIND=Off SANITIZERS=On
+compiler:
+  - gcc
+  - clang
+script:
+  - cd demo
+  - make
