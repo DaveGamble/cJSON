@@ -16,7 +16,7 @@ namespace neb
 CJsonObject::CJsonObject()
     : m_pJsonData(NULL), m_pExternJsonDataRef(NULL)
 {
-    // m_pJsonData = cJSON_CreateObject();  //鍦ㄥ悇Add()鏂规硶涓坊鍔犳垚鍛樻椂鑷姩鍐冲畾鏄璞¤繕鏄暟缁�
+    // m_pJsonData = cJSON_CreateObject();  
 }
 
 CJsonObject::CJsonObject(const std::string& strJson)
@@ -240,20 +240,20 @@ std::string CJsonObject::operator()(const std::string& strKey) const
         char szNumber[128] = {0};
         if (pJsonStruct->sign == -1)
         {
-            if (pJsonStruct->valueint <= INT_MAX && pJsonStruct->valueint >= INT_MIN)
+            if ((int64)pJsonStruct->valueint <= (int64)INT_MAX && (int64)pJsonStruct->valueint >= (int64)INT_MIN)
             {
-                snprintf(szNumber, sizeof(szNumber), "%d", pJsonStruct->valueint);
+                snprintf(szNumber, sizeof(szNumber), "%d", (int32)pJsonStruct->valueint);
             }
             else
             {
-                snprintf(szNumber, sizeof(szNumber), "%lld", pJsonStruct->valueint);
+                snprintf(szNumber, sizeof(szNumber), "%lld", (int64)pJsonStruct->valueint);
             }
         }
         else
         {
-            if (pJsonStruct->valueint <= UINT_MAX)
+            if (pJsonStruct->valueint <= (uint64)UINT_MAX)
             {
-                snprintf(szNumber, sizeof(szNumber), "%u", pJsonStruct->valueint);
+                snprintf(szNumber, sizeof(szNumber), "%u", (uint32)pJsonStruct->valueint);
             }
             else
             {
@@ -315,20 +315,20 @@ std::string CJsonObject::operator()(unsigned int uiWhich) const
         char szNumber[128] = {0};
         if (pJsonStruct->sign == -1)
         {
-            if (pJsonStruct->valueint <= INT_MAX && pJsonStruct->valueint >= INT_MIN)
+            if ((int64)pJsonStruct->valueint <= (int64)INT_MAX && (int64)pJsonStruct->valueint >= (int64)INT_MIN)
             {
-                snprintf(szNumber, sizeof(szNumber), "%d", pJsonStruct->valueint);
+                snprintf(szNumber, sizeof(szNumber), "%d", (int32)pJsonStruct->valueint);
             }
             else
             {
-                snprintf(szNumber, sizeof(szNumber), "%lld", pJsonStruct->valueint);
+                snprintf(szNumber, sizeof(szNumber), "%lld", (int64)pJsonStruct->valueint);
             }
         }
         else
         {
-            if (pJsonStruct->valueint <= UINT_MAX)
+            if (pJsonStruct->valueint <= (uint64)UINT_MAX)
             {
-                snprintf(szNumber, sizeof(szNumber), "%u", pJsonStruct->valueint);
+                snprintf(szNumber, sizeof(szNumber), "%u", (uint32)pJsonStruct->valueint);
             }
             else
             {
