@@ -1,3 +1,10 @@
+1.7.7
+=====
+Fixes:
+------
+* Fix a memory leak when realloc fails (see #267), thanks @AlfieDeng for reporting
+* Fix a typo in the header file (see #266), thanks @zhaozhixu
+
 1.7.6
 =====
 Fixes:

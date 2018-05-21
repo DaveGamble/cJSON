@@ -31,7 +31,7 @@ extern "C"
 /* project version */
 #define CJSON_VERSION_MAJOR 1
 #define CJSON_VERSION_MINOR 7
-#define CJSON_VERSION_PATCH 6
+#define CJSON_VERSION_PATCH 7
 
 #include <stddef.h>
 
