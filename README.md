@@ -1,5 +1,6 @@
-[![](CJsonObject LOGO)](https://github.com/Bwar/bwar.github.io/blob/master/style/images/logo-CJsonObject.png) 
 [![](https://travis-ci.org/Bwar/CJsonObject.svg?branch=master)](https://travis-ci.org/Bwar/CJsonObject) [![Author](https://img.shields.io/badge/author-@Bwar-blue.svg?style=flat)](cqc@vip.qq.com) [![License](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)<br/>
+
+[![](CJsonObject)](https://raw.githubusercontent.com/Bwar/bwar.github.io/master/style/images/logo-CJsonObject.png) <br/>
 
 CJsonObject is a newly developed C++ version based on an older version of cJSON. It has nothing to do with DaveGamble/cJSON, and the reason for such a fork tell everyone CJsonObject comes from cJSON.
 
