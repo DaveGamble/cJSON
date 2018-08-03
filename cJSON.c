@@ -836,12 +836,13 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
     /* empty string */
     if (input == NULL)
     {
-        output = ensure(output_buffer, sizeof("\"\""));
+        const char quotes[] = "\"\"";
+        output = ensure(output_buffer, sizeof(quotes));
         if (output == NULL)
         {
             return false;
         }
-        strcpy((char*)output, "\"\"");
+        memcpy(output, quotes, sizeof(quotes));
 
         return true;
     }
@@ -1297,31 +1298,40 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
     switch ((item->type) & 0xFF)
     {
         case cJSON_NULL:
-            output = ensure(output_buffer, 5);
+        {
+            const char null_string[] = "null";
+            output = ensure(output_buffer, sizeof(null_string));
             if (output == NULL)
             {
                 return false;
             }
-            strcpy((char*)output, "null");
+            memcpy(output, null_string, sizeof(null_string));
             return true;
+        }
 
         case cJSON_False:
-            output = ensure(output_buffer, 6);
+        {
+            const char false_string[] = "false";
+            output = ensure(output_buffer, sizeof(false_string));
             if (output == NULL)
             {
                 return false;
             }
-            strcpy((char*)output, "false");
+            memcpy(output, false_string, sizeof(false_string));
             return true;
+        }
 
         case cJSON_True:
-            output = ensure(output_buffer, 5);
+        {
+            const char true_string[] = "true";
+            output = ensure(output_buffer, sizeof(true_string));
             if (output == NULL)
             {
                 return false;
             }
-            strcpy((char*)output, "true");
+            memcpy(output, true_string, sizeof(true_string));
             return true;
+        }
 
         case cJSON_Number:
             return print_number(item, output_buffer);
