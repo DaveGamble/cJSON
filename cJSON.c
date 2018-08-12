@@ -37,6 +37,23 @@
 #pragma warning (disable : 4001)
 #endif
 
+/* Disable some non-standard functionality */
+#ifdef _POSIX_SOURCE
+#undef _POSIX_SOURCE
+#endif
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+#ifdef _XOPEN_SOURCE
+#undef _XOPEN_SOURCE
+#endif
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif
+#ifdef _DEFAULT_SOURCE
+#undef _DEFAULT_SOURCE
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
