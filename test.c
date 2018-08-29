@@ -256,7 +256,7 @@ static void create_objects(void)
     cJSON_Delete(root);
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* print the version */
     printf("Version: %s\n", cJSON_Version());
