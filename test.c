@@ -114,6 +114,8 @@ static void create_objects(void)
     cJSON *img = NULL;
     cJSON *thm = NULL;
     cJSON *fld = NULL;
+    cJSON *root_father = NULL;
+    cJSON *string_json = NULL;
     int i = 0;
 
     /* Our "days of the week" array: */
@@ -224,10 +226,11 @@ static void create_objects(void)
     cJSON_Delete(root);
 
     /* Our array of "records": */
+    root_father = cJSON_CreateObject();
     root = cJSON_CreateArray();
     for (i = 0; i < 2; i++)
     {
-        cJSON_AddItemToArray(root, fld = cJSON_CreateObject());
+        cJSON_AddItemToArray(root,cJSON_CreateString("string_item"));
         cJSON_AddStringToObject(fld, "precision", fields[i].precision);
         cJSON_AddNumberToObject(fld, "Latitude", fields[i].lat);
         cJSON_AddNumberToObject(fld, "Longitude", fields[i].lon);
@@ -237,14 +240,17 @@ static void create_objects(void)
         cJSON_AddStringToObject(fld, "Zip", fields[i].zip);
         cJSON_AddStringToObject(fld, "Country", fields[i].country);
     }
-
+    cJSON_AddItemToObject(root_father,"json_array_item",root);
+    string_json = cJSON_Parse("{\"v\":1,\"goal\":8000,\"active\":0,\"sit\":0,\"stp\":{\"rn\":0,\"wk\":0,\"runCal\":0,\"runDist\":0,\"dis\":0,\"cal\":0,\"ttl\":0}}");
+    cJSON_AddNumberToObject(string_json,"add_more",0.6666666);
+    cJSON_AddItemToObject(root_father,"string_json",string_json);
     /* cJSON_ReplaceItemInObject(cJSON_GetArrayItem(root, 1), "City", cJSON_CreateIntArray(ids, 4)); */
 
-    if (print_preallocated(root) != 0) {
-        cJSON_Delete(root);
+    if (print_preallocated(root_father) != 0) {
+        cJSON_Delete(root_father);
         exit(EXIT_FAILURE);
     }
-    cJSON_Delete(root);
+    cJSON_Delete(root_father);
 
     root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "number", 1.0 / zero);
