@@ -34,9 +34,15 @@ static void *failing_malloc(size_t size)
     return NULL;
 }
 
+/* work around MSVC error C2322: '...' address of dillimport '...' is not static */
+static void CJSON_CDECL normal_free(void *pointer)
+{
+    free(pointer);
+}
+
 static cJSON_Hooks failing_hooks = {
     failing_malloc,
-    free
+    normal_free
 };
 
 static void cjson_add_null_should_add_null(void)

@@ -54,6 +54,8 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
             /Za
             /sdl
             /W4
+            /wd4001
+            /D_CRT_SECURE_NO_WARNINGS
         )
     endif()
 endif()
