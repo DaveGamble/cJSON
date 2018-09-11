@@ -997,7 +997,7 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 }
 
 /* Parse an object - create a new root, and populate. */
-CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithLen(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated, size_t value_len)
 {
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     cJSON *item = NULL;
@@ -1012,7 +1012,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
     }
 
     buffer.content = (const unsigned char*)value;
-    buffer.length = strlen((const char*)value) + sizeof("");
+    buffer.length = value_len;
     buffer.offset = 0;
     buffer.hooks = global_hooks;
 
@@ -1074,6 +1074,11 @@ fail:
     }
 
     return NULL;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
+{
+    return cJSON_ParseWithLen(value, return_parse_end, require_null_terminated, strlen(value) + 1);
 }
 
 /* Default options for cJSON_Parse */
