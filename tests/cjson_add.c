@@ -28,7 +28,7 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
-static void *failing_malloc(size_t size)
+static void * CJSON_CDECL failing_malloc(size_t size)
 {
     (void)size;
     return NULL;
@@ -378,7 +378,7 @@ static void cjson_add_array_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
 

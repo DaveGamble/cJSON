@@ -246,7 +246,7 @@ static void supports_full_hd_should_check_for_full_hd_support(void)
     TEST_ASSERT_FALSE(supports_full_hd(monitor_without_hd));
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
 

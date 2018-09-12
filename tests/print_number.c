@@ -89,7 +89,7 @@ static void print_number_should_print_non_number(void)
     /* assert_print_number("null", -INFTY); */
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
     UNITY_BEGIN();

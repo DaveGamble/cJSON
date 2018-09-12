@@ -97,7 +97,7 @@ static void parse_with_opts_should_parse_utf8_bom(void)
     cJSON_Delete(without_bom);
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
 

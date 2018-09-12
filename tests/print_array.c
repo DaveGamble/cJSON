@@ -87,7 +87,7 @@ static void print_array_should_print_arrays_with_multiple_elements(void)
     assert_print_array("[1, null, true, false, [], \"hello\", {\n\t}]", "[1,null,true,false,[],\"hello\",{}]");
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
     UNITY_BEGIN();

@@ -410,7 +410,7 @@ static void cjson_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
-static void *failing_realloc(void *pointer, size_t size)
+static void * CJSON_CDECL failing_realloc(void *pointer, size_t size)
 {
     (void)size;
     (void)pointer;
@@ -527,7 +527,7 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
     cJSON_Delete(object);
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
 
