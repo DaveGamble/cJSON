@@ -1,3 +1,9 @@
+1.7.8
+=====
+Fixes:
+------
+* cJSON now works with the `__stdcall` calling convention on Windows, see #295, thanks @zhindes for contributing
+
 1.7.7
 =====
 Fixes:
