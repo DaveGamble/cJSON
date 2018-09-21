@@ -41,6 +41,7 @@ Current Maintainer: [Max Bruckner](https://github.com/FSMaxB)
 * [Stephan Gatzka](https://github.com/gatzka)
 * [Weston Schmidt](https://github.com/schmidtw)
 * [yangfl](https://github.com/yangfl)
+* [Zach Hindes](https://github.com/zhindes)
 * [Zhao Zhixu](https://github.com/zhaozhixu)
 
 And probably more people on [SourceForge](https://sourceforge.net/p/cjson/bugs/search/?q=status%3Aclosed-rejected+or+status%3Aclosed-out-of-date+or+status%3Awont-fix+or+status%3Aclosed-fixed+or+status%3Aclosed&page=0)
