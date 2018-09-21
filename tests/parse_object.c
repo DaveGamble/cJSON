@@ -162,7 +162,7 @@ static void parse_object_should_not_parse_non_objects(void)
     assert_not_object("\"{}hello world!\n\"");
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
     memset(item, 0, sizeof(cJSON));

@@ -96,7 +96,7 @@ static void parse_value_should_parse_object(void)
     reset(item);
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
     memset(item, 0, sizeof(cJSON));

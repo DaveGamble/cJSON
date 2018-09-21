@@ -152,7 +152,7 @@ static void parse_array_should_not_parse_non_arrays(void)
     assert_not_array("\"[]hello world!\n\"");
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
     memset(item, 0, sizeof(cJSON));

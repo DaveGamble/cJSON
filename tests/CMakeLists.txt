@@ -1,5 +1,5 @@
 if(ENABLE_CJSON_TEST)
-    add_library(unity "${CJSON_LIBRARY_TYPE}" unity/src/unity.c)
+    add_library(unity STATIC unity/src/unity.c)
 
     # Disable -Werror for Unity
     if (FLAG_SUPPORTED_Werror)
@@ -72,6 +72,9 @@ if(ENABLE_CJSON_TEST)
 
     foreach(unity_test ${unity_tests})
         add_executable("${unity_test}" "${unity_test}.c")
+        if("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+            target_sources(${unity_test} PRIVATE unity_setup.c)
+        endif()
         target_link_libraries("${unity_test}" "${CJSON_LIB}" unity)
         if(MEMORYCHECK_COMMAND)
             add_test(NAME "${unity_test}"

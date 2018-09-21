@@ -88,7 +88,7 @@ static void print_object_should_print_objects_with_multiple_elements(void)
     assert_print_object("{\n\t\"one\":\t1,\n\t\"NULL\":\tnull,\n\t\"TRUE\":\ttrue,\n\t\"FALSE\":\tfalse,\n\t\"array\":\t[],\n\t\"world\":\t\"hello\",\n\t\"object\":\t{\n\t}\n}", "{\"one\":1,\"NULL\":null,\"TRUE\":true,\"FALSE\":false,\"array\":[],\"world\":\"hello\",\"object\":{}}");
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
     UNITY_BEGIN();

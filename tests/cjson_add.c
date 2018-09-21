@@ -28,15 +28,21 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
-static void *failing_malloc(size_t size)
+static void * CJSON_CDECL failing_malloc(size_t size)
 {
     (void)size;
     return NULL;
 }
 
+/* work around MSVC error C2322: '...' address of dillimport '...' is not static */
+static void CJSON_CDECL normal_free(void *pointer)
+{
+    free(pointer);
+}
+
 static cJSON_Hooks failing_hooks = {
     failing_malloc,
-    free
+    normal_free
 };
 
 static void cjson_add_null_should_add_null(void)
@@ -372,7 +378,7 @@ static void cjson_add_array_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
-int main(void)
+int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
 
