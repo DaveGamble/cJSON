@@ -26,6 +26,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
             -Werror
             -Wno-float-equal
             -Wno-padded
+            -Wno-covered-switch-default
         )
     elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
         list(APPEND custom_compiler_flags
