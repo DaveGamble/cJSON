@@ -265,7 +265,7 @@ void UnityPrintMask(const UNITY_UINT mask, const UNITY_UINT number)
  * precision case) and isn't attempted here. */
 void UnityPrintFloat(const UNITY_DOUBLE input_number)
 {
-    UNITY_DOUBLE number = input_number;
+    float number = (float)input_number;
 
     /* print minus sign (including for negative zero) */
     if (number < 0.0f || (number == 0.0f && 1.0f / number < 0.0f))
