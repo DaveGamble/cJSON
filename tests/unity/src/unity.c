@@ -265,7 +265,7 @@ void UnityPrintMask(const UNITY_UINT mask, const UNITY_UINT number)
  * precision case) and isn't attempted here. */
 void UnityPrintFloat(const UNITY_DOUBLE input_number)
 {
-    UNITY_DOUBLE number = input_number;
+    float number = (float)input_number;
 
     /* print minus sign (including for negative zero) */
     if (number < 0.0f || (number == 0.0f && 1.0f / number < 0.0f))
@@ -803,6 +803,7 @@ void UnityAssertFloatSpecial(const UNITY_FLOAT actual,
             is_trait = !isinf(actual) && !isnan(actual);
             break;
 
+        case UNITY_FLOAT_INVALID_TRAIT:
         default:
             trait_index = 0;
             trait_names[0] = UnityStrInvalidFloatTrait;
@@ -933,6 +934,7 @@ void UnityAssertDoubleSpecial(const UNITY_DOUBLE actual,
             is_trait = !isinf(actual) && !isnan(actual);
             break;
 
+        case UNITY_FLOAT_INVALID_TRAIT:
         default:
             trait_index = 0;
             trait_names[0] = UnityStrInvalidFloatTrait;
