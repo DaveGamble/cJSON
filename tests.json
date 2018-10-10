@@ -214,6 +214,7 @@
 
     { "doc": {"foo": null},
       "patch": [{"op": "test", "path": "/foo", "value": null}],
+      "expected": {"foo": null},
       "comment": "null value should be valid obj property" },
 
     { "doc": {"foo": null},
@@ -243,14 +244,17 @@
 
     { "doc": {"foo": {"foo": 1, "bar": 2}},
       "patch": [{"op": "test", "path": "/foo", "value": {"bar": 2, "foo": 1}}],
+      "expected": {"foo": {"foo": 1, "bar": 2}},
       "comment": "test should pass despite rearrangement" },
 
     { "doc": {"foo": [{"foo": 1, "bar": 2}]},
       "patch": [{"op": "test", "path": "/foo", "value": [{"bar": 2, "foo": 1}]}],
+      "expected": {"foo": [{"foo": 1, "bar": 2}]},
       "comment": "test should pass despite (nested) rearrangement" },
 
     { "doc": {"foo": {"bar": [1, 2, 5, 4]}},
       "patch": [{"op": "test", "path": "/foo", "value": {"bar": [1, 2, 5, 4]}}],
+      "expected": {"foo": {"bar": [1, 2, 5, 4]}},
       "comment": "test should pass - no error" },
 
     { "doc": {"foo": {"bar": [1, 2, 5, 4]}},
@@ -264,7 +268,8 @@
 
     { "comment": "Empty-string element",
       "doc": { "": 1 },
-      "patch": [{"op": "test", "path": "/", "value": 1}] },
+      "patch": [{"op": "test", "path": "/", "value": 1}],
+      "expected": { "": 1 } },
 
     { "doc": {
             "foo": ["bar", "baz"],
@@ -288,8 +293,23 @@
                 {"op": "test", "path":  "/i\\j", "value": 5},
                 {"op": "test", "path": "/k\"l", "value": 6},
                 {"op": "test", "path": "/ ", "value": 7},
-                {"op": "test", "path": "/m~0n", "value": 8}] },
-
+                {"op": "test", "path": "/m~0n", "value": 8}],
+      "expected": {
+            "": 0,
+            " ": 7,
+            "a/b": 1,
+            "c%d": 2,
+            "e^f": 3,
+            "foo": [
+                "bar",
+                "baz"
+            ],
+            "g|h": 4,
+            "i\\j": 5,
+            "k\"l": 6,
+            "m~n": 8
+        }
+    },
     { "comment": "Move to same location has no effect",
       "doc": {"foo": 1},
       "patch": [{"op": "move", "from": "/foo", "path": "/foo"}],
@@ -388,10 +408,20 @@
       "patch": [ { "op": "copy", "path": "/-" } ],
       "error": "missing 'from' parameter" },
 
+    { "comment": "missing from location to copy",
+      "doc": { "foo": 1 },
+      "patch": [ { "op": "copy", "from": "/bar", "path": "/foo" } ],
+      "error": "missing 'from' location" },
+
     { "comment": "missing from parameter to move",
       "doc": { "foo": 1 },
       "patch": [ { "op": "move", "path": "" } ],
       "error": "missing 'from' parameter" },
+
+    { "comment": "missing from location to move",
+      "doc": { "foo": 1 },
+      "patch": [ { "op": "move", "from": "/bar", "path": "/foo" } ],
+      "error": "missing 'from' location" },
 
     { "comment": "duplicate ops",
       "doc": { "foo": "bar" },
