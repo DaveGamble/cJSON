@@ -46,7 +46,7 @@ STATIC = a
 ifeq (Darwin, $(uname))
 	SHARED = dylib
 	CJSON_SO_LDFLAG = ""
-    UTILS_SO_LDFLAG = ""
+	UTILS_SO_LDFLAG = ""
 endif
 
 #cJSON library names
