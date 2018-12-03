@@ -298,6 +298,7 @@ In this example we want to build and parse the following JSON:
 Let's build the above JSON and print it to a string:
 ```c
 //create a monitor with a list of supported resolutions
+//NOTE: Returns a heap allocated string, you are required to free it after use.
 char* create_monitor(void)
 {
     const unsigned int resolution_numbers[3][2] = {
@@ -373,6 +374,7 @@ end:
 
 Alternatively we can use the `cJSON_Add...ToObject` helper functions to make our lifes a little easier:
 ```c
+//NOTE: Returns a heap allocated string, you are required to free it after use.
 char *create_monitor_with_helpers(void)
 {
     const unsigned int resolution_numbers[3][2] = {
