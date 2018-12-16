@@ -4,6 +4,7 @@ Fixes:
 ------
 * Fix a bug where `cJSON_GetObjectItemCaseSensitive` would pass a nullpointer to `strcmp` when called on an array (#315). Thanks @yuweol for reporting.
 * Fix error in `cJSON_Utils` where the case sensitivity was not respected (#317). Thanks @yuta-oxo for fixing.
+* Fix some warnings detected by the Visual Studio Static Analyzer (#307). Thanks @bnason-nf
 
 1.7.8
 =====
