@@ -42,6 +42,7 @@ Current Maintainer: [Max Bruckner](https://github.com/FSMaxB)
 * [Stephan Gatzka](https://github.com/gatzka)
 * [Weston Schmidt](https://github.com/schmidtw)
 * [yangfl](https://github.com/yangfl)
+* [yuta-oxo](https://github.com/yuta-oxo)
 * [Zach Hindes](https://github.com/zhindes)
 * [Zhao Zhixu](https://github.com/zhaozhixu)
 
