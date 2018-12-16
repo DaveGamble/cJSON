@@ -127,6 +127,28 @@ static void cjson_get_object_item_case_sensitive_should_get_object_items(void)
     cJSON_Delete(item);
 }
 
+static void cjson_get_object_item_should_not_crash_with_array(void) {
+    cJSON *array = NULL;
+    cJSON *found = NULL;
+    array = cJSON_Parse("[1]");
+
+    found = cJSON_GetObjectItem(array, "name");
+    TEST_ASSERT_NULL(found);
+
+    cJSON_Delete(array);
+}
+
+static void cjson_get_object_item_case_sensitive_should_not_crash_with_array(void) {
+    cJSON *array = NULL;
+    cJSON *found = NULL;
+    array = cJSON_Parse("[1]");
+
+    found = cJSON_GetObjectItemCaseSensitive(array, "name");
+    TEST_ASSERT_NULL(found);
+
+    cJSON_Delete(array);
+}
+
 static void typecheck_functions_should_check_type(void)
 {
     cJSON invalid[1];
@@ -535,6 +557,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_array_foreach_should_not_dereference_null_pointer);
     RUN_TEST(cjson_get_object_item_should_get_object_items);
     RUN_TEST(cjson_get_object_item_case_sensitive_should_get_object_items);
+    RUN_TEST(cjson_get_object_item_should_not_crash_with_array);
+    RUN_TEST(cjson_get_object_item_case_sensitive_should_not_crash_with_array);
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
     RUN_TEST(cjson_set_number_value_should_set_numbers);
