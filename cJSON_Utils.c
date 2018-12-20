@@ -499,6 +499,7 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
     {
         /* Split the lists */
         second->prev->next = NULL;
+        second->prev = NULL;
     }
 
     /* Recursively sort the sub-lists. */
