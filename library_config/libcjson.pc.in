@@ -6,5 +6,5 @@ Version: @PROJECT_VERSION@
 Description: Ultralightweight JSON parser in ANSI C
 URL: https://github.com/DaveGamble/cJSON
 Libs: -L${libdir} -lcjson
-Libs.Private: -lm
+Libs.private: -lm
 Cflags: -I${includedir}
