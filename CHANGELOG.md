@@ -1,3 +1,10 @@
+1.7.10
+======
+Fixes:
+------
+* Fix package config file for `libcjson`. Thanks @shiluotang for reporting (#321)
+* Correctly split lists in `cJSON_Utils`'s merge sort. Thanks @andysCaplin for the fix (#322)
+
 1.7.9
 =====
 Fixes:
