@@ -447,6 +447,7 @@ void CJsonObject::Clear()
         }
     }
     m_mapJsonObjectRef.clear();
+    m_listKeys.clear();
 }
 
 bool CJsonObject::IsEmpty() const
