@@ -3,7 +3,7 @@
  * @file     CJsonObject.cpp
  * @brief 
  * @author   bwarliao
- * @date:    2014-7-16-
+ * @date:    2014-7-16
  * @note
  * Modify history:
  ******************************************************************************/
@@ -90,6 +90,7 @@ bool CJsonObject::AddEmptySubObject(const std::string& strKey)
         return(false);
     }
     cJSON_AddItemToObject(pFocusData, strKey.c_str(), pJsonStruct);
+    m_listKeys.clear();
     return(true);
 }
 
@@ -127,7 +128,53 @@ bool CJsonObject::AddEmptySubArray(const std::string& strKey)
         return(false);
     }
     cJSON_AddItemToObject(pFocusData, strKey.c_str(), pJsonStruct);
+    m_listKeys.clear();
     return(true);
+}
+
+bool CJsonObject::GetKey(std::string& strKey)
+{
+    if (IsArray())
+    {
+        return(false);
+    }
+    if (m_listKeys.size() == 0)
+    {
+        cJSON* pFocusData = NULL;
+        if (m_pJsonData != NULL)
+        {
+            pFocusData = m_pJsonData;
+        }
+        else if (m_pExternJsonDataRef != NULL)
+        {
+            pFocusData = m_pExternJsonDataRef;
+        }
+        else
+        {
+            return(false);
+        }
+
+        cJSON *c = pFocusData->child;
+        while (c)
+        {
+            m_listKeys.push_back(c->string);
+            c = c->next;
+        }
+        m_itKey = m_listKeys.begin();
+    }
+
+    if (m_itKey == m_listKeys.end())
+    {
+        strKey = "";
+        m_itKey = m_listKeys.begin();
+        return(false);
+    }
+    else
+    {
+        strKey = *m_itKey;
+        ++m_itKey;
+        return(true);
+    }
 }
 
 CJsonObject& CJsonObject::operator[](const std::string& strKey)
@@ -797,6 +844,7 @@ bool CJsonObject::Add(const std::string& strKey, const CJsonObject& oJsonObject)
         }
         m_mapJsonObjectRef.erase(iter);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -837,6 +885,7 @@ bool CJsonObject::Add(const std::string& strKey, const std::string& strValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -877,6 +926,7 @@ bool CJsonObject::Add(const std::string& strKey, int32 iValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -917,6 +967,7 @@ bool CJsonObject::Add(const std::string& strKey, uint32 uiValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -957,6 +1008,7 @@ bool CJsonObject::Add(const std::string& strKey, int64 llValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -997,6 +1049,7 @@ bool CJsonObject::Add(const std::string& strKey, uint64 ullValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -1037,6 +1090,7 @@ bool CJsonObject::Add(const std::string& strKey, bool bValue, bool bValueAgain)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -1077,6 +1131,7 @@ bool CJsonObject::Add(const std::string& strKey, float fValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -1117,6 +1172,7 @@ bool CJsonObject::Add(const std::string& strKey, double dValue)
     {
         return(false);
     }
+    m_listKeys.clear();
     return(true);
 }
 
@@ -1152,6 +1208,7 @@ bool CJsonObject::Delete(const std::string& strKey)
         }
         m_mapJsonObjectRef.erase(iter);
     }
+    m_listKeys.clear();
     return(true);
 }
 

@@ -21,6 +21,7 @@
 #include <float.h>
 #include <string>
 #include <map>
+#include <list>
 #include "cJSON.h"
 
 
@@ -52,6 +53,7 @@ public:     // method of ordinary json object or json array
 public:     // method of ordinary json object
     bool AddEmptySubObject(const std::string& strKey);
     bool AddEmptySubArray(const std::string& strKey);
+    bool GetKey(std::string& strKey);
     CJsonObject& operator[](const std::string& strKey);
     std::string operator()(const std::string& strKey) const;
     bool Get(const std::string& strKey, CJsonObject& oJsonObject) const;
@@ -134,6 +136,8 @@ private:
     std::string m_strErrMsg;
     std::map<unsigned int, CJsonObject*> m_mapJsonArrayRef;
     std::map<std::string, CJsonObject*> m_mapJsonObjectRef;
+    std::list<std::string> m_listKeys;
+    std::list<std::string>::const_iterator m_itKey;
 };
 
 }
