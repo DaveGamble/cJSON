@@ -189,7 +189,7 @@ static char *print_int(cJSON *item)
     {
         if (item->sign == -1)
         {
-            if (item->valueint <= (int64)INT_MAX && item->valueint >= (int64)INT_MIN)
+            if ((int64)item->valueint <= (int64)INT_MAX && (int64)item->valueint >= (int64)INT_MIN)
             {
                 sprintf(str, "%d", (int32)item->valueint);
             }
