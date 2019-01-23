@@ -37,6 +37,9 @@ int main()
      std::cout << oJson["dynamic_loading"][0]["cmd"][1]("class") << std::endl;
      oJson["dynamic_loading"][0]["cmd"][0].Get("cmd", iValue);
      std::cout << "iValue = " << iValue << std::endl;
+     oJson["dynamic_loading"][0]["cmd"][0].Replace("cmd", 882);
+     oJson["dynamic_loading"][0]["cmd"][0].Get("cmd", iValue);
+     std::cout << "iValue = " << iValue << std::endl;
      oJson.Get("timeout", fTimeout);
      std::cout << "fTimeout = " << fTimeout << std::endl;
      oJson["dynamic_loading"][0]["module"][0].Get("path", strValue);

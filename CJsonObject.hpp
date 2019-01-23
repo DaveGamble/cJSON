@@ -22,7 +22,13 @@
 #include <string>
 #include <map>
 #include <list>
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "cJSON.h"
+#ifdef __cplusplus
+}
+#endif
 
 
 namespace neb
