@@ -1,7 +1,4 @@
 
-
-# copyright 2015 Huami Inc.  All rights reserved. 
-#
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 

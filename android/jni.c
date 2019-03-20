@@ -1,6 +1,24 @@
+/*
+  Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
 
-/* copyright 2015 Huami Inc.  All rights reserved. */
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
 
 #define LOG_TAG "cJSON-Jni"
 #include <jni.h>
@@ -9,11 +27,11 @@
 
 #include "cJSON.h"
 
-#define CJSON_CLASS_NAME  ("com/huami/watch/cjson/cJSON")
-#define CJSONOBJECT_CLASS_NAME  ("com/huami/watch/cjson/CJSONObject")
-#define CJSONARRAY_CLASS_NAME  ("com/huami/watch/cjson/CJSONArray")
+#define CJSON_CLASS_NAME  ("com/jayhou/android/cjson/cJSON")
+#define CJSONOBJECT_CLASS_NAME  ("com/jayhou/android/cjson/CJSONObject")
+#define CJSONARRAY_CLASS_NAME  ("com/jayhou/android/cjson/CJSONArray")
 
-//#define LOG_NDDEBUG 1
+#define LOG_NDDEBUG 1
 
 #if LOG_NDDEBUG
 #define ALOGD(...)   ((void)0)
@@ -56,7 +74,7 @@ static void initCJSONObject(JNIEnv* env, jobject obj) {
 static void destroyCJSONObject(JNIEnv* env, jobject obj) {
     ALOGD("destroyCJSONObject env:%08x  jobject:%08x",env,obj);
     cJSON* ptr = getObjectNativePtr(env, obj);
-    ALOGD("addr to delete :%08x",ptr);
+    ALOGI("addr to delete :%08x",ptr);
     cJSON_Delete(ptr);
 }
 
@@ -70,7 +88,7 @@ static void initCJSONArray(JNIEnv* env, jobject obj) {
 }
 
 static void destroyCJSONArray(JNIEnv* env, jclass clazz, jobject obj) {
-    ALOGD("destroyCJSONArray not implement yet");
+    ALOGI("destroyCJSONArray not implement yet");
 }
 
 static void CJSONArray_addStringItemToArray(JNIEnv* env, jobject obj, jstring stringItem) {
@@ -148,16 +166,10 @@ static jstring CJSONObject_formatJsonObject2String(JNIEnv* env, jobject obj) {
     return result;
 }
 
-/*
-static JNINativeMethod  nativeCJSONMethods[] = {
-        {"nativeCreateCJSONObject",         "(V)[Lcom/huami/watch/cjson/cJSON$CJSONObject", (void*)nativeCreateCJSONObject},
-};
-*/
-
 static JNINativeMethod  nativeCJSONArray[] = {
         {"init","()V",(void*)initCJSONArray},
         {"destroy","()V",(void*)destroyCJSONArray},
-        {"addItemToArray","(Lcom/huami/watch/cjson/CJSONObject;)V",(void*)CJSONArray_addItemToArray},
+        {"addItemToArray","(Lcom/jayhou/android/cjson/CJSONObject;)V",(void*)CJSONArray_addItemToArray},
         {"addStringItemToArray","(Ljava/lang/String;)V",(void*)CJSONArray_addStringItemToArray},
 };
 
@@ -165,8 +177,8 @@ static JNINativeMethod  nativeCJSONObjectMethods[] = {
         {"init","(Ljava/lang/String;)V",(void*)initCJSONObjectWithString},
         {"init","()V",(void*)initCJSONObject},
         {"destroy","()V",(void*)destroyCJSONObject},
-        {"addCJSONObjectToObject","(Ljava/lang/String;Lcom/huami/watch/cjson/CJSONObject;)V",(void*)CJSONObject_addCJSONObjectToObject},
-        {"addCJSONArraytToObject","(Ljava/lang/String;Lcom/huami/watch/cjson/CJSONArray;)V",(void*)CJSONObject_addCJSONArrayToObject},
+        {"addCJSONObjectToObject","(Ljava/lang/String;Lcom/jayhou/android/cjson/CJSONObject;)V",(void*)CJSONObject_addCJSONObjectToObject},
+        {"addCJSONArraytToObject","(Ljava/lang/String;Lcom/jayhou/android/cjson/CJSONArray;)V",(void*)CJSONObject_addCJSONArrayToObject},
         {"addStringToObject","(Ljava/lang/String;Ljava/lang/String;)V",(void*)CJSONObject_addStringToObject},
         {"formatJsonObject2String","()Ljava/lang/String;",(void*)CJSONObject_formatJsonObject2String},
 };
