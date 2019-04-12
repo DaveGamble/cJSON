@@ -58,7 +58,14 @@
 #include "cJSON.h"
 
 /* define our own boolean type */
+#ifdef true
+#undef true
+#endif
 #define true ((cJSON_bool)1)
+
+#ifdef false
+#undef false
+#endif
 #define false ((cJSON_bool)0)
 
 typedef struct {
