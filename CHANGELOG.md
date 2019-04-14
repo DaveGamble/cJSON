@@ -1,3 +1,10 @@
+1.7.11
+======
+Fixes:
+------
+* Fix a bug where cJSON_Minify could overflow it's buffer, both reading and writing. This is a security issue. (see #338). Big thanks @bigric3 for reporting.
+* Unset `true` and `false` macros before setting them if they exist. See #339, thanks @raiden00pl for reporting
+
 1.7.10
 ======
 Fixes:
