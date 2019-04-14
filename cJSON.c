@@ -2673,7 +2673,7 @@ static void minify_string(char **input, char **output) {
     *output += static_strlen("\"");
 
 
-    for (; (*input)[0] != '\0'; ++(*input), ++(*output)) {
+    for (; (*input)[0] != '\0'; (void)++(*input), ++(*output)) {
         (*output)[0] = (*input)[0];
 
         if ((*input)[0] == '\"') {
