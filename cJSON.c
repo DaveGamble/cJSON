@@ -151,6 +151,9 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 #define internal_realloc realloc
 #endif
 
+/* strlen of character literals resolved at compile time */
+#define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
+
 static internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };
 
 static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hooks)
@@ -2637,69 +2640,94 @@ fail:
     return NULL;
 }
 
+static void skip_oneline_comment(char **input)
+{
+    *input += static_strlen("//");
+
+    for (; (*input)[0] != '\0'; ++(*input))
+    {
+        if ((*input)[0] == '\n') {
+            *input += static_strlen("\n");
+            return;
+        }
+    }
+}
+
+static void skip_multiline_comment(char **input)
+{
+    *input += static_strlen("/*");
+
+    for (; (*input)[0] != '\0'; ++(*input))
+    {
+        if (((*input)[0] == '*') && ((*input)[1] == '/'))
+        {
+            *input += static_strlen("*/");
+            return;
+        }
+    }
+}
+
+static void minify_string(char **input, char **output) {
+    (*output)[0] = (*input)[0];
+    *input += static_strlen("\"");
+    *output += static_strlen("\"");
+
+
+    for (; (*input)[0] != '\0'; ++(*input), ++(*output)) {
+        (*output)[0] = (*input)[0];
+
+        if ((*input)[0] == '\"') {
+            (*output)[0] = '\"';
+            *input += static_strlen("\"");
+            *output += static_strlen("\"");
+            return;
+        } else if (((*input)[0] == '\\') && ((*input)[1] == '\"')) {
+            (*output)[1] = (*input)[1];
+            *input += static_strlen("\"");
+            *output += static_strlen("\"");
+        }
+    }
+}
+
 CJSON_PUBLIC(void) cJSON_Minify(char *json)
 {
-    unsigned char *into = (unsigned char*)json;
+    char *into = json;
 
     if (json == NULL)
     {
         return;
     }
 
-    while (*json)
+    while (json[0] != '\0')
     {
-        if (*json == ' ')
+        switch (json[0])
         {
-            json++;
-        }
-        else if (*json == '\t')
-        {
-            /* Whitespace characters. */
-            json++;
-        }
-        else if (*json == '\r')
-        {
-            json++;
-        }
-        else if (*json=='\n')
-        {
-            json++;
-        }
-        else if ((*json == '/') && (json[1] == '/'))
-        {
-            /* double-slash comments, to end of line. */
-            while (*json && (*json != '\n'))
-            {
+            case ' ':
+            case '\t':
+            case '\r':
+            case '\n':
                 json++;
-            }
-        }
-        else if ((*json == '/') && (json[1] == '*'))
-        {
-            /* multiline comments. */
-            while (*json && !((*json == '*') && (json[1] == '/')))
-            {
-                json++;
-            }
-            json += 2;
-        }
-        else if (*json == '\"')
-        {
-            /* string literals, which are \" sensitive. */
-            *into++ = (unsigned char)*json++;
-            while (*json && (*json != '\"'))
-            {
-                if (*json == '\\')
+                break;
+
+            case '/':
+                if (json[1] == '/')
                 {
-                    *into++ = (unsigned char)*json++;
+                    skip_oneline_comment(&json);
                 }
-                *into++ = (unsigned char)*json++;
-            }
-            *into++ = (unsigned char)*json++;
-        }
-        else
-        {
-            /* All other characters. */
-            *into++ = (unsigned char)*json++;
+                else if (json[1] == '*')
+                {
+                    skip_multiline_comment(&json);
+                }
+                break;
+
+            case '\"':
+                minify_string(&json, (char**)&into);
+                break;
+
+            default:
+                into[0] = json[0];
+                json++;
+                into++;
         }
     }
 
