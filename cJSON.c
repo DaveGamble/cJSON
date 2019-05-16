@@ -2717,6 +2717,8 @@ CJSON_PUBLIC(void) cJSON_Minify(char *json)
                 else if (json[1] == '*')
                 {
                     skip_multiline_comment(&json);
+                } else {
+                    json++;
                 }
                 break;
 

@@ -152,6 +152,12 @@ static void cjson_minify_should_minify_json(void) {
     free(buffer);
 }
 
+static void cjson_minify_should_not_loop_infinitely(void) {
+    char string[] = { '8', ' ', '/', ' ', '5', '\n', '\0' };
+    /* this should not be an infinite loop */
+    cJSON_Minify(string);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -162,6 +168,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_minify_should_remove_multiline_comments);
     RUN_TEST(cjson_minify_should_remove_spaces);
     RUN_TEST(cjson_minify_should_not_modify_strings);
+    RUN_TEST(cjson_minify_should_not_loop_infinitely);
 
     return UNITY_END();
 }
