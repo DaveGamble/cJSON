@@ -1,3 +1,12 @@
+1.7.12
+======
+Fixes:
+------
+* Fix infinite loop in `cJSON_Minify` (potential Denial of Service), thanks @Alanscut for reporting. See #354
+* Fix link error for Visual Studio. Thanks @tan-wei, see #352
+* Undefine `true` and `false` for `cJSON_Utils` before redefining them. Thanks @raiden00pl, see #347
+
+
 1.7.11
 ======
 Fixes:
