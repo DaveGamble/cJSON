@@ -88,7 +88,7 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) {
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
-#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 11)
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 12)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
