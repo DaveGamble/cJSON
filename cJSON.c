@@ -321,6 +321,11 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 loop_end:
     number_c_string[i] = '\0';
 
+    /* number starting with multiple zeros are not allowed in JSON. */
+    if (strlen(number_c_string) >= 2 && number_c_string[0] == '0' && number_c_string[1] != '.')
+    {
+        goto fail; /* failed to parse number */
+    }
     number = strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
     {
@@ -347,6 +352,9 @@ loop_end:
 
     input_buffer->offset += (size_t)(after_end - number_c_string);
     return true;
+
+fail:
+    return false;
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
@@ -2399,7 +2407,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateArray(void)
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
     {
-        item->type=cJSON_Array;
+        item->type = cJSON_Array;
     }
 
     return item;
@@ -2502,7 +2510,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
 
     a = cJSON_CreateArray();
 
-    for(i = 0;a && (i < (size_t)count); i++)
+    for(i = 0; a && (i < (size_t)count); i++)
     {
         n = cJSON_CreateNumber(numbers[i]);
         if(!n)
@@ -2552,7 +2560,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char **strings, int count)
         }
         else
         {
-            suffix_object(p,n);
+            suffix_object(p, n);
         }
         p = n;
     }
