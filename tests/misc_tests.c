@@ -380,6 +380,7 @@ static void cjson_functions_shouldnt_crash_with_null_pointers(void)
     TEST_ASSERT_FALSE(cJSON_IsRaw(NULL));
     TEST_ASSERT_NULL(cJSON_CreateString(NULL));
     TEST_ASSERT_NULL(cJSON_CreateRaw(NULL));
+    TEST_ASSERT_NULL(cJSON_CreateBoolArray(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateIntArray(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateFloatArray(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateDoubleArray(NULL, 10));
