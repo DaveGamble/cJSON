@@ -265,6 +265,19 @@ CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * con
 CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * const name);
 CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * const name);
 
+/* Helper functions for creating and adding items to an array at the same time.
+ * They return the added item or NULL on failure. */
+CJSON_PUBLIC(cJSON*) cJSON_AddNullToArray(cJSON * const array);
+CJSON_PUBLIC(cJSON*) cJSON_AddTrueToArray(cJSON * const array);
+CJSON_PUBLIC(cJSON*) cJSON_AddFalseToArray(cJSON * const array);
+CJSON_PUBLIC(cJSON*) cJSON_AddBoolToArray(cJSON * const array, const cJSON_bool boolean);
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberToArray(cJSON * const array, const double number);
+CJSON_PUBLIC(cJSON*) cJSON_AddStringToArray(cJSON * const array, const char * const string);
+CJSON_PUBLIC(cJSON*) cJSON_AddRawToArray(cJSON * const array, const char * const raw);
+CJSON_PUBLIC(cJSON*) cJSON_AddArrayToArray(cJSON * const array);
+CJSON_PUBLIC(cJSON*) cJSON_AddObjectToArray(cJSON * const array);
+
+
 /* When assigning an integer value, it needs to be propagated to valuedouble too. */
 #define cJSON_SetIntValue(object, number) ((object) ? (object)->valueint = (object)->valuedouble = (number) : (number))
 /* helper for the cJSON_SetNumberValue macro */
