@@ -2085,12 +2085,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * c
 CJSON_PUBLIC(cJSON*) cJSON_AddNullToArray(cJSON *array)
 {
     cJSON *null_item = cJSON_CreateNull();
-    if (array == NULL)
-    {
-        cJSON_Delete(null_item);
-        return NULL;
-    }
-    
     if (add_item_to_array(array, null_item))
     {
         return null_item;
@@ -2103,12 +2097,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddNullToArray(cJSON *array)
 CJSON_PUBLIC(cJSON*) cJSON_AddTrueToArray(cJSON *array)
 {
     cJSON *true_item = cJSON_CreateTrue();
-    if (array == NULL)
-    {
-        cJSON_Delete(true_item);
-        return NULL;
-    }
-    
     if (add_item_to_array(array, true_item))
     {
         return true_item;
@@ -2121,12 +2109,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddTrueToArray(cJSON *array)
 CJSON_PUBLIC(cJSON*) cJSON_AddFalseToArray(cJSON *array)
 {
     cJSON *false_item = cJSON_CreateFalse();
-    if (array == NULL)
-    {
-        cJSON_Delete(false_item);
-        return NULL;
-    }
-    
     if (add_item_to_array(array, false_item))
     {
         return false_item;
@@ -2139,12 +2121,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddFalseToArray(cJSON *array)
 CJSON_PUBLIC(cJSON*) cJSON_AddBoolToArray(cJSON *array, const cJSON_bool boolean)
 {
     cJSON *bool_item = cJSON_CreateBool(boolean);
-    if (array == NULL)
-    {
-        cJSON_Delete(bool_item);
-        return NULL;
-    }
-    
     if (add_item_to_array(array, bool_item))
     {
         return bool_item;
@@ -2157,11 +2133,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToArray(cJSON *array, const cJSON_bool boolean
 CJSON_PUBLIC(cJSON*) cJSON_AddNumberToArray(cJSON *array, const double number)
 {
     cJSON *number_item = cJSON_CreateNumber(number);
-    if (array == NULL)
-    {
-        cJSON_Delete(number_item);
-        return NULL;
-    }    
     if (add_item_to_array(array, number_item))
     {
         return number_item;
@@ -2174,11 +2145,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddNumberToArray(cJSON *array, const double number)
 CJSON_PUBLIC(cJSON*) cJSON_AddStringToArray(cJSON *array, const char * const string)
 {
     cJSON *string_item = cJSON_CreateString(string);
-    if (array == NULL)
-    {
-        cJSON_Delete(string_item);
-        return NULL;
-    }
     if (add_item_to_array(array, string_item))
     {
         return string_item;
@@ -2191,11 +2157,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddStringToArray(cJSON *array, const char * const str
 CJSON_PUBLIC(cJSON*) cJSON_AddRawToArray(cJSON *array, const char * const raw)
 {
     cJSON *raw_item = cJSON_CreateRaw(raw);
-    if (array == NULL)
-    {
-        cJSON_Delete(raw_item);
-        return NULL;
-    }
     if (add_item_to_array(array, raw_item))
     {
         return raw_item;
@@ -2208,12 +2169,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddRawToArray(cJSON *array, const char * const raw)
 CJSON_PUBLIC(cJSON*) cJSON_AddArrayToArray(cJSON *array)
 {
     cJSON *new_array = cJSON_CreateArray();
-    if (array == NULL)
-    {
-        cJSON_Delete(new_array);
-        return NULL;
-    }
-    
     if (add_item_to_array(array, new_array))
     {
         return new_array;
@@ -2226,12 +2181,6 @@ CJSON_PUBLIC(cJSON*) cJSON_AddArrayToArray(cJSON *array)
 CJSON_PUBLIC(cJSON*) cJSON_AddObjectToArray(cJSON *array) 
 {
     cJSON *object_item = cJSON_CreateObject();
-    if (array == NULL)
-    {
-        cJSON_Delete(object_item);
-        return NULL;
-    }
-    
     if (add_item_to_array(array, object_item))
     {
         return object_item;
