@@ -143,7 +143,7 @@ If you want, you can install the compiled library to your system using `make ins
 If you installed it via CMake or the Makefile, you can include cJSON like this:
 
 ```c
-#include <cjson/cJSON.h>
+#include "cJSON.h"
 ```
 
 ### Data Structure
