@@ -180,7 +180,7 @@ static void encode_string_as_pointer(unsigned char *destination, const unsigned 
         }
     }
 
-    destination[0] = '';
+    destination[0] = '\0';
 }
 
 CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const object, const cJSON * const target)
