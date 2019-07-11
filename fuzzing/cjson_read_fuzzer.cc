@@ -8,7 +8,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     size_t offset = 4;
 
-    if(size < offset) return 0;
+    if(size <= offset) return 0;
     if(data[0] != '1' && data[0] != '0') return 0;
     if(data[1] != '1' && data[1] != '0') return 0;
     if(data[2] != '1' && data[2] != '0') return 0;
