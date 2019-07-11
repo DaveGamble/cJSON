@@ -19,9 +19,19 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     int formatted           = data[2] == '1' ? 1 : 0;
     int buffered            = data[3] == '1' ? 1 : 0;
 
-    cJSON *json = cJSON_ParseWithOpts((const char*)data + offset, NULL, require_termination);
+    unsigned char *copied = (unsigned char*)malloc(size);
+    if(copied == NULL) return 0;
 
-    if(json == NULL) return 0;
+    memcpy(copied, data, size);
+    copied[size-1] = '\0';
+
+    cJSON *json = cJSON_ParseWithOpts((const char*)copied + offset, NULL, require_termination);
+
+    if(json == NULL)
+    {
+        free(copied);
+        return 0;
+    }
 
     char *printed_json = NULL;
 
@@ -46,16 +56,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     if(minify)
     {
-        unsigned char *copied = (unsigned char*)malloc(size);
-
-        memcpy(copied, data + offset, size);
-
-        cJSON_Minify((char*)printed_json);
-        free(copied);
+        cJSON_Minify((char*)copied + offset);
     }
 
-    
     cJSON_Delete(json);
+    free(copied);
 
     return 0;
 }
