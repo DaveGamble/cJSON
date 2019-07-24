@@ -104,7 +104,7 @@ $(UTILS_SHARED_VERSION): $(UTILS_OBJ)
 #cJSON
 $(CJSON_OBJ): cJSON.c cJSON.h
 #cJSON_Utils
-$(UTILS_OBJ): cJSON_Utils.c cJSON_Utils.h
+$(UTILS_OBJ): cJSON_Utils.c cJSON_Utils.h cJSON.h
 
 
 #links .so -> .so.1 -> .so.1.0.0
