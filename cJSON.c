@@ -73,7 +73,8 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 
 CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) 
 {
-    if (!cJSON_IsString(item)) {
+    if (!cJSON_IsString(item)) 
+    {
         return NULL;
     }
 
@@ -82,7 +83,8 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item)
 
 CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item) 
 {
-    if (!cJSON_IsNumber(item)) {
+    if (!cJSON_IsNumber(item)) 
+    {
         return 0.0/0.0;
     }
 
