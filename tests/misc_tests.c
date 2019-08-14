@@ -463,6 +463,19 @@ static void cjson_get_string_value_should_get_a_string(void)
     cJSON_Delete(string);
 }
 
+static void cjson_get_number_value_should_get_a_number(void)
+{
+    cJSON *string = cJSON_CreateString("test");
+    cJSON *number = cJSON_CreateNumber(1);
+
+    TEST_ASSERT_TRUE(cJSON_GetNumberValue(number) == number->valuedouble);
+    TEST_ASSERT_TRUE(is_nan(cJSON_GetNumberValue(string)));
+    TEST_ASSERT_TRUE(is_nan(cJSON_GetNumberValue(NULL)));
+    
+    cJSON_Delete(number);
+    cJSON_Delete(string);
+}
+
 static void cjson_create_string_reference_should_create_a_string_reference(void) {
     const char *string = "I am a string!";
 
@@ -564,6 +577,7 @@ int main(void)
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
     RUN_TEST(cjson_get_string_value_should_get_a_string);
+    RUN_TEST(cjson_get_number_value_should_get_a_number);
     RUN_TEST(cjson_create_string_reference_should_create_a_string_reference);
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
