@@ -4,9 +4,17 @@
 
 #include "../cJSON.h"
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+#ifdef __cplusplus
+extern "C"
+#endif
+int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    cJSON *json;
     size_t offset = 4;
+    unsigned char *copied;
+    char *printed_json = NULL;
+    int minify, require_termination, formatted, buffered;
+
 
     if(size <= offset) return 0;
     if(data[0] != '1' && data[0] != '0') return 0;
@@ -14,26 +22,24 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if(data[2] != '1' && data[2] != '0') return 0;
     if(data[3] != '1' && data[3] != '0') return 0;
 
-    int minify              = data[0] == '1' ? 1 : 0;
-    int require_termination = data[1] == '1' ? 1 : 0;
-    int formatted           = data[2] == '1' ? 1 : 0;
-    int buffered            = data[3] == '1' ? 1 : 0;
+    minify              = data[0] == '1' ? 1 : 0;
+    require_termination = data[1] == '1' ? 1 : 0;
+    formatted           = data[2] == '1' ? 1 : 0;
+    buffered            = data[3] == '1' ? 1 : 0;
 
-    unsigned char *copied = (unsigned char*)malloc(size);
+    copied = (unsigned char*)malloc(size);
     if(copied == NULL) return 0;
 
     memcpy(copied, data, size);
     copied[size-1] = '\0';
 
-    cJSON *json = cJSON_ParseWithOpts((const char*)copied + offset, NULL, require_termination);
+    json = cJSON_ParseWithOpts((const char*)copied + offset, NULL, require_termination);
 
     if(json == NULL)
     {
         free(copied);
         return 0;
     }
-
-    char *printed_json = NULL;
 
     if(buffered)
     {
