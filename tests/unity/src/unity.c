@@ -268,14 +268,14 @@ void UnityPrintFloat(const UNITY_DOUBLE input_number)
     UNITY_DOUBLE number = input_number;
 
     /* print minus sign (including for negative zero) */
-    if (number < 0.0f || (number == 0.0f && 1.0f / number < 0.0f))
+    if (number < (double)0.0f || (number == (double)0.0f && (double)1.0f / number < (double)0.0f))
     {
         UNITY_OUTPUT_CHAR('-');
         number = -number;
     }
 
     /* handle zero, NaN, and +/- infinity */
-    if (number == 0.0f) UnityPrint("0");
+    if (number == (double)0.0f) UnityPrint("0");
     else if (isnan(number)) UnityPrint("nan");
     else if (isinf(number)) UnityPrint("inf");
     else
@@ -286,10 +286,10 @@ void UnityPrintFloat(const UNITY_DOUBLE input_number)
         char buf[16];
 
         /* scale up or down by powers of 10 */
-        while (number < 100000.0f / 1e6f)  { number *= 1e6f; exponent -= 6; }
-        while (number < 100000.0f)         { number *= 10.0f; exponent--; }
-        while (number > 1000000.0f * 1e6f) { number /= 1e6f; exponent += 6; }
-        while (number > 1000000.0f)        { number /= 10.0f; exponent++; }
+        while (number < (double)(100000.0f / 1e6f))  { number *= (double)1e6f; exponent -= 6; }
+        while (number < (double)100000.0f)         { number *= (double)10.0f; exponent--; }
+        while (number > (double)(1000000.0f * 1e6f)) { number /= (double)1e6f; exponent += 6; }
+        while (number > (double)1000000.0f)        { number /= (double)10.0f; exponent++; }
 
         /* round to nearest integer */
         n = ((UNITY_INT32)(number + number) + 1) / 2;
