@@ -95,7 +95,7 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) {
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
     static char version[15];
-    snprintf(version, sizeof(version), "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
+    sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
 
     return version;
 }
@@ -499,22 +499,22 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     /* This checks for NaN and Infinity */
     if ((d * 0) != 0)
     {
-        length = snprintf((char*)number_buffer, sizeof(number_buffer), "null");
+        length = sprintf((char*)number_buffer, "null");
     }
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.15g", d);
+        length = sprintf((char*)number_buffer, "%1.15g", d);
 
         /* Check whether the original double can be recovered */
         if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || ((double)test != d))
         {
             /* If not, print with 17 decimal places of precision */
-            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.17g", d);
+            length = sprintf((char*)number_buffer, "%1.17g", d);
         }
     }
 
-    /* snprintf failed or buffer overrun occurred */
+    /* sprintf failed or buffer overrun occurred */
     if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
     {
         return false;
@@ -848,16 +848,15 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
         return false;
     }
 
-    const char quotes[] = "\"\"";
     /* empty string */
     if (input == NULL)
     {
-        output = ensure(output_buffer, sizeof(quotes));
+        output = ensure(output_buffer, sizeof("\"\""));
         if (output == NULL)
         {
             return false;
         }
-        strncpy((char*)output, quotes, output_buffer->length - output_buffer->offset);
+        strcpy((char*)output, "\"\"");
 
         return true;
     }
@@ -888,7 +887,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
     }
     output_length = (size_t)(input_pointer - input) + escape_characters;
 
-    output = ensure(output_buffer, output_length + sizeof(quotes));
+    output = ensure(output_buffer, output_length + sizeof("\"\""));
     if (output == NULL)
     {
         return false;
@@ -944,7 +943,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
                     break;
                 default:
                     /* escape and print as unicode codepoint */
-                    snprintf((char*)output_pointer, output_buffer->length - (output_pointer - output_buffer->buffer), "u%04x", *input_pointer);
+                    sprintf((char*)output_pointer, "u%04x", *input_pointer);
                     output_pointer += 4;
                     break;
             }
@@ -1287,38 +1286,32 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
     switch ((item->type) & 0xFF)
     {
         case cJSON_NULL:
-        {
-            const char buff[] = "null";
-            output = ensure(output_buffer, sizeof(buff));
+            output = ensure(output_buffer, 5);
             if (output == NULL)
             {
                 return false;
             }
-            strncpy((char*)output, buff, output_buffer->length - output_buffer->offset);
+            strcpy((char*)output, "null");
             return true;
-        }
+
         case cJSON_False:
-        {
-            const char buff[] = "false";
-            output = ensure(output_buffer, sizeof(buff));
+            output = ensure(output_buffer, 6);
             if (output == NULL)
             {
                 return false;
             }
-            strncpy((char*)output, buff, output_buffer->length - output_buffer->offset);
+            strcpy((char*)output, "false");
             return true;
-        }
+
         case cJSON_True:
-        {
-            const char buff[] = "true";
-            output = ensure(output_buffer, sizeof(buff));
+            output = ensure(output_buffer, 5);
             if (output == NULL)
             {
                 return false;
             }
-            strncpy((char*)output, buff, output_buffer->length - output_buffer->offset);
+            strcpy((char*)output, "true");
             return true;
-        }
+
         case cJSON_Number:
             return print_number(item, output_buffer);
 
