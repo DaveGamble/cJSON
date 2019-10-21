@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size); /* required by C90 */
-
-#include "cjson_read_fuzzer.cc"
+int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size); /* required by C89 */
 
 /* fuzz target entry point, works without libFuzzer */
 
