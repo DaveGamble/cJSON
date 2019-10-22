@@ -26,3 +26,8 @@ if (ENABLE_FUZZING)
 
 
 endif()
+
+if(ENABLE_CJSON_TEST)
+    ADD_EXECUTABLE(fuzz_main fuzz_main.c cjson_read_fuzzer.c)
+    TARGET_LINK_LIBRARIES(fuzz_main cjson)
+endif()
