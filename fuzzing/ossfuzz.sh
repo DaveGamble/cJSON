@@ -8,8 +8,7 @@ cd build
 cmake -DBUILD_SHARED_LIBS=OFF -DENABLE_CJSON_TEST=OFF ..
 make -j$(nproc)
 
-$CC $CFLAGS -std=c89 -I. \
-    $SRC/cjson/fuzzing/cjson_read_fuzzer.c \
+$CXX $CXXFLAGS $SRC/cjson/fuzzing/cjson_read_fuzzer.c -I. \
     -o $OUT/cjson_read_fuzzer \
     $LIB_FUZZING_ENGINE $SRC/cjson/build/libcjson.a
 

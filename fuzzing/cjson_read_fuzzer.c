@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../cJSON.h"
 
 int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size); /* required by C89 */
@@ -66,3 +70,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif
