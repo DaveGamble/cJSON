@@ -141,9 +141,8 @@ uninstall-cjson: uninstall-utils
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED)
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED_VERSION)
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED_SO)
-	rmdir $(INSTALL_LIBRARY_PATH)
 	$(RM) $(INSTALL_INCLUDE_PATH)/cJSON.h
-	rmdir $(INSTALL_INCLUDE_PATH)
+	
 #cJSON_Utils
 uninstall-utils:
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED)
@@ -151,7 +150,11 @@ uninstall-utils:
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED_SO)
 	$(RM) $(INSTALL_INCLUDE_PATH)/cJSON_Utils.h
 
-uninstall: uninstall-utils uninstall-cjson
+remove-dir:
+	$(if $(wildcard $(INSTALL_LIBRARY_PATH)/*.*),,rmdir $(INSTALL_LIBRARY_PATH))
+	$(if $(wildcard $(INSTALL_INCLUDE_PATH)/*.*),,rmdir $(INSTALL_INCLUDE_PATH))
+
+uninstall: uninstall-utils uninstall-cjson remove-dir
 
 clean:
 	$(RM) $(CJSON_OBJ) $(UTILS_OBJ) #delete object files
