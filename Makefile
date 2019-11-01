@@ -101,7 +101,7 @@ $(CJSON_SHARED_VERSION): $(CJSON_OBJ)
 	$(CC) -shared -o $@ $< $(CJSON_SO_LDFLAG) $(LDFLAGS)
 #cJSON_Utils
 $(UTILS_SHARED_VERSION): $(UTILS_OBJ)
-	$(CC) -shared -o $@ $< $(UTILS_SO_LDFLAG) $(LDFLAGS)
+	$(CC) -shared -o $@ $< $(CJSON_OBJ) $(UTILS_SO_LDFLAG) $(LDFLAGS)
 
 #objects
 #cJSON
