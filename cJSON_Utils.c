@@ -224,6 +224,7 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
                 if (child_index > ULONG_MAX)
                 {
                     cJSON_free(target_pointer);
+                    cJSON_free(full_pointer);
                     return NULL;
                 }
                 sprintf((char*)full_pointer, "/%lu%s", (unsigned long)child_index, target_pointer); /* /<array_index><path> */

@@ -80,11 +80,13 @@ philosophy as JSON itself. Simple, dumb, out of the way.
 There are several ways to incorporate cJSON into your project.
 
 #### copying the source
+
 Because the entire library is only one C file and one header file, you can just copy `cJSON.h` and `cJSON.c` to your projects source and start using it.
 
 cJSON is written in ANSI C (C89) in order to support as many platforms and compilers as possible.
 
 #### CMake
+
 With CMake, cJSON supports a full blown build system. This way you get the most features. CMake with an equal or higher version than 2.8.5 is supported. With CMake it is recommended to do an out of tree build, meaning the compiled files are put in a directory separate from the source files. So in order to build cJSON with CMake on a Unix platform, make a `build` directory and run CMake inside it.
 
 ```
@@ -102,6 +104,7 @@ make
 And install it with `make install` if you want. By default it installs the headers `/usr/local/include/cjson` and the libraries to `/usr/local/lib`. It also installs files for pkg-config to make it easier to detect and use an existing installation of CMake. And it installs CMake config files, that can be used by other CMake based projects to discover the library.
 
 You can change the build process with a list of different options that you can pass to CMake. Turn them on with `On` and off with `Off`:
+
 * `-DENABLE_CJSON_TEST=On`: Enable building the tests. (on by default)
 * `-DENABLE_CJSON_UTILS=On`: Enable building cJSON_Utils. (off by default)
 * `-DENABLE_TARGET_EXPORT=On`: Enable the export of CMake targets. Turn off if it makes problems. (on by default)
@@ -127,6 +130,7 @@ make DESTDIR=$pkgdir install
 On Windows CMake is usually used to create a Visual Studio solution file by running it inside the Developer Command Prompt for Visual Studio, for exact steps follow the official documentation from CMake and Microsoft and use the online search engine of your choice. The descriptions of the the options above still generally apply, although not all of them work on Windows.
 
 #### Makefile
+
 **NOTE:** This Method is deprecated. Use CMake if at all possible. Makefile support is limited to fixing bugs.
 
 If you don't have CMake available, but still have GNU make. You can use the makefile to build cJSON:
@@ -137,9 +141,10 @@ Run this command in the directory with the source code and it will automatically
 make all
 ```
 
-If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`.
+If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`. And uninstall them with: `make PREFIX=/usr DESTDIR=temp uninstall`.
 
 ### Including cJSON
+
 If you installed it via CMake or the Makefile, you can include cJSON like this:
 
 ```c
@@ -171,6 +176,7 @@ An item of this type represents a JSON value. The type is stored in `type` as a 
 To check the type of an item, use the corresponding `cJSON_Is...` function. It does a `NULL` check followed by a type check and returns a boolean value if the item is of this type.
 
 The type can be one of the following:
+
 * `cJSON_Invalid` (check with `cJSON_IsInvalid`): Represents an invalid item that doesn't contain any value. You automatically have this type if you set the item to all zero bytes.
 * `cJSON_False` (check with `cJSON_IsFalse`): Represents a `false` boolean value. You can also check for boolean values in general with `cJSON_IsBool`.
 * `cJSON_True` (check with `cJSON_IsTrue`): Represents a `true` boolean value. You can also check for boolean values in general with `cJSON_IsBool`.
@@ -182,6 +188,7 @@ The type can be one of the following:
 * `cJSON_Raw` (check with `cJSON_IsRaw`): Represents any kind of JSON that is stored as a zero terminated array of characters in `valuestring`. This can be used, for example, to avoid printing the same static JSON over and over again to save performance. cJSON will never create this type when parsing. Also note that cJSON doesn't check if it is valid JSON.
 
 Additionally there are the following two flags:
+
 * `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not it's children/valuestring.
 * `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
 
@@ -193,6 +200,7 @@ Note that you have to delete them at some point, otherwise you will get a memory
 **Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, it gets deleted as well.
 
 #### Basic types
+
 * **null** is created with `cJSON_CreateNull`
 * **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
 * **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
@@ -203,7 +211,7 @@ Note that you have to delete them at some point, otherwise you will get a memory
 You can create an empty array with `cJSON_CreateArray`. `cJSON_CreateArrayReference` can be used to create an array that doesn't "own" its content, so its content doesn't get deleted by `cJSON_Delete`.
 
 To add items to an array, use `cJSON_AddItemToArray` to append items to the end.
-Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another item, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occuring if they are already used elsewhere.
+Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another item, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occurring if they are already used elsewhere.
 To insert items in the middle, use `cJSON_InsertItemInArray`. It will insert an item at the given 0 based index and shift all the existing items to the right.
 
 If you want to take an item out of an array at a given index and continue using it, use `cJSON_DetachItemFromArray`, it will return the detached item, so be sure to assign it to a pointer, otherwise you will have a memory leak.
@@ -221,7 +229,7 @@ Because an array is stored as a linked list, iterating it via index is inefficie
 You can create an empty object with `cJSON_CreateObject`. `cJSON_CreateObjectReference` can be used to create an object that doesn't "own" its content, so its content doesn't get deleted by `cJSON_Delete`.
 
 To add items to an object, use `cJSON_AddItemToObject`. Use `cJSON_AddItemToObjectCS` to add an item to an object with a name that is a constant or reference (key of the item, `string` in the `cJSON` struct), so that it doesn't get freed by `cJSON_Delete`.
-Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another object, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occuring if they are already used elsewhere.
+Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another object, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occurring if they are already used elsewhere.
 
 If you want to take an item out of an object, use `cJSON_DetachItemFromObjectCaseSensitive`, it will return the detached item, so be sure to assign it to a pointer, otherwise you will have a memory leak.
 
@@ -272,6 +280,7 @@ If you have a rough idea of how big your resulting string will be, you can use `
 These dynamic buffer allocations can be completely avoided by using `cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)`. It takes a buffer to a pointer to print to and it's length. If the length is reached, printing will fail and it returns `0`. In case of success, `1` is returned. Note that you should provide 5 bytes more than is actually needed, because cJSON is not 100% accurate in estimating if the provided memory is enough.
 
 ### Example
+
 In this example we want to build and parse the following JSON:
 
 ```json
@@ -295,7 +304,9 @@ In this example we want to build and parse the following JSON:
 ```
 
 #### Printing
+
 Let's build the above JSON and print it to a string:
+
 ```c
 //create a monitor with a list of supported resolutions
 //NOTE: Returns a heap allocated string, you are required to free it after use.
@@ -326,7 +337,7 @@ char* create_monitor(void)
         goto end;
     }
     /* after creation was successful, immediately add it to the monitor,
-     * thereby transfering ownership of the pointer to it */
+     * thereby transferring ownership of the pointer to it */
     cJSON_AddItemToObject(monitor, "name", name);
 
     resolutions = cJSON_CreateArray();
@@ -373,6 +384,7 @@ end:
 ```
 
 Alternatively we can use the `cJSON_Add...ToObject` helper functions to make our lifes a little easier:
+
 ```c
 //NOTE: Returns a heap allocated string, you are required to free it after use.
 char *create_monitor_with_helpers(void)
@@ -428,6 +440,7 @@ end:
 ```
 
 #### Parsing
+
 In this example we will parse a JSON in the above format and check if the monitor supports a Full HD resolution while printing some diagnostic output:
 
 ```c
@@ -514,6 +527,7 @@ cJSON doesn't support arrays and objects that are nested too deeply because this
 In general cJSON is **not thread safe**.
 
 However it is thread safe under the following conditions:
+
 * `cJSON_GetErrorPtr` is never used (the `return_parse_end` parameter of `cJSON_ParseWithOpts` can be used instead)
 * `cJSON_InitHooks` is only ever called before using cJSON in any threads.
 * `setlocale` is never called before all calls to cJSON functions have returned.
