@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <math.h>
 
 #if defined(_MSC_VER)
 #pragma warning (pop)
@@ -104,6 +105,13 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
 
     return tolower(*string1) - tolower(*string2);
 }
+
+/* securely comparison of floating-point variables */
+static cJSON_bool compare_double(double a, double b)
+{
+    return (fabs(a - b) <= a * CJSON_DOUBLE_PRECIION);
+}
+
 
 /* Compare the next path element of two JSON pointers, two NULL pointers are considered unequal: */
 static cJSON_bool compare_pointers(const unsigned char *name, const unsigned char *pointer, const cJSON_bool case_sensitive)
@@ -596,7 +604,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
     {
         case cJSON_Number:
             /* numeric mismatch. */
-            if ((a->valueint != b->valueint) || (a->valuedouble != b->valuedouble))
+            if ((a->valueint != b->valueint) || (!compare_double(a->valuedouble, b->valuedouble)))
             {
                 return false;
             }
@@ -1136,7 +1144,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
     switch (from->type & 0xFF)
     {
         case cJSON_Number:
-            if ((from->valueint != to->valueint) || (from->valuedouble != to->valuedouble))
+            if ((from->valueint != to->valueint) || (compare_double(from->valuedouble, to->valuedouble)))
             {
                 compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
