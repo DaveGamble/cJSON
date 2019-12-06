@@ -202,7 +202,7 @@ static int supports_full_hd(const char * const monitor)
             goto end;
         }
 
-        if ((width->valuedouble == 1920) && (height->valuedouble == 1080))
+        if (compare_double(width->valuedouble, 1920) && compare_double(height->valuedouble, 1080))
         {
             status = 1;
             goto end;
