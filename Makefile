@@ -24,6 +24,8 @@ INSTALL_LIBRARY_PATH = $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 
 INSTALL ?= cp -a
 
+CC = gcc -std=c89
+
 # validate gcc version for use fstack-protector-strong
 MIN_GCC_VERSION = "4.9"
 GCC_VERSION := "`$(CC) -dumpversion`"
@@ -34,7 +36,8 @@ else
     CFLAGS += -fstack-protector
 endif
 
-R_CFLAGS = -fPIC -std=c89 -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes -Wstrict-overflow=2 -Wcast-qual -Wc++-compat -Wundef -Wswitch-default -Wconversion $(CFLAGS)
+PIC_FLAGS = -fPIC
+R_CFLAGS = $(PIC_FLAGS) -pedantic -Wall -Werror -Wstrict-prototypes -Wwrite-strings -Wshadow -Winit-self -Wcast-align -Wformat=2 -Wmissing-prototypes -Wstrict-overflow=2 -Wcast-qual -Wc++-compat -Wundef -Wswitch-default -Wconversion -Wfloat-equal $(CFLAGS)
 
 uname := $(shell sh -c 'uname -s 2>/dev/null || echo false')
 
@@ -98,7 +101,7 @@ $(CJSON_SHARED_VERSION): $(CJSON_OBJ)
 	$(CC) -shared -o $@ $< $(CJSON_SO_LDFLAG) $(LDFLAGS)
 #cJSON_Utils
 $(UTILS_SHARED_VERSION): $(UTILS_OBJ)
-	$(CC) -shared -o $@ $< $(UTILS_SO_LDFLAG) $(LDFLAGS)
+	$(CC) -shared -o $@ $< $(CJSON_OBJ) $(UTILS_SO_LDFLAG) $(LDFLAGS)
 
 #objects
 #cJSON
@@ -138,9 +141,8 @@ uninstall-cjson: uninstall-utils
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED)
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED_VERSION)
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(CJSON_SHARED_SO)
-	rmdir $(INSTALL_LIBRARY_PATH)
 	$(RM) $(INSTALL_INCLUDE_PATH)/cJSON.h
-	rmdir $(INSTALL_INCLUDE_PATH)
+	
 #cJSON_Utils
 uninstall-utils:
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED)
@@ -148,7 +150,11 @@ uninstall-utils:
 	$(RM) $(INSTALL_LIBRARY_PATH)/$(UTILS_SHARED_SO)
 	$(RM) $(INSTALL_INCLUDE_PATH)/cJSON_Utils.h
 
-uninstall: uninstall-utils uninstall-cjson
+remove-dir:
+	$(if $(wildcard $(INSTALL_LIBRARY_PATH)/*.*),,rmdir $(INSTALL_LIBRARY_PATH))
+	$(if $(wildcard $(INSTALL_INCLUDE_PATH)/*.*),,rmdir $(INSTALL_INCLUDE_PATH))
+
+uninstall: uninstall-utils uninstall-cjson remove-dir
 
 clean:
 	$(RM) $(CJSON_OBJ) $(UTILS_OBJ) #delete object files
