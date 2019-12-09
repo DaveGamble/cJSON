@@ -109,7 +109,7 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
 /* securely comparison of floating-point variables */
 static cJSON_bool compare_double(double a, double b)
 {
-    return (fabs(a - b) <= a * CJSON_DOUBLE_PRECISION);
+    return (fabs(a - b) <= CJSON_DOUBLE_PRECISION);
 }
 
 
