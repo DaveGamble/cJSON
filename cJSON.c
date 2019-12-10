@@ -483,7 +483,7 @@ static void update_offset(printbuffer * const buffer)
 /* securely comparison of floating-point variables */
 static cJSON_bool compare_double(double a, double b)
 {
-    return (fabs(a - b) <= a * CJSON_DOUBLE_PRECIION);
+    return (fabs(a - b) <= CJSON_DOUBLE_PRECISION);
 }
 
 /* Render the number nicely from the given item into a string. */
