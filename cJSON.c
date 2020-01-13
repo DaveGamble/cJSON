@@ -333,10 +333,12 @@ loop_end:
     if (number >= INT_MAX)
     {
         item->valueint = INT_MAX;
+        item->valuelong = (long)strtol((const char *)number_c_string, (char **)NULL, 10);
     }
     else if (number <= (double)INT_MIN)
     {
         item->valueint = INT_MIN;
+        item->valuelong = (long)strtol((const char *)number_c_string, (char **)NULL, 10);
     }
     else
     {
