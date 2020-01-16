@@ -1144,7 +1144,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
     switch (from->type & 0xFF)
     {
         case cJSON_Number:
-            if ((from->valueint != to->valueint) || (compare_double(from->valuedouble, to->valuedouble)))
+            if ((from->valueint != to->valueint) || !compare_double(from->valuedouble, to->valuedouble))
             {
                 compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
