@@ -129,6 +129,19 @@ make DESTDIR=$pkgdir install
 
 On Windows CMake is usually used to create a Visual Studio solution file by running it inside the Developer Command Prompt for Visual Studio, for exact steps follow the official documentation from CMake and Microsoft and use the online search engine of your choice. The descriptions of the the options above still generally apply, although not all of them work on Windows.
 
+### Building cJSON  Using vcpkg
+
+You can download and install cJSON using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
+```
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+./vcpkg integrate install
+vcpkg install snappy
+```
+
+The Snappy port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
 #### Makefile
 
 **NOTE:** This Method is deprecated. Use CMake if at all possible. Makefile support is limited to fixing bugs.
