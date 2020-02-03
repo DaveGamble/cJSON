@@ -568,14 +568,20 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
 	}
     else
     {
-        /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = sprintf((char*)number_buffer, "%1.15g", d);
+        /* If decimal places are present and value is not an integer type */
+        if (item->decimal_places && (ceil(d) != d)) {
+            /* Then convert it to string */
+            length = sprintf((char*) number_buffer, "%.*f", item->decimal_places, d);
+        } else {
+            /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
+            length = sprintf((char*)number_buffer, "%1.15g", d);
 
-        /* Check whether the original double can be recovered */
-        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
-        {
-            /* If not, print with 17 decimal places of precision */
-            length = sprintf((char*)number_buffer, "%1.17g", d);
+            /* Check whether the original double can be recovered */
+            if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
+            {
+                /* If not, print with 17 decimal places of precision */
+                length = sprintf((char*)number_buffer, "%1.17g", d);
+            }
         }
     }
 
@@ -2127,6 +2133,28 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
 CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number)
 {
     cJSON *number_item = cJSON_CreateNumber(number);
+    if (add_item_to_object(object, name, number_item, &global_hooks, false))
+    {
+        return number_item;
+    }
+
+    cJSON_Delete(number_item);
+    return NULL;
+}
+
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberWithPrecisionToObject(cJSON * const object, const char * const name, const double n, int decimal_places)
+{
+    cJSON *number_item;
+
+    if (decimal_places <= 0 || decimal_places > 14)
+    {
+        return NULL;
+    }
+
+    number_item = cJSON_CreateNumber(n);
+
+    number_item->decimal_places = decimal_places;
+
     if (add_item_to_object(object, name, number_item, &global_hooks, false))
     {
         return number_item;
