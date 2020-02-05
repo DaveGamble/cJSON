@@ -1756,7 +1756,7 @@ CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)
     return (int)size;
 }
 
-static cJSON* get_array_item(const cJSON *array, size_t index)
+static cJSON* get_array_item(const cJSON *array, size_t _index)
 {
     cJSON *current_child = NULL;
 
@@ -1766,23 +1766,23 @@ static cJSON* get_array_item(const cJSON *array, size_t index)
     }
 
     current_child = array->child;
-    while ((current_child != NULL) && (index > 0))
+    while ((current_child != NULL) && (_index > 0))
     {
-        index--;
+        _index--;
         current_child = current_child->next;
     }
 
     return current_child;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index)
+CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int _index)
 {
-    if (index < 0)
+    if (_index < 0)
     {
         return NULL;
     }
 
-    return get_array_item(array, (size_t)index);
+    return get_array_item(array, (size_t)_index);
 }
 
 static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_bool case_sensitive)
@@ -1871,22 +1871,34 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
     }
 
     child = array->child;
-
+    /*
+     * To find the last item int array quickly, we use prev in array
+     */
     if (child == NULL)
     {
         /* list is empty, start new one */
         array->child = item;
+        item->prev = item;
+        item->next = NULL;
     }
     else
     {
         /* append to the end */
-        while (child->next)
+        if (child->prev)
         {
-            child = child->next;
+            suffix_object(child->prev, item);
+            array->child->prev = item;
         }
-        suffix_object(child, item);
+        else
+        {
+            while (child->next)
+            {
+                child = child->next;
+            }
+            suffix_object(child, item);
+            array->child->prev = item;
+        }
     }
-
     return true;
 }
 
@@ -2206,13 +2218,20 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     {
         replacement->next->prev = replacement;
     }
-    if (replacement->prev != NULL)
-    {
-        replacement->prev->next = replacement;
-    }
+
     if (parent->child == item)
     {
         parent->child = replacement;
+    }
+    else
+    {   /*
+         * To find the last item int array quickly, we use prev in array.
+         * We can't modify the last item's next pointer where this item was the parent's child
+         */
+        if (replacement->prev != NULL)
+        {
+            replacement->prev->next = replacement;
+        }
     }
 
     item->next = NULL;
