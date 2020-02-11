@@ -324,7 +324,7 @@ Let's build the above JSON and print it to a string:
 ```c
 //create a monitor with a list of supported resolutions
 //NOTE: Returns a heap allocated string, you are required to free it after use.
-char* create_monitor(void)
+char *create_monitor(void)
 {
     const unsigned int resolution_numbers[3][2] = {
         {1280, 720},
@@ -434,7 +434,7 @@ char *create_monitor_with_helpers(void)
             goto end;
         }
 
-        if(cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
+        if (cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
         {
             goto end;
         }
@@ -443,7 +443,8 @@ char *create_monitor_with_helpers(void)
     }
 
     string = cJSON_Print(monitor);
-    if (string == NULL) {
+    if (string == NULL)
+    {
         fprintf(stderr, "Failed to print monitor.\n");
     }
 
