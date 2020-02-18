@@ -1756,7 +1756,7 @@ CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)
     return (int)size;
 }
 
-static cJSON* get_array_item(const cJSON *array, size_t _index)
+static cJSON* get_array_item(const cJSON *array, size_t index)
 {
     cJSON *current_child = NULL;
 
@@ -1766,23 +1766,23 @@ static cJSON* get_array_item(const cJSON *array, size_t _index)
     }
 
     current_child = array->child;
-    while ((current_child != NULL) && (_index > 0))
+    while ((current_child != NULL) && (index > 0))
     {
-        _index--;
+        index--;
         current_child = current_child->next;
     }
 
     return current_child;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int _index)
+CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index)
 {
-    if (_index < 0)
+    if (index < 0)
     {
         return NULL;
     }
 
-    return get_array_item(array, (size_t)_index);
+    return get_array_item(array, (size_t)index);
 }
 
 static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_bool case_sensitive)
