@@ -1453,6 +1453,7 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
     unsigned char *output_pointer = NULL;
     size_t length = 0;
     cJSON *current_element = item->child;
+    size_t i;
 
     if (output_buffer == NULL)
     {
@@ -1471,6 +1472,25 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
     output_buffer->offset++;
     output_buffer->depth++;
 
+    if (output_buffer->format)
+    {
+        output_pointer = ensure(output_buffer, output_buffer->depth + 1);
+        if (output_pointer == NULL)
+        {
+            return false;
+        }
+
+        *output_pointer++ = '\n';
+
+        for (i = 0; i < output_buffer->depth; i++)
+        {
+            *output_pointer++ = '\t';
+        }
+
+        output_buffer->offset += output_buffer->depth + 1;
+    }
+
+
     while (current_element != NULL)
     {
         if (!print_value(current_element, output_buffer))
@@ -1481,7 +1501,7 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
         if (current_element->next)
         {
             length = (size_t) (output_buffer->format ? 2 : 1);
-            output_pointer = ensure(output_buffer, length + 1);
+            output_pointer = ensure(output_buffer, length);
             if (output_pointer == NULL)
             {
                 return false;
@@ -1495,6 +1515,24 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
             output_buffer->offset += length;
         }
         current_element = current_element->next;
+    }
+
+    if (output_buffer->format)
+    {
+        output_pointer = ensure(output_buffer, output_buffer->depth);
+        if (output_pointer == NULL)
+        {
+            return false;
+        }
+
+        *output_pointer++ = '\n';
+
+        for (i = 0; i < output_buffer->depth - 1; i++)
+        {
+            *output_pointer++ = '\t';
+        }
+
+        output_buffer->offset += output_buffer->depth;
     }
 
     output_pointer = ensure(output_buffer, 2);
@@ -1623,6 +1661,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
 {
     unsigned char *output_pointer = NULL;
     size_t length = 0;
+    size_t i;
     cJSON *current_item = item->child;
 
     if (output_buffer == NULL)
@@ -1631,20 +1670,48 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     }
 
     /* Compose the output: */
-    length = (size_t) (output_buffer->format ? 2 : 1); /* fmt: {\n */
-    output_pointer = ensure(output_buffer, length + 1);
-    if (output_pointer == NULL)
-    {
-        return false;
-    }
-
-    *output_pointer++ = '{';
-    output_buffer->depth++;
     if (output_buffer->format)
     {
+        /* Compose the output: */
+        length = (size_t) (output_buffer->depth ? output_buffer->depth + 1: 0) + 2 ; /* fmt: { more \t \n */
+        output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == NULL)
+        {
+            return false;
+        }
+
+        if(output_buffer->depth)
+        {
+            *output_pointer++ = '\n';
+        }
+
+        for (i = 0; i < output_buffer->depth; i++)
+        {
+            *output_pointer++ = '\t';
+        }
+
+        *output_pointer++ = '{';
         *output_pointer++ = '\n';
+
+        output_buffer->depth++;
+        output_buffer->offset += length;
+
     }
-    output_buffer->offset += length;
+    else
+    {
+        /* Compose the output: */
+        length = (size_t)1; /* fmt: {\n */
+        output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == NULL)
+        {
+            return false;
+        }
+
+        *output_pointer++ = '{';
+
+        output_buffer->depth++;
+        output_buffer->offset += length;
+    }
 
     while (current_item)
     {
@@ -1679,7 +1746,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         *output_pointer++ = ':';
         if (output_buffer->format)
         {
-            *output_pointer++ = '\t';
+            *output_pointer++ = ' ';
         }
         output_buffer->offset += length;
 
