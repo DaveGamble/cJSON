@@ -173,13 +173,14 @@ static void encode_string_as_pointer(unsigned char *destination, const unsigned 
     {
         if (source[0] == '/')
         {
+            destination[0] = '~';
             destination[1] = '1';
             destination++;
         }
         else if (source[0] == '~')
         {
             destination[0] = '~';
-            destination[1] = '1';
+            destination[1] = '0';
             destination++;
         }
         else

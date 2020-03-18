@@ -90,6 +90,10 @@ static void misc_tests(void)
     /* Misc tests */
     int numbers[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     cJSON *object = NULL;
+    cJSON *object1 = NULL;
+    cJSON *object2 = NULL;
+    cJSON *object3 = NULL;
+    cJSON *object4 = NULL;
     cJSON *nums = NULL;
     cJSON *num6 = NULL;
     char *pointer = NULL;
@@ -112,7 +116,23 @@ static void misc_tests(void)
     TEST_ASSERT_EQUAL_STRING("", pointer);
     free(pointer);
 
+    object1 = cJSON_CreateObject();
+    object2 = cJSON_CreateString("m~n");
+    cJSON_AddItemToObject(object1, "m~n", object2);
+    pointer = cJSONUtils_FindPointerFromObjectTo(object1, object2);
+    TEST_ASSERT_EQUAL_STRING("/m~0n",pointer);
+    free(pointer);
+
+    object3 = cJSON_CreateObject();
+    object4 = cJSON_CreateString("m/n");
+    cJSON_AddItemToObject(object3, "m/n", object4);
+    pointer = cJSONUtils_FindPointerFromObjectTo(object3, object4);
+    TEST_ASSERT_EQUAL_STRING("/m~1n",pointer);
+    free(pointer);
+
     cJSON_Delete(object);
+    cJSON_Delete(object1);
+    cJSON_Delete(object3);
 }
 
 static void sort_tests(void)
