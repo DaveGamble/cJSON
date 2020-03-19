@@ -347,7 +347,7 @@ static void cjson_replace_item_in_object_should_preserve_name(void)
     cJSON_Delete(replacement);
 }
 
-static void cjson_functions_shouldnt_crash_with_null_pointers(void)
+static void cjson_functions_should_not_crash_with_null_pointers(void)
 {
     char buffer[10];
     cJSON *item = cJSON_CreateString("item");
@@ -550,6 +550,39 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
     cJSON_Delete(object);
 }
 
+static void cjson_delete_item_from_array_should_not_broken_list_structure(void) {
+    const char expected_json1[] = "{\"rd\":[{\"a\":\"123\"}]}";
+    const char expected_json2[] = "{\"rd\":[{\"a\":\"123\"},{\"b\":\"456\"}]}";
+    const char expected_json3[] = "{\"rd\":[{\"b\":\"456\"}]}";
+    char* str1 = NULL;
+    char* str2 = NULL;
+    char* str3 = NULL;
+
+    cJSON* root = cJSON_Parse("{}");
+
+    cJSON* array = cJSON_AddArrayToObject(root, "rd");
+    cJSON* item1 = cJSON_Parse("{\"a\":\"123\"}");
+    cJSON* item2 = cJSON_Parse("{\"b\":\"456\"}");
+
+    cJSON_AddItemToArray(array, item1);
+    str1 = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected_json1, str1);
+    free(str1);
+
+    cJSON_AddItemToArray(array, item2);
+    str2 = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected_json2, str2);
+    free(str2);
+
+    /* this should not broken list structure */
+    cJSON_DeleteItemFromArray(array, 0);
+    str3 = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected_json3, str3);
+    free(str3);
+
+    cJSON_Delete(root);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -566,7 +599,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
-    RUN_TEST(cjson_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
     RUN_TEST(ensure_should_fail_on_failed_realloc);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
@@ -575,6 +608,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
     RUN_TEST(cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased);
+    RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
 
     return UNITY_END();
 }
