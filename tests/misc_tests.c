@@ -307,7 +307,7 @@ static void cjson_replace_item_via_pointer_should_replace_items(void)
 
     /* replace beginning */
     TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, beginning, &(replacements[0])));
-    TEST_ASSERT_NULL(replacements[0].prev);
+    TEST_ASSERT_TRUE(replacements[0].prev == end);
     TEST_ASSERT_TRUE(replacements[0].next == middle);
     TEST_ASSERT_TRUE(middle->prev == &(replacements[0]));
     TEST_ASSERT_TRUE(array->child == &(replacements[0]));
