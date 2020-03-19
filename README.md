@@ -203,7 +203,7 @@ The type can be one of the following:
 
 Additionally there are the following two flags:
 
-* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not it's children/valuestring.
+* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not its children/valuestring.
 * `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
 
 ### Working with the data structure
@@ -218,7 +218,7 @@ Note that you have to delete them at some point, otherwise you will get a memory
 * **null** is created with `cJSON_CreateNull`
 * **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
 * **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
-* **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for it's lifetime, useful for constants)
+* **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for its lifetime, useful for constants)
 
 #### Arrays
 
@@ -289,9 +289,9 @@ It will allocate a string and print a JSON representation of the tree into it. O
 
 `cJSON_Print` will print with whitespace for formatting. If you want to print without formatting, use `cJSON_PrintUnformatted`.
 
-If you have a rough idea of how big your resulting string will be, you can use `cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)`. `fmt` is a boolean to turn formatting with whitespace on and off. `prebuffer` specifies the first buffer size to use for printing. `cJSON_Print` currently uses 256 bytes for it's first buffer size. Once printing runs out of space, a new buffer is allocated and the old gets copied over before printing is continued.
+If you have a rough idea of how big your resulting string will be, you can use `cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)`. `fmt` is a boolean to turn formatting with whitespace on and off. `prebuffer` specifies the first buffer size to use for printing. `cJSON_Print` currently uses 256 bytes for its first buffer size. Once printing runs out of space, a new buffer is allocated and the old gets copied over before printing is continued.
 
-These dynamic buffer allocations can be completely avoided by using `cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)`. It takes a buffer to a pointer to print to and it's length. If the length is reached, printing will fail and it returns `0`. In case of success, `1` is returned. Note that you should provide 5 bytes more than is actually needed, because cJSON is not 100% accurate in estimating if the provided memory is enough.
+These dynamic buffer allocations can be completely avoided by using `cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)`. It takes a buffer to a pointer to print to and its length. If the length is reached, printing will fail and it returns `0`. In case of success, `1` is returned. Note that you should provide 5 bytes more than is actually needed, because cJSON is not 100% accurate in estimating if the provided memory is enough.
 
 ### Example
 

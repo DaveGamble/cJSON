@@ -1871,34 +1871,22 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
     }
 
     child = array->child;
-    /*
-     * To find the last item int array quickly, we use prev in array
-     */
+
     if (child == NULL)
     {
         /* list is empty, start new one */
         array->child = item;
-        item->prev = item;
-        item->next = NULL;
     }
     else
     {
         /* append to the end */
-        if (child->prev)
+        while (child->next)
         {
-            suffix_object(child->prev, item);
-            array->child->prev = item;
+            child = child->next;
         }
-        else
-        {
-            while (child->next)
-            {
-                child = child->next;
-            }
-            suffix_object(child, item);
-            array->child->prev = item;
-        }
+        suffix_object(child, item);
     }
+
     return true;
 }
 
@@ -2218,20 +2206,13 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     {
         replacement->next->prev = replacement;
     }
-
+    if (replacement->prev != NULL)
+    {
+        replacement->prev->next = replacement;
+    }
     if (parent->child == item)
     {
         parent->child = replacement;
-    }
-    else
-    {   /*
-         * To find the last item int array quickly, we use prev in array.
-         * We can't modify the last item's next pointer where this item was the parent's child
-         */
-        if (replacement->prev != NULL)
-        {
-            replacement->prev->next = replacement;
-        }
     }
 
     item->next = NULL;
