@@ -2107,7 +2107,7 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const it
         return NULL;
     }
 
-    if (item->prev != NULL)
+    if (item != parent->child)
     {
         /* not the first element */
         item->prev->next = item->next;
