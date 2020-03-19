@@ -255,6 +255,7 @@ static void cjson_detach_item_via_pointer_should_detach_items(void)
     list[3].prev = &(list[2]);
     list[2].prev = &(list[1]);
     list[1].prev = &(list[0]);
+    list[0].prev = &(list[3]);
 
     parent->child = &list[0];
 
@@ -266,7 +267,7 @@ static void cjson_detach_item_via_pointer_should_detach_items(void)
     /* detach beginning (list[0]) */
     TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[0])) == &(list[0]), "Failed to detach beginning.");
     TEST_ASSERT_TRUE_MESSAGE((list[0].prev == NULL) && (list[0].next == NULL), "Didn't set pointers of detached item to NULL.");
-    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (parent->child == &(list[2])), "Didn't set the new beginning.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == &(list[3])) && (parent->child == &(list[2])), "Didn't set the new beginning.");
 
     /* detach end (list[3])*/
     TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[3])) == &(list[3]), "Failed to detach end.");
