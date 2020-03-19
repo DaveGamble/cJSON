@@ -10,6 +10,7 @@ Ultralightweight JSON parser in ANSI C.
     * [Copying the source](#copying-the-source)
     * [CMake](#cmake)
     * [Makefile](#makefile)
+    * [Vcpkg](#Vcpkg)
   * [Including cJSON](#including-cjson)
   * [Data Structure](#data-structure)
   * [Working with the data structure](#working-with-the-data-structure)
@@ -143,6 +144,19 @@ make all
 
 If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`. And uninstall them with: `make PREFIX=/usr DESTDIR=temp uninstall`.
 
+#### Vcpkg
+
+You can download and install cJSON using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
+```
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+./vcpkg integrate install
+vcpkg install cjson
+```
+
+The cJSON port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
 ### Including cJSON
 
 If you installed it via CMake or the Makefile, you can include cJSON like this:
@@ -189,7 +203,7 @@ The type can be one of the following:
 
 Additionally there are the following two flags:
 
-* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not it's children/valuestring.
+* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not its children/valuestring.
 * `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
 
 ### Working with the data structure
@@ -204,7 +218,7 @@ Note that you have to delete them at some point, otherwise you will get a memory
 * **null** is created with `cJSON_CreateNull`
 * **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
 * **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
-* **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for it's lifetime, useful for constants)
+* **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for its lifetime, useful for constants)
 
 #### Arrays
 
@@ -275,9 +289,9 @@ It will allocate a string and print a JSON representation of the tree into it. O
 
 `cJSON_Print` will print with whitespace for formatting. If you want to print without formatting, use `cJSON_PrintUnformatted`.
 
-If you have a rough idea of how big your resulting string will be, you can use `cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)`. `fmt` is a boolean to turn formatting with whitespace on and off. `prebuffer` specifies the first buffer size to use for printing. `cJSON_Print` currently uses 256 bytes for it's first buffer size. Once printing runs out of space, a new buffer is allocated and the old gets copied over before printing is continued.
+If you have a rough idea of how big your resulting string will be, you can use `cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)`. `fmt` is a boolean to turn formatting with whitespace on and off. `prebuffer` specifies the first buffer size to use for printing. `cJSON_Print` currently uses 256 bytes for its first buffer size. Once printing runs out of space, a new buffer is allocated and the old gets copied over before printing is continued.
 
-These dynamic buffer allocations can be completely avoided by using `cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)`. It takes a buffer to a pointer to print to and it's length. If the length is reached, printing will fail and it returns `0`. In case of success, `1` is returned. Note that you should provide 5 bytes more than is actually needed, because cJSON is not 100% accurate in estimating if the provided memory is enough.
+These dynamic buffer allocations can be completely avoided by using `cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)`. It takes a buffer to a pointer to print to and its length. If the length is reached, printing will fail and it returns `0`. In case of success, `1` is returned. Note that you should provide 5 bytes more than is actually needed, because cJSON is not 100% accurate in estimating if the provided memory is enough.
 
 ### Example
 
@@ -310,7 +324,7 @@ Let's build the above JSON and print it to a string:
 ```c
 //create a monitor with a list of supported resolutions
 //NOTE: Returns a heap allocated string, you are required to free it after use.
-char* create_monitor(void)
+char *create_monitor(void)
 {
     const unsigned int resolution_numbers[3][2] = {
         {1280, 720},
@@ -420,7 +434,7 @@ char *create_monitor_with_helpers(void)
             goto end;
         }
 
-        if(cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
+        if (cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
         {
             goto end;
         }
@@ -429,7 +443,8 @@ char *create_monitor_with_helpers(void)
     }
 
     string = cJSON_Print(monitor);
-    if (string == NULL) {
+    if (string == NULL)
+    {
         fprintf(stderr, "Failed to print monitor.\n");
     }
 

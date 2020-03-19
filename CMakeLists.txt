@@ -47,7 +47,6 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
             -Wmissing-variable-declarations
             -Wused-but-marked-unused
             -Wswitch-enum
-            -Wfloat-equal
         )
     elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
         # Disable warning c4001 - nonstandard extension 'single line comment' was used

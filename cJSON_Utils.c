@@ -173,13 +173,14 @@ static void encode_string_as_pointer(unsigned char *destination, const unsigned 
     {
         if (source[0] == '/')
         {
+            destination[0] = '~';
             destination[1] = '1';
             destination++;
         }
         else if (source[0] == '~')
         {
             destination[0] = '~';
-            destination[1] = '1';
+            destination[1] = '0';
             destination++;
         }
         else
@@ -1144,7 +1145,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
     switch (from->type & 0xFF)
     {
         case cJSON_Number:
-            if ((from->valueint != to->valueint) || (compare_double(from->valuedouble, to->valuedouble)))
+            if ((from->valueint != to->valueint) || !compare_double(from->valuedouble, to->valuedouble))
             {
                 compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
