@@ -255,6 +255,7 @@ static void cjson_detach_item_via_pointer_should_detach_items(void)
     list[3].prev = &(list[2]);
     list[2].prev = &(list[1]);
     list[1].prev = &(list[0]);
+    list[0].prev = &(list[3]);
 
     parent->child = &list[0];
 
@@ -266,7 +267,7 @@ static void cjson_detach_item_via_pointer_should_detach_items(void)
     /* detach beginning (list[0]) */
     TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[0])) == &(list[0]), "Failed to detach beginning.");
     TEST_ASSERT_TRUE_MESSAGE((list[0].prev == NULL) && (list[0].next == NULL), "Didn't set pointers of detached item to NULL.");
-    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (parent->child == &(list[2])), "Didn't set the new beginning.");
+    TEST_ASSERT_TRUE_MESSAGE((list[2].prev == &(list[3])) && (parent->child == &(list[2])), "Didn't set the new beginning.");
 
     /* detach end (list[3])*/
     TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[3])) == &(list[3]), "Failed to detach end.");
@@ -306,7 +307,7 @@ static void cjson_replace_item_via_pointer_should_replace_items(void)
 
     /* replace beginning */
     TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, beginning, &(replacements[0])));
-    TEST_ASSERT_NULL(replacements[0].prev);
+    TEST_ASSERT_TRUE(replacements[0].prev == end);
     TEST_ASSERT_TRUE(replacements[0].next == middle);
     TEST_ASSERT_TRUE(middle->prev == &(replacements[0]));
     TEST_ASSERT_TRUE(array->child == &(replacements[0]));
@@ -346,7 +347,7 @@ static void cjson_replace_item_in_object_should_preserve_name(void)
     cJSON_Delete(replacement);
 }
 
-static void cjson_functions_shouldnt_crash_with_null_pointers(void)
+static void cjson_functions_should_not_crash_with_null_pointers(void)
 {
     char buffer[10];
     cJSON *item = cJSON_CreateString("item");
@@ -549,6 +550,39 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
     cJSON_Delete(object);
 }
 
+static void cjson_delete_item_from_array_should_not_broken_list_structure(void) {
+    const char expected_json1[] = "{\"rd\":[{\"a\":\"123\"}]}";
+    const char expected_json2[] = "{\"rd\":[{\"a\":\"123\"},{\"b\":\"456\"}]}";
+    const char expected_json3[] = "{\"rd\":[{\"b\":\"456\"}]}";
+    char* str1 = NULL;
+    char* str2 = NULL;
+    char* str3 = NULL;
+
+    cJSON* root = cJSON_Parse("{}");
+
+    cJSON* array = cJSON_AddArrayToObject(root, "rd");
+    cJSON* item1 = cJSON_Parse("{\"a\":\"123\"}");
+    cJSON* item2 = cJSON_Parse("{\"b\":\"456\"}");
+
+    cJSON_AddItemToArray(array, item1);
+    str1 = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected_json1, str1);
+    free(str1);
+
+    cJSON_AddItemToArray(array, item2);
+    str2 = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected_json2, str2);
+    free(str2);
+
+    /* this should not broken list structure */
+    cJSON_DeleteItemFromArray(array, 0);
+    str3 = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected_json3, str3);
+    free(str3);
+
+    cJSON_Delete(root);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -565,7 +599,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
-    RUN_TEST(cjson_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
     RUN_TEST(ensure_should_fail_on_failed_realloc);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
@@ -574,6 +608,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
     RUN_TEST(cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased);
+    RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
 
     return UNITY_END();
 }
