@@ -587,24 +587,34 @@ static void cjson_delete_item_from_array_should_not_broken_list_structure(void)
 static void cjson_set_valuestring_to_object_should_not_leak_memory(void)
 {
     cJSON *root = cJSON_Parse("{}");
-    cJSON *item1 = cJSON_CreateString("valuestring could be changed safely");
-    cJSON *item2 = cJSON_CreateStringReference("reference item should be freed by yourself");
-    const char *newValuestring = "new valuestring which much longer than previous";
-    char *returnValue = NULL;
+    const char *stringvalue = "valuestring could be changed safely";
+    const char *reference_valuestring = "reference item should be freed by yourself";
+    const char *short_valuestring = "shorter valuestring";
+    const char *long_valuestring = "new valuestring which much longer than previous should be changed safely";
+    cJSON *item1 = cJSON_CreateString(stringvalue);
+    cJSON *item2 = cJSON_CreateStringReference(reference_valuestring);
+    char *ptr1 = NULL;
+    char *return_value = NULL;
     
     cJSON_AddItemToObject(root, "one", item1);
     cJSON_AddItemToObject(root, "two", item2);
 
-    /* we needn't to free the original valuestring manually */
-    returnValue = cJSON_SetValuestringToObject(cJSON_GetObjectItem(root, "one"), newValuestring);
-    TEST_ASSERT_NOT_NULL(returnValue);
-    TEST_ASSERT_EQUAL_STRING(newValuestring, cJSON_GetObjectItem(root, "one")->valuestring);
+    ptr1 = item1->valuestring;
+    return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "one"), short_valuestring);
+    TEST_ASSERT_NOT_NULL(return_value);
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(ptr1, return_value, "new valuestring shorter than old should not reallocate memory");
+    TEST_ASSERT_EQUAL_STRING(short_valuestring, cJSON_GetObjectItem(root, "one")->valuestring);
 
-    returnValue = cJSON_SetValuestringToObject(cJSON_GetObjectItem(root, "two"), newValuestring);
-    TEST_ASSERT_NOT_NULL(returnValue);
-    TEST_ASSERT_EQUAL_STRING(newValuestring, cJSON_GetObjectItem(root, "two")->valuestring);
-    /* we must free the memory manually when the item's type is cJSON_IsReference */
-    cJSON_free(item2->valuestring);
+    /* we needn't to free the original valuestring manually */
+    ptr1 = item1->valuestring;
+    return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "one"), long_valuestring);
+    TEST_ASSERT_NOT_NULL(return_value);
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(ptr1, return_value, "new valuestring longer than old should reallocate memory")
+    TEST_ASSERT_EQUAL_STRING(long_valuestring, cJSON_GetObjectItem(root, "one")->valuestring);
+
+    return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "two"), long_valuestring);
+    TEST_ASSERT_NULL_MESSAGE(return_value, "valuestring of reference object should not be changed");
+    TEST_ASSERT_EQUAL_STRING(reference_valuestring, cJSON_GetObjectItem(root, "two")->valuestring);
 
     cJSON_Delete(root);
 }

@@ -212,7 +212,7 @@ For every value type there is a `cJSON_Create...` function that can be used to c
 All of these will allocate a `cJSON` struct that can later be deleted with `cJSON_Delete`.
 Note that you have to delete them at some point, otherwise you will get a memory leak.  
 **Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, 
-it gets deleted as well. You also could use `cJSON_SetValuestringToObject` to change a `cJSON_Object`'s `valuestring`, and you needn't to free the previous `valuestring` manually.
+it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `cJSON_String`'s `valuestring`, and you needn't to free the previous `valuestring` manually.
 
 #### Basic types
 
