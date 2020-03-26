@@ -332,13 +332,15 @@ static void cjson_replace_item_in_object_should_preserve_name(void)
     cJSON root[1] = {{ NULL, NULL, NULL, 0, NULL, 0, 0, NULL }};
     cJSON *child = NULL;
     cJSON *replacement = NULL;
+    cJSON_bool flag = cJSON_False;
 
     child = cJSON_CreateNumber(1);
     TEST_ASSERT_NOT_NULL(child);
     replacement = cJSON_CreateNumber(2);
     TEST_ASSERT_NOT_NULL(replacement);
 
-    cJSON_AddItemToObject(root, "child", child);
+    flag  = cJSON_AddItemToObject(root, "child", child);
+    TEST_ASSERT_TRUE_MESSAGE(flag, "add item to object failed");
     cJSON_ReplaceItemInObject(root, "child", replacement);
 
     TEST_ASSERT_TRUE(root->child == replacement);
@@ -531,6 +533,22 @@ static void cjson_create_array_reference_should_create_an_array_reference(void) 
     cJSON_Delete(number_reference);
 }
 
+static void cjson_add_item_to_object_or_array_should_not_add_itself(void)
+{
+    cJSON *object = cJSON_CreateObject();
+    cJSON *array = cJSON_CreateArray();
+    cJSON_bool flag = cJSON_False;
+
+    flag = cJSON_AddItemToObject(object, "key", object);
+    TEST_ASSERT_FALSE_MESSAGE(flag, "add an object to itself should fail");
+
+    flag = cJSON_AddItemToArray(array, array);
+    TEST_ASSERT_FALSE_MESSAGE(flag, "add an array to itself should fail");
+
+    cJSON_Delete(object);
+    cJSON_Delete(array);
+}
+
 static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased(void)
 {
     cJSON *object = cJSON_CreateObject();
@@ -607,6 +625,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_create_string_reference_should_create_a_string_reference);
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
+    RUN_TEST(cjson_add_item_to_object_or_array_should_not_add_itself);
     RUN_TEST(cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased);
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
 

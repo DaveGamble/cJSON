@@ -1865,7 +1865,7 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
 {
     cJSON *child = NULL;
 
-    if ((item == NULL) || (array == NULL))
+    if ((item == NULL) || (array == NULL) || (array == item))
     {
         return false;
     }
@@ -1904,9 +1904,9 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
 }
 
 /* Add item to array/object. */
-CJSON_PUBLIC(void) cJSON_AddItemToArray(cJSON *array, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToArray(cJSON *array, cJSON *item)
 {
-    add_item_to_array(array, item);
+    return add_item_to_array(array, item);
 }
 
 #if defined(__clang__) || (defined(__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
@@ -1930,7 +1930,7 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
     char *new_key = NULL;
     int new_type = cJSON_Invalid;
 
-    if ((object == NULL) || (string == NULL) || (item == NULL))
+    if ((object == NULL) || (string == NULL) || (item == NULL) || (object == item))
     {
         return false;
     }
@@ -1962,35 +1962,35 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
     return add_item_to_array(object, item);
 }
 
-CJSON_PUBLIC(void) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item)
 {
-    add_item_to_object(object, string, item, &global_hooks, false);
+    return add_item_to_object(object, string, item, &global_hooks, false);
 }
 
 /* Add an item to an object with constant string as key */
-CJSON_PUBLIC(void) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
 {
-    add_item_to_object(object, string, item, &global_hooks, true);
+    return add_item_to_object(object, string, item, &global_hooks, true);
 }
 
-CJSON_PUBLIC(void) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
 {
     if (array == NULL)
     {
-        return;
+        return cJSON_False;
     }
 
-    add_item_to_array(array, create_reference(item, &global_hooks));
+    return add_item_to_array(array, create_reference(item, &global_hooks));
 }
 
-CJSON_PUBLIC(void) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item)
 {
     if ((object == NULL) || (string == NULL))
     {
-        return;
+        return cJSON_False;
     }
 
-    add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, false);
+    return add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, false);
 }
 
 CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * const name)
