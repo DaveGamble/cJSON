@@ -1977,7 +1977,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item
 {
     if (array == NULL)
     {
-        return cJSON_False;
+        return false;
     }
 
     return add_item_to_array(array, create_reference(item, &global_hooks));
@@ -1987,7 +1987,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const cha
 {
     if ((object == NULL) || (string == NULL))
     {
-        return cJSON_False;
+        return false;
     }
 
     return add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, false);

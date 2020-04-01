@@ -332,7 +332,7 @@ static void cjson_replace_item_in_object_should_preserve_name(void)
     cJSON root[1] = {{ NULL, NULL, NULL, 0, NULL, 0, 0, NULL }};
     cJSON *child = NULL;
     cJSON *replacement = NULL;
-    cJSON_bool flag = cJSON_False;
+    cJSON_bool flag = false;
 
     child = cJSON_CreateNumber(1);
     TEST_ASSERT_NOT_NULL(child);
@@ -537,7 +537,7 @@ static void cjson_add_item_to_object_or_array_should_not_add_itself(void)
 {
     cJSON *object = cJSON_CreateObject();
     cJSON *array = cJSON_CreateArray();
-    cJSON_bool flag = cJSON_False;
+    cJSON_bool flag = false;
 
     flag = cJSON_AddItemToObject(object, "key", object);
     TEST_ASSERT_FALSE_MESSAGE(flag, "add an object to itself should fail");
