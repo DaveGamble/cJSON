@@ -1,3 +1,21 @@
+1.7.13 (Apr 2, 2020)
+======
+Features:
+---------
+* add new API of cJSON_ParseWithLength without breaking changes. Thanks @caglarivriz, see [#358](https://github.com/DaveGamble/cJSON/pull/358)  
+* add new API of cJSON_GetNumberValue. Thanks @Intuition, see[#385](https://github.com/DaveGamble/cJSON/pull/385)  
+* add uninstall target function for CMake. See [#402](https://github.com/DaveGamble/cJSON/pull/402)  
+* Improve performance of adding item to array. Thanks @xiaomianhehe, see [#430](https://github.com/DaveGamble/cJSON/pull/430), [#448](https://github.com/DaveGamble/cJSON/pull/448)  
+* add new API of cJSON_SetValuestring, for changing the valuestring safely. See [#451](https://github.com/DaveGamble/cJSON/pull/451)  
+* add return value for cJSON_AddItemTo... and cJSON_ReplaceItem... (check if the operation successful). See [#453](https://github.com/DaveGamble/cJSON/pull/453)  
+
+Fixes:
+------
+* Fix clang -Wfloat-equal warning. Thanks @paulmalovanyi, see [#368](https://github.com/DaveGamble/cJSON/pull/368)  
+* Fix make failed in mac os. See [#405](https://github.com/DaveGamble/cJSON/pull/405)  
+* Fix memory leak in cJSONUtils_FindPointerFromObjectTo. Thanks @andywolk for reporting, see [#414](https://github.com/DaveGamble/cJSON/issues/414)  
+* Fix bug in encode_string_as_pointer. Thanks @AIChangJiang for reporting, see [#439](https://github.com/DaveGamble/cJSON/issues/439)  
+
 1.7.12 (May 17, 2019)
 ======
 Fixes:
