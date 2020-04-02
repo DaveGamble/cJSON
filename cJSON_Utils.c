@@ -40,6 +40,8 @@
 #include <stdio.h>
 #include <limits.h>
 #include <math.h>
+#include <float.h>
+#include <math.h>
 
 #if defined(_MSC_VER)
 #pragma warning (pop)
@@ -109,7 +111,8 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
 /* securely comparison of floating-point variables */
 static cJSON_bool compare_double(double a, double b)
 {
-    return (fabs(a - b) <= CJSON_DOUBLE_PRECISION);
+    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
 

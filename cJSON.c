@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
+#include <float.h>
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -67,6 +68,14 @@
 #undef false
 #endif
 #define false ((cJSON_bool)0)
+
+/* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
+#ifndef isinf
+#define isinf(d) (isnan((d - d)) && !isnan(d))
+#endif
+#ifndef isnan
+#define isnan(d) (d != d)
+#endif
 
 typedef struct {
     const unsigned char *json;
@@ -483,7 +492,8 @@ static void update_offset(printbuffer * const buffer)
 /* securely comparison of floating-point variables */
 static cJSON_bool compare_double(double a, double b)
 {
-    return (fabs(a - b) <= CJSON_DOUBLE_PRECISION);
+    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
 /* Render the number nicely from the given item into a string. */
@@ -503,7 +513,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
 
     /* This checks for NaN and Infinity */
-    if ((d * 0) != 0)
+    if (isnan(d) || isinf(d))
     {
         length = sprintf((char*)number_buffer, "null");
     }
