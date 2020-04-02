@@ -77,6 +77,10 @@
 #define isnan(d) (d != d)
 #endif
 
+#ifndef NAN
+#define NAN 0.0/0.0
+#endif
+
 typedef struct {
     const unsigned char *json;
     size_t position;
@@ -102,7 +106,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item)
 {
     if (!cJSON_IsNumber(item)) 
     {
-        return 0.0/0.0;
+        return NAN;
     }
 
     return item->valuedouble;
