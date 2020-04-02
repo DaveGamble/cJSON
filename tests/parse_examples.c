@@ -195,6 +195,61 @@ static void test12_should_not_be_parsed(void)
     }
 }
 
+static void test13_should_be_parsed_without_null_termination(void)
+{
+    cJSON *tree = NULL;
+    const char test_13[] = "{" \
+                                "\"Image\":{" \
+                                    "\"Width\":800," \
+                                    "\"Height\":600," \
+                                    "\"Title\":\"Viewfrom15thFloor\"," \
+                                    "\"Thumbnail\":{" \
+                                        "\"Url\":\"http:/*www.example.com/image/481989943\"," \
+                                        "\"Height\":125," \
+                                        "\"Width\":\"100\"" \
+                                    "}," \
+                                    "\"IDs\":[116,943,234,38793]" \
+                                "}" \
+                            "}";
+
+    char test_13_wo_null[sizeof(test_13) - 1];
+    memcpy(test_13_wo_null, test_13, sizeof(test_13) - 1);
+
+    tree = cJSON_ParseWithLength(test_13_wo_null, sizeof(test_13) - 1);
+    TEST_ASSERT_NOT_NULL_MESSAGE(tree, "Failed to parse valid json.");
+
+    if (tree != NULL)
+    {
+        cJSON_Delete(tree);
+    }
+}
+
+static void test14_should_not_be_parsed(void)
+{
+    cJSON *tree = NULL;
+    const char test_14[] = "{" \
+                                "\"Image\":{" \
+                                    "\"Width\":800," \
+                                    "\"Height\":600," \
+                                    "\"Title\":\"Viewfrom15thFloor\"," \
+                                    "\"Thumbnail\":{" \
+                                        "\"Url\":\"http:/*www.example.com/image/481989943\"," \
+                                        "\"Height\":125," \
+                                        "\"Width\":\"100\"" \
+                                    "}," \
+                                    "\"IDs\":[116,943,234,38793]" \
+                                "}" \
+                            "}";
+
+    tree = cJSON_ParseWithLength(test_14, sizeof(test_14) - 2);
+    TEST_ASSERT_NULL_MESSAGE(tree, "Should not continue after buffer_length is reached.");
+
+    if (tree != NULL)
+    {
+        cJSON_Delete(tree);
+    }
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -210,5 +265,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(file_test10_should_be_parsed_and_printed);
     RUN_TEST(file_test11_should_be_parsed_and_printed);
     RUN_TEST(test12_should_not_be_parsed);
+    RUN_TEST(test13_should_be_parsed_without_null_termination);
+    RUN_TEST(test14_should_not_be_parsed);
     return UNITY_END();
 }

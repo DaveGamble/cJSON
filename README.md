@@ -267,6 +267,12 @@ Given some JSON in a zero terminated string, you can parse it with `cJSON_Parse`
 cJSON *json = cJSON_Parse(string);
 ```
 
+Given some JSON in a string (whether zero terminated or not), you can parse it with `cJSON_ParseWithLength`.
+
+```c
+cJSON *json = cJSON_ParseWithLength(string, buffer_length);
+```
+
 It will parse the JSON and allocate a tree of `cJSON` items that represents it. Once it returns, you are fully responsible for deallocating it after use with `cJSON_Delete`.
 
 The allocator used by `cJSON_Parse` is `malloc` and `free` by default but can be changed (globally) with `cJSON_InitHooks`.
@@ -276,6 +282,8 @@ By default, characters in the input string that follow the parsed JSON will not 
 
 If you want more options, use `cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)`.
 `return_parse_end` returns a pointer to the end of the JSON in the input string or the position that an error occurs at (thereby replacing `cJSON_GetErrorPtr` in a thread safe way). `require_null_terminated`, if set to `1` will make it an error if the input string contains data after the JSON.
+
+If you want more options giving buffer length, use `cJSON_ParseWithLengthOpts(const char *value, size_t buffer_length, const char **return_parse_end, cJSON_bool require_null_terminated)`.
 
 ### Printing JSON
 
