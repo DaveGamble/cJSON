@@ -468,9 +468,9 @@ static void cjson_get_number_value_should_get_a_number(void)
     cJSON *string = cJSON_CreateString("test");
     cJSON *number = cJSON_CreateNumber(1);
 
-    TEST_ASSERT_TRUE(cJSON_GetNumberValue(number) == number->valuedouble);
-    TEST_ASSERT_TRUE(is_nan(cJSON_GetNumberValue(string)));
-    TEST_ASSERT_TRUE(is_nan(cJSON_GetNumberValue(NULL)));
+    TEST_ASSERT_EQUAL_DOUBLE(cJSON_GetNumberValue(number), number->valuedouble);
+    TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetNumberValue(string));
+    TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetNumberValue(NULL));
     
     cJSON_Delete(number);
     cJSON_Delete(string);
