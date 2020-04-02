@@ -563,19 +563,20 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
     cJSON_Delete(object);
 }
 
-static void cjson_delete_item_from_array_should_not_broken_list_structure(void) {
+static void cjson_delete_item_from_array_should_not_broken_list_structure(void)
+{
     const char expected_json1[] = "{\"rd\":[{\"a\":\"123\"}]}";
     const char expected_json2[] = "{\"rd\":[{\"a\":\"123\"},{\"b\":\"456\"}]}";
     const char expected_json3[] = "{\"rd\":[{\"b\":\"456\"}]}";
-    char* str1 = NULL;
-    char* str2 = NULL;
-    char* str3 = NULL;
+    char *str1 = NULL;
+    char *str2 = NULL;
+    char *str3 = NULL;
 
-    cJSON* root = cJSON_Parse("{}");
+    cJSON *root = cJSON_Parse("{}");
 
-    cJSON* array = cJSON_AddArrayToObject(root, "rd");
-    cJSON* item1 = cJSON_Parse("{\"a\":\"123\"}");
-    cJSON* item2 = cJSON_Parse("{\"b\":\"456\"}");
+    cJSON *array = cJSON_AddArrayToObject(root, "rd");
+    cJSON *item1 = cJSON_Parse("{\"a\":\"123\"}");
+    cJSON *item2 = cJSON_Parse("{\"b\":\"456\"}");
 
     cJSON_AddItemToArray(array, item1);
     str1 = cJSON_PrintUnformatted(root);
@@ -592,6 +593,41 @@ static void cjson_delete_item_from_array_should_not_broken_list_structure(void) 
     str3 = cJSON_PrintUnformatted(root);
     TEST_ASSERT_EQUAL_STRING(expected_json3, str3);
     free(str3);
+
+    cJSON_Delete(root);
+}
+
+static void cjson_set_valuestring_to_object_should_not_leak_memory(void)
+{
+    cJSON *root = cJSON_Parse("{}");
+    const char *stringvalue = "valuestring could be changed safely";
+    const char *reference_valuestring = "reference item should be freed by yourself";
+    const char *short_valuestring = "shorter valuestring";
+    const char *long_valuestring = "new valuestring which much longer than previous should be changed safely";
+    cJSON *item1 = cJSON_CreateString(stringvalue);
+    cJSON *item2 = cJSON_CreateStringReference(reference_valuestring);
+    char *ptr1 = NULL;
+    char *return_value = NULL;
+    
+    cJSON_AddItemToObject(root, "one", item1);
+    cJSON_AddItemToObject(root, "two", item2);
+
+    ptr1 = item1->valuestring;
+    return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "one"), short_valuestring);
+    TEST_ASSERT_NOT_NULL(return_value);
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(ptr1, return_value, "new valuestring shorter than old should not reallocate memory");
+    TEST_ASSERT_EQUAL_STRING(short_valuestring, cJSON_GetObjectItem(root, "one")->valuestring);
+
+    /* we needn't to free the original valuestring manually */
+    ptr1 = item1->valuestring;
+    return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "one"), long_valuestring);
+    TEST_ASSERT_NOT_NULL(return_value);
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(ptr1, return_value, "new valuestring longer than old should reallocate memory")
+    TEST_ASSERT_EQUAL_STRING(long_valuestring, cJSON_GetObjectItem(root, "one")->valuestring);
+
+    return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "two"), long_valuestring);
+    TEST_ASSERT_NULL_MESSAGE(return_value, "valuestring of reference object should not be changed");
+    TEST_ASSERT_EQUAL_STRING(reference_valuestring, cJSON_GetObjectItem(root, "two")->valuestring);
 
     cJSON_Delete(root);
 }
@@ -623,6 +659,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
     RUN_TEST(cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased);
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
+    RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
 
     return UNITY_END();
 }

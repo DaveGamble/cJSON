@@ -380,6 +380,33 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
     return object->valuedouble = number;
 }
 
+CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
+{
+    char *copy = NULL;
+    /* if object's type is not cJSON_String or is cJSON_IsReference, it should not set valuestring */
+    if (!(object->type & cJSON_String) || (object->type & cJSON_IsReference))
+    {
+        return NULL;
+    }
+    if (strlen(valuestring) <= strlen(object->valuestring))
+    {
+        strcpy(object->valuestring, valuestring);
+        return object->valuestring;
+    }
+    copy = (char*) cJSON_strdup((const unsigned char*)valuestring, &global_hooks);
+    if (copy == NULL)
+    {
+        return NULL;
+    }
+    if (object->valuestring != NULL)
+    {
+        cJSON_free(object->valuestring);
+    }
+    object->valuestring = copy;
+
+    return copy;
+}
+
 typedef struct
 {
     unsigned char *buffer;

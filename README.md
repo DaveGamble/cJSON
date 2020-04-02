@@ -197,21 +197,22 @@ The type can be one of the following:
 * `cJSON_NULL` (check with `cJSON_IsNull`): Represents a `null` value.
 * `cJSON_Number` (check with `cJSON_IsNumber`): Represents a number value. The value is stored as a double in `valuedouble` and also in `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`.
 * `cJSON_String` (check with `cJSON_IsString`): Represents a string value. It is stored in the form of a zero terminated string in `valuestring`.
-* `cJSON_Array` (check with `cJSON_IsArray`): Represent an array value. This is implemented by pointing `child` to a linked list of `cJSON` items that represent the values in the array. The elements are linked together using `next` and `prev`, where the first element has `prev == NULL` and the last element `next == NULL`.
+* `cJSON_Array` (check with `cJSON_IsArray`): Represent an array value. This is implemented by pointing `child` to a linked list of `cJSON` items that represent the values in the array. The elements are linked together using `next` and `prev`, where the first element has `prev.next == NULL` and the last element `next == NULL`.
 * `cJSON_Object` (check with `cJSON_IsObject`): Represents an object value. Objects are stored same way as an array, the only difference is that the items in the object store their keys in `string`.
 * `cJSON_Raw` (check with `cJSON_IsRaw`): Represents any kind of JSON that is stored as a zero terminated array of characters in `valuestring`. This can be used, for example, to avoid printing the same static JSON over and over again to save performance. cJSON will never create this type when parsing. Also note that cJSON doesn't check if it is valid JSON.
 
 Additionally there are the following two flags:
 
-* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not its children/valuestring.
+* `cJSON_IsReference`: Specifies that the item that `child` points to and/or `valuestring` is not owned by this item, it is only a reference. So `cJSON_Delete` and other functions will only deallocate this item, not its `child`/`valuestring`.
 * `cJSON_StringIsConst`: This means that `string` points to a constant string. This means that `cJSON_Delete` and other functions will not try to deallocate `string`.
 
 ### Working with the data structure
 
 For every value type there is a `cJSON_Create...` function that can be used to create an item of that type.
 All of these will allocate a `cJSON` struct that can later be deleted with `cJSON_Delete`.
-Note that you have to delete them at some point, otherwise you will get a memory leak.
-**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, it gets deleted as well.
+Note that you have to delete them at some point, otherwise you will get a memory leak.  
+**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, 
+it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `cJSON_String`'s `valuestring`, and you needn't to free the previous `valuestring` manually.
 
 #### Basic types
 
