@@ -64,6 +64,9 @@ static void cjson_compare_should_compare_numbers(void)
     TEST_ASSERT_TRUE(compare_from_string("1", "1", false));
     TEST_ASSERT_TRUE(compare_from_string("0.0001", "0.0001", true));
     TEST_ASSERT_TRUE(compare_from_string("0.0001", "0.0001", false));
+    TEST_ASSERT_TRUE(compare_from_string("1E100", "10E99", false));
+
+    TEST_ASSERT_FALSE(compare_from_string("0.5E-100", "0.5E-101", false));
 
     TEST_ASSERT_FALSE(compare_from_string("1", "2", true));
     TEST_ASSERT_FALSE(compare_from_string("1", "2", false));
