@@ -1509,6 +1509,10 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
 success:
     input_buffer->depth--;
 
+    if (head != NULL) {
+        head->prev = current_item;
+    }
+
     item->type = cJSON_Array;
     item->child = head;
 
@@ -1680,6 +1684,10 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
 
 success:
     input_buffer->depth--;
+
+    if (head != NULL) {
+        head->prev = current_item;
+    }
 
     item->type = cJSON_Object;
     item->child = head;
