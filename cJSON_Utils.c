@@ -472,8 +472,23 @@ cleanup:
     return detached_item;
 }
 
+static int compare_json_string(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+{
+  return compare_strings((unsigned char*)a->string, (unsigned char*)b->string, case_sensitive);
+}
+
+static int compare_json_string_case_sensitive(const cJSON * const a, const cJSON * const b)
+{
+  return compare_json_string(a, b, true);
+}
+
+static int compare_json_string_case_insensitive(const cJSON * const a, const cJSON * const b)
+{
+  return compare_json_string(a, b, false);
+}
+
 /* sort lists using mergesort */
-static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
+static cJSON *sort_list(cJSON *list, int (*compar)(const cJSON * const a, const cJSON * const b))
 {
     cJSON *first = list;
     cJSON *second = list;
@@ -487,7 +502,7 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
         return result;
     }
 
-    while ((current_item != NULL) && (current_item->next != NULL) && (compare_strings((unsigned char*)current_item->string, (unsigned char*)current_item->next->string, case_sensitive) < 0))
+    while ((current_item != NULL) && (current_item->next != NULL) && (compar(current_item, current_item->next) < 0))
     {
         /* Test for list sorted. */
         current_item = current_item->next;
@@ -519,15 +534,15 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
     }
 
     /* Recursively sort the sub-lists. */
-    first = sort_list(first, case_sensitive);
-    second = sort_list(second, case_sensitive);
+    first = sort_list(first, compar);
+    second = sort_list(second, compar);
     result = NULL;
 
     /* Merge the sub-lists */
     while ((first != NULL) && (second != NULL))
     {
         cJSON *smaller = NULL;
-        if (compare_strings((unsigned char*)first->string, (unsigned char*)second->string, case_sensitive) < 0)
+        if (compar(first, second) < 0)
         {
             smaller = first;
         }
@@ -590,7 +605,13 @@ static void sort_object(cJSON * const object, const cJSON_bool case_sensitive)
     {
         return;
     }
-    object->child = sort_list(object->child, case_sensitive);
+    if (case_sensitive) {
+        object->child = sort_list(object->child, compare_json_string_case_sensitive);
+    }
+    else
+    {
+        object->child = sort_list(object->child, compare_json_string_case_insensitive);
+    }
 }
 
 static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensitive)
@@ -1464,3 +1485,12 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatchCaseSensitive(cJSON * const f
 {
     return generate_merge_patch(from, to, true);
 }
+
+CJSON_PUBLIC(void) cJSONUtils_SortArray(cJSON * const array, int (*compar)(const cJSON * const a, const cJSON * const b))
+{
+    if ((array == NULL) || (array->child == NULL) || (2 > cJSON_GetArraySize(array))) {
+      return;
+    }
+    array->child = sort_list(array->child, compar);
+}
+
