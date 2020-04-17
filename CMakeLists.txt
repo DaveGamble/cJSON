@@ -223,10 +223,12 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/library_config/cJSONConfigVersion.cmake.in"
     ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake @ONLY)
 
-# Install package config files
-install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
-    ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake
-    DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
+if(ENABLE_TARGET_EXPORT)
+    # Install package config files
+    install(FILES ${PROJECT_BINARY_DIR}/cJSONConfig.cmake
+        ${PROJECT_BINARY_DIR}/cJSONConfigVersion.cmake
+        DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
+endif()
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
 if(ENABLE_CJSON_TEST)
