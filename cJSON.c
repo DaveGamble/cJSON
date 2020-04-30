@@ -102,6 +102,17 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item)
     return item->valuestring;
 }
 
+CJSON_PUBLIC(size_t) cJSON_GetStringValueLength(cJSON *item)
+{
+    if (!cJSON_IsString(item))
+    {
+        return 0;
+    }
+
+    return item->valuestring_len;
+}
+
+
 CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item) 
 {
     if (!cJSON_IsNumber(item)) 
@@ -769,7 +780,9 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
     const unsigned char *input_pointer = buffer_at_offset(input_buffer) + 1;
     const unsigned char *input_end = buffer_at_offset(input_buffer) + 1;
     unsigned char *output_pointer = NULL;
+    unsigned char *output_pointer_before = NULL;
     unsigned char *output = NULL;
+	size_t		  string_length = 0;
 
     /* not a string */
     if (buffer_at_offset(input_buffer)[0] != '\"')
@@ -808,8 +821,8 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
         {
             goto fail; /* allocation failure */
         }
+		string_length = allocation_length - sizeof("") + skipped_bytes;
     }
-
     output_pointer = output;
     /* loop through the string literal */
     while (input_pointer < input_end)
@@ -852,26 +865,29 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 
                 /* UTF-16 literal */
                 case 'u':
+					output_pointer_before = output_pointer;
                     sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
                     if (sequence_length == 0)
                     {
                         /* failed to convert UTF16-literal to UTF-8 */
                         goto fail;
                     }
+					string_length += (unsigned int)(output_pointer - output_pointer_before);
                     break;
 
                 default:
                     goto fail;
             }
             input_pointer += sequence_length;
+			string_length -= sequence_length;
         }
     }
 
     /* zero terminate the output */
     *output_pointer = '\0';
-
     item->type = cJSON_String;
     item->valuestring = (char*)output;
+	item->valuestring_len = string_length;
 
     input_buffer->offset = (size_t) (input_end - input_buffer->content);
     input_buffer->offset++;

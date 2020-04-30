@@ -120,6 +120,7 @@ typedef struct cJSON
 
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
     char *string;
+	size_t valuestring_len;
 } cJSON;
 
 typedef struct cJSON_Hooks
@@ -177,6 +178,7 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
 
 /* Check item type and return its value */
 CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item);
+CJSON_PUBLIC(size_t) cJSON_GetStringValueLength(cJSON *item);
 CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item);
 
 /* These functions check the type of an item */
