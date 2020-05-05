@@ -6,5 +6,5 @@ Version: @PROJECT_VERSION@
 Description: An implementation of JSON Pointer, Patch and Merge Patch based on cJSON.
 URL: https://github.com/DaveGamble/cJSON
 Libs: -L${libdir} -lcjson_utils
-Cflags: -I${includedir}
+Cflags: -I${includedir} -I${includedir}/cjson
 Requires: libcjson
