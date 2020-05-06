@@ -90,7 +90,8 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 
     assert_parse_array("[[]]");
     assert_has_child(item);
-    assert_is_array(item->child);
+    TEST_ASSERT_NOT_NULL(item->child);
+    assert_has_type(item->child, cJSON_Array);
     assert_has_no_child(item->child);
     reset(item);
 
