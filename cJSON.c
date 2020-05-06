@@ -1509,6 +1509,10 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
 success:
     input_buffer->depth--;
 
+    if (head != NULL) {
+        head->prev = current_item;
+    }
+
     item->type = cJSON_Array;
     item->child = head;
 
@@ -1680,6 +1684,10 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
 
 success:
     input_buffer->depth--;
+
+    if (head != NULL) {
+        head->prev = current_item;
+    }
 
     item->type = cJSON_Object;
     item->child = head;
@@ -2202,6 +2210,12 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const it
         /* first element */
         parent->child = item->next;
     }
+    else if (item->next == NULL)
+    {
+        /* last element */
+        parent->child->prev = item->prev;
+    }
+
     /* make sure the detached item doesn't point anywhere anymore */
     item->prev = NULL;
     item->next = NULL;
@@ -2299,6 +2313,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     }
     if (parent->child == item)
     {
+        if (parent->child->prev == parent->child)
+        {
+            replacement->prev = replacement;
+        }
         parent->child = replacement;
     }
     else
@@ -2309,6 +2327,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
         if (replacement->prev != NULL)
         {
             replacement->prev->next = replacement;
+        }
+        if (replacement->next == NULL)
+        {
+            parent->child->prev = replacement;
         }
     }
 
