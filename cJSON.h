@@ -279,8 +279,10 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number);
 /* Change the valuestring of a cJSON_String object, only takes effect when type of object is cJSON_String */
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring);
 
-/* Macro for iterating over an array or object */
+/* Macros for iterating over an array or object */
 #define cJSON_ArrayForEach(element, array) for(element = (array != NULL) ? (array)->child : NULL; element != NULL; element = element->next)
+#define cJSON_ArrayFirst(element, array) (element = (array != NULL) ? (array)->child : NULL)
+#define cJSON_ArrayNext(element) (element = element->next)
 
 /* malloc/free objects using the malloc/free functions that have been set with cJSON_InitHooks */
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size);
