@@ -84,7 +84,7 @@ static void cjson_array_first_should_get_first(void)
         elements[i + 1].prev = &elements[i];
     }
 
-    cJSON_ArrayFirst(element_pointer, array);
+    cJSON_ArrayFirst(array, element_pointer);
     TEST_ASSERT_TRUE_MESSAGE(element_pointer == &elements[0], "Failed to store first.");
 }
 
@@ -92,7 +92,7 @@ static void cjson_array_first_should_not_dereference_null_pointer(void)
 {
     cJSON *array = NULL;
     cJSON *element = NULL;
-    cJSON_ArrayFirst(element, array);
+    cJSON_ArrayFirst(array, element);
     /* suppress unused var warning */
     if (element)
     {
@@ -119,7 +119,7 @@ static void cjson_array_next_should_iterate(void)
         elements[i + 1].prev = &elements[i];
     }
 
-    cJSON_ArrayFirst(element_pointer, array);
+    cJSON_ArrayFirst(array, element_pointer);
 
     if (cJSON_ArrayNext(element_pointer))
     {
