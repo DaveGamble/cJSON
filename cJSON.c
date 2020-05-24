@@ -839,7 +839,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
             {
                 goto fail;
             }
-
+			string_length++;
             switch (input_pointer[1])
             {
                 case 'b':
@@ -872,7 +872,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
                         /* failed to convert UTF16-literal to UTF-8 */
                         goto fail;
                     }
-					string_length += (unsigned int)(output_pointer - output_pointer_before);
+					string_length += (unsigned int)(output_pointer - output_pointer_before - 1);
                     break;
 
                 default:

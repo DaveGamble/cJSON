@@ -66,7 +66,7 @@ UTILS_STATIC = $(UTILS_LIBNAME).$(STATIC)
 
 SHARED_CMD = $(CC) -shared -o
 
-.PHONY: all shared static tests clean install
+.PHONY: all shared static tests mytests clean install
 
 all: shared static tests
 
@@ -78,6 +78,9 @@ tests: $(CJSON_TEST)
 
 test: tests
 	./$(CJSON_TEST)
+
+mytests: cJSON.c mytest.c cJSON.h
+	gcc -std=c11  -ggdb3 $(R_CFLAGS) cJSON.c mytest.c  -o $@ $(LDLIBS) -I.
 
 .c.o:
 	$(CC) -c $(R_CFLAGS) $<
