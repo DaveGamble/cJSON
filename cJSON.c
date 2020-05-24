@@ -885,6 +885,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 
     /* zero terminate the output */
     *output_pointer = '\0';
+
     item->type = cJSON_String;
     item->valuestring = (char*)output;
 	item->valuestring_len = string_length;
