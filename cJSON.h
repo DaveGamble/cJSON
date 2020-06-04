@@ -256,7 +256,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
 
 /* Minify a strings, remove blank characters(such as ' ', '\t', '\r', '\n') from strings.
  * The input pointer json cannot point to a read-only address area, such as a string constant, 
- * but should point to a readable and writable adress area. */
+ * but should point to a readable and writable address area. */
 CJSON_PUBLIC(void) cJSON_Minify(char *json);
 
 /* Helper functions for creating and adding items to an object at the same time.
