@@ -44,7 +44,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <float.h>
-
+#include <stdint.h>
 #ifdef ENABLE_LOCALES
 #include <locale.h>
 #endif
@@ -312,6 +312,7 @@ typedef struct
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
+	uint64_t number64;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
     unsigned char decimal_point = get_decimal_point();
@@ -378,7 +379,12 @@ loop_end:
     {
         item->valueint = (int)number;
     }
-
+	number64 = strtoull((const char*)number_c_string, (char**)&after_end, 10);
+	if(number_c_string == after_end)
+	{
+		return false;
+	}
+	item->valueint64 = number64;
     item->type = cJSON_Number;
 
     input_buffer->offset += (size_t)(after_end - number_c_string);

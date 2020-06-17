@@ -84,7 +84,7 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define CJSON_VERSION_PATCH 13
 
 #include <stddef.h>
-
+#include <stdint.h>
 /* cJSON Types: */
 #define cJSON_Invalid (0)
 #define cJSON_False  (1 << 0)
@@ -117,7 +117,7 @@ typedef struct cJSON
     int valueint;
     /* The item's number, if type==cJSON_Number */
     double valuedouble;
-
+	uint64_t  valueint64;
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
     char *string;
 	size_t valuestring_len;
@@ -180,6 +180,7 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
 CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item);
 CJSON_PUBLIC(size_t) cJSON_GetStringValueLength(cJSON *item);
 CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item);
+CJSON_PUBLIC(long int) cJSON_Get64NumberValue(cJSON *item);
 
 /* These functions check the type of an item */
 CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item);
