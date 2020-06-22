@@ -92,7 +92,7 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
     return (const char*) (global_error.json + global_error.position);
 }
 
-CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) 
+CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item) 
 {
     if (!cJSON_IsString(item)) 
     {
@@ -102,7 +102,7 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item)
     return item->valuestring;
 }
 
-CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item) 
+CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item) 
 {
     if (!cJSON_IsNumber(item)) 
     {
