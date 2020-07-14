@@ -378,6 +378,36 @@ static void cjson_add_array_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
+static void cJSON_add_object_to_array_should_add_object(void)
+{
+    cJSON *root = cJSON_CreateArray();
+    cJSON *object = NULL;
+
+    TEST_ASSERT_NOT_NULL(object = cJSON_AddObjectToArray(root));
+    TEST_ASSERT_EQUAL_INT(cJSON_GetArraySize(root), 1);
+    TEST_ASSERT_EQUAL_INT(cJSON_GetArrayItem(root, 0)->type, cJSON_Object);
+
+    cJSON_Delete(root);
+}
+
+static void cjson_add_object_to_array_should_fail_with_null_pointers(void)
+{
+    TEST_ASSERT_NULL(cJSON_AddObjectToArray(NULL));
+}
+
+static void cjson_add_object_to_array_should_fail_on_allocation_failure(void)
+{
+    cJSON *root = cJSON_CreateArray();
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_AddObjectToArray(root));
+
+    cJSON_InitHooks(NULL);
+
+    cJSON_Delete(root);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -417,6 +447,10 @@ int CJSON_CDECL main(void)
     RUN_TEST(cJSON_add_array_should_add_array);
     RUN_TEST(cjson_add_array_should_fail_with_null_pointers);
     RUN_TEST(cjson_add_array_should_fail_on_allocation_failure);
+
+    RUN_TEST(cJSON_add_object_to_array_should_add_object);
+    RUN_TEST(cjson_add_object_to_array_should_fail_with_null_pointers);
+    RUN_TEST(cjson_add_object_to_array_should_fail_on_allocation_failure);
 
     return UNITY_END();
 }

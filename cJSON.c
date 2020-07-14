@@ -1995,6 +1995,19 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToArray(cJSON *array, cJSON *item)
     return add_item_to_array(array, item);
 }
 
+/** Create object and add it to array */
+CJSON_PUBLIC(cJSON*) cJSON_AddObjectToArray(cJSON * const array)
+{
+    cJSON *object = cJSON_CreateObject();
+    if (cJSON_AddItemToArray(array, object))
+    {
+        return object;
+    }
+
+    cJSON_Delete(object);
+    return NULL;
+}
+
 #if defined(__clang__) || (defined(__GNUC__)  && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))))
     #pragma GCC diagnostic push
 #endif
