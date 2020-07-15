@@ -143,6 +143,7 @@ endif()
 if (NOT WIN32)
     target_link_libraries("${CJSON_LIB}" m)
 endif()
+target_include_directories(${CJSON_LIB} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
