@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      fail-fast: false
+      matrix:
+        mem_check:
+          - ENABLE_VALGRIND
+          - ENABLE_SANITIZERS
+          - NONE_MEM_CHECK
+        compiler:
+          - GCC
+          - CLANG
+    steps:
+    - uses: actions/checkout@v2
+    - name: install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install clang-8 valgrind
+    - name: build and test
+      shell: bash
+      run: |
+          if [ "${{ matrix.mem_check }}" == "ENABLE_VALGRIND" ]; then
+            EVENT_CMAKE_OPTIONS="-DENABLE_CJSON_UTILS=ON -DENABLE_VALGRIND=ON -DENABLE_SAFE_STACK=ON -DENABLE_SANITIZERS=OFF"
+          elif [ "${{ matrix.mem_check }}" == "ENABLE_SANITIZERS" ]; then
+            EVENT_CMAKE_OPTIONS="-DENABLE_CJSON_UTILS=ON -DENABLE_VALGRIND=OFF -DENABLE_SAFE_STACK=OFF -DENABLE_SANITIZERS=ON"
+          else
+            EVENT_CMAKE_OPTIONS="-DENABLE_CJSON_UTILS=ON -DENABLE_VALGRIND=OFF -DENABLE_SAFE_STACK=OFF -DENABLE_SANITIZERS=OFF"
+          fi
+          if [ "${{ matrix.compiler }}" == "GCC" ]; then
+            export CC=gcc
+          else
+            export CC=clang
+          fi
+          #run build and test
+          JOBS=20
+          export CTEST_PARALLEL_LEVEL=$JOBS
+          export CTEST_OUTPUT_ON_FAILURE=1
+          mkdir -p build
+          cd build
+          echo [cmake]: cmake .. $EVENT_CMAKE_OPTIONS
+          cmake .. $EVENT_CMAKE_OPTIONS || (rm -rf * && cmake .. $EVENT_CMAKE_OPTIONS)
+          cmake --build .
+          make
+          make test
+          
+  macos:
+    runs-on: macos-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      fail-fast: false
+      matrix:
+        mem_check:
+          - ENABLE_VALGRIND
+          - ENABLE_SANITIZERS
+          - NONE_MEM_CHECK
+        compiler:
+          - GCC
+          - CLANG
+    steps:
+    - uses: actions/checkout@v2
+    - name: build and test
+      shell: bash
+      run: |
+          if [ "${{ matrix.mem_check }}" == "ENABLE_VALGRIND" ]; then
+            EVENT_CMAKE_OPTIONS="-DENABLE_CJSON_UTILS=ON -DENABLE_VALGRIND=ON -DENABLE_SAFE_STACK=ON -DENABLE_SANITIZERS=OFF"
+          elif [ "${{ matrix.mem_check }}" == "ENABLE_SANITIZERS" ]; then
+            EVENT_CMAKE_OPTIONS="-DENABLE_CJSON_UTILS=ON -DENABLE_VALGRIND=OFF -DENABLE_SAFE_STACK=OFF -DENABLE_SANITIZERS=ON"
+          else
+            EVENT_CMAKE_OPTIONS="-DENABLE_CJSON_UTILS=ON -DENABLE_VALGRIND=OFF -DENABLE_SAFE_STACK=OFF -DENABLE_SANITIZERS=OFF"
+          fi
+          if [ "${{ matrix.compiler }}" == "GCC" ]; then
+            export CC=gcc
+          else
+            export CC=clang
+          fi
+          #run build and test
+          JOBS=20
+          export CTEST_PARALLEL_LEVEL=$JOBS
+          export CTEST_OUTPUT_ON_FAILURE=1
+          mkdir -p build
+          cd build
+          echo [cmake]: cmake .. $EVENT_CMAKE_OPTIONS
+          cmake .. $EVENT_CMAKE_OPTIONS || (rm -rf * && cmake .. $EVENT_CMAKE_OPTIONS)
+          cmake --build .
+          make
+          make test
