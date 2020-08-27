@@ -68,7 +68,6 @@ if (ENABLE_SANITIZERS)
         -fno-omit-frame-pointer
         -fsanitize=address
         -fsanitize=undefined
-        -fsanitize=float-divide-by-zero
         -fsanitize=float-cast-overflow
         -fsanitize-address-use-after-scope
         -fsanitize=integer
