@@ -1,3 +1,11 @@
+1.7.14 (Sep 3, 2020)
+======
+Fixes:
+------
+* optimize the way to find tail node, see [#503](https://github.com/DaveGamble/cJSON/pull/503)
+* Fix WError error on macosx because NAN is a float. Thanks @sappo, see [#484](https://github.com/DaveGamble/cJSON/pull/484)
+* Fix some bugs in detach and replace. Thanks @miaoerduo, see [#456](https://github.com/DaveGamble/cJSON/pull/456)
+
 1.7.13 (Apr 2, 2020)
 ======
 Features:
