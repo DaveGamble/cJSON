@@ -29,6 +29,7 @@ Contributors:
 * [Fabrice Fontaine](https://github.com/ffontaine)
 * Ian Mobley
 * Irwan Djadjadi
+* [HuKeping](https://github.com/HuKeping)
 * [IvanVoid](https://github.com/npi3pak)
 * [Jakub Wilk](https://github.com/jwilk)
 * [Jiri Zouhar](https://github.com/loigu)
@@ -36,12 +37,15 @@ Contributors:
 * [Julian Ste](https://github.com/julian-st)
 * [Julián Vásquez](https://github.com/juvasquezg)
 * [Kevin Branigan](https://github.com/kbranigan)
+* [Kevin Sapper](https://github.com/sappo)
 * [Kyle Chisholm](https://github.com/ChisholmKyle)
 * [Linus Wallgren](https://github.com/ecksun)
 * [Mateusz Szafoni](https://github.com/raiden00pl)
 * Mike Pontillo
+* [miaoerduo](https://github.com/miaoerduo)
 * [Mike Jerris](https://github.com/mjerris)
 * [Mike Robinson](https://github.com/mhrobinson)
+* [Moorthy](https://github.com/moorthy-bs)
 * [myd7349](https://github.com/myd7349)
 * [NancyLi1013](https://github.com/NancyLi1013)
 * Paulo Antonio Alvarez
