@@ -403,7 +403,7 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
         /* item doesn't exist */
         return NULL;
     }
-    if (c->prev)
+    if (c != array->child)
     {
         /* not the first element */
         c->prev->next = c->next;
@@ -412,9 +412,13 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
     {
         c->next->prev = c->prev;
     }
-    if (c==array->child)
+    if (c == array->child)
     {
         array->child = c->next;
+    }
+    else if (c->next == NULL)
+    {
+        array->child->prev = c->prev;
     }
     /* make sure the detached item doesn't point anywhere anymore */
     c->prev = c->next = NULL;
