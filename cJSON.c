@@ -120,7 +120,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
-#define VERSION_NUMBER (XSTR(CJSON_VERSION_MAJOR) "." XSTR(cJSON_VERSION_MINOR) "." XSTR(cJSON_VERSION_PATCH"))
+#define VERSION_NUMBER (XSTR(CJSON_VERSION_MAJOR) "." XSTR(cJSON_VERSION_MINOR) "." XSTR(cJSON_VERSION_PATCH))
 
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
