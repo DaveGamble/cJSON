@@ -640,7 +640,9 @@ static void cjson_set_valuestring_to_object_should_not_leak_memory(void)
     ptr1 = item1->valuestring;
     return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "one"), long_valuestring);
     TEST_ASSERT_NOT_NULL(return_value);
+#ifndef __TRUSTINSOFT_ANALYZER__ /* ptr1 was already freed, comparing it with another pointer is Undefined Behavior */
     TEST_ASSERT_NOT_EQUAL_MESSAGE(ptr1, return_value, "new valuestring longer than old should reallocate memory")
+#endif /* __TRUSTINSOFT_ANALYZER__ */
     TEST_ASSERT_EQUAL_STRING(long_valuestring, cJSON_GetObjectItem(root, "one")->valuestring);
 
     return_value = cJSON_SetValuestring(cJSON_GetObjectItem(root, "two"), long_valuestring);
