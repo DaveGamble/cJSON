@@ -1406,6 +1406,10 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
     from_child = from->child;
     to_child = to->child;
     patch = cJSON_CreateObject();
+    if (patch == NULL)
+    {
+        return NULL;
+    }
     while (from_child || to_child)
     {
         int diff;
