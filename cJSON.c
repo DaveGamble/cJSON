@@ -1978,6 +1978,7 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
         {
             suffix_object(child->prev, item);
             array->child->prev = item;
+            item->next = NULL;
         }
     }
 
