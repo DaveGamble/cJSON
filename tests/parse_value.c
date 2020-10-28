@@ -47,6 +47,7 @@ static void assert_parse_value(const char *string, int type)
     buffer.content = (const unsigned char*) string;
     buffer.length = strlen(string) + sizeof("");
     buffer.ctx = &default_context;
+    item->ctx = &default_context;
 
     TEST_ASSERT_TRUE(parse_value(item, &buffer));
     assert_is_value(item, type);

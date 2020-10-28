@@ -282,7 +282,7 @@ static void cjson_detach_item_via_pointer_should_detach_items(void)
 
 static void cjson_replace_item_via_pointer_should_replace_items(void)
 {
-    cJSON replacements[3];
+    cJSON *replacements[3];
     cJSON *beginning = NULL;
     cJSON *middle = NULL;
     cJSON *end = NULL;
@@ -303,26 +303,29 @@ static void cjson_replace_item_via_pointer_should_replace_items(void)
     cJSON_AddItemToArray(array, end);
 
 
-    memset(replacements, '\0', sizeof(replacements));
+    replacements[0] = cJSON_CreateNull(NULL);
+    replacements[1] = cJSON_CreateNull(NULL);
+    replacements[2] = cJSON_CreateNull(NULL);
+    
 
     /* replace beginning */
-    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, beginning, &(replacements[0])));
-    TEST_ASSERT_TRUE(replacements[0].prev == end);
-    TEST_ASSERT_TRUE(replacements[0].next == middle);
-    TEST_ASSERT_TRUE(middle->prev == &(replacements[0]));
-    TEST_ASSERT_TRUE(array->child == &(replacements[0]));
+    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, beginning, (replacements[0])));
+    TEST_ASSERT_TRUE(replacements[0]->prev == end);
+    TEST_ASSERT_TRUE(replacements[0]->next == middle);
+    TEST_ASSERT_TRUE(middle->prev == replacements[0]);
+    TEST_ASSERT_TRUE(array->child == replacements[0]);
 
     /* replace middle */
-    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, middle, &(replacements[1])));
-    TEST_ASSERT_TRUE(replacements[1].prev == &(replacements[0]));
-    TEST_ASSERT_TRUE(replacements[1].next == end);
-    TEST_ASSERT_TRUE(end->prev == &(replacements[1]));
+    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, middle, replacements[1]));
+    TEST_ASSERT_TRUE(replacements[1]->prev == replacements[0]);
+    TEST_ASSERT_TRUE(replacements[1]->next == end);
+    TEST_ASSERT_TRUE(end->prev == replacements[1]);
 
     /* replace end */
-    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, end, &(replacements[2])));
-    TEST_ASSERT_TRUE(replacements[2].prev == &(replacements[1]));
-    TEST_ASSERT_NULL(replacements[2].next);
-    TEST_ASSERT_TRUE(replacements[1].next == &(replacements[2]));
+    TEST_ASSERT_TRUE(cJSON_ReplaceItemViaPointer(array, end, replacements[2]));
+    TEST_ASSERT_TRUE(replacements[2]->prev == replacements[1]);
+    TEST_ASSERT_NULL(replacements[2]->next);
+    TEST_ASSERT_TRUE(replacements[1]->next == replacements[2]);
 
     cJSON_Delete(array);
 }
@@ -448,7 +451,7 @@ static void ensure_should_fail_on_failed_realloc(void)
     print_buffer buffer = { NULL, 10, 0, 0, false, false, &default_context};
     cJSON_Hooks hooks = { default_malloc, default_free, failing_realloc, default_memcpy };
     cJSON_InitHooks(buffer.ctx, &hooks);
-    buffer.buffer = (unsigned char*)malloc(100);
+    buffer.buffer = (unsigned char*)buffer.ctx->hooks.malloc_fn(buffer.ctx, 100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
 
     TEST_ASSERT_NULL_MESSAGE(ensure(&buffer, 200), "Ensure didn't fail with failing realloc.");

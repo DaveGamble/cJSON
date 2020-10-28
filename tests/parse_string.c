@@ -49,6 +49,7 @@ static void assert_parse_string(const char *string, const char *expected)
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
     buffer.ctx = &default_context;
+    item->ctx = &default_context;
 
     TEST_ASSERT_TRUE_MESSAGE(parse_string(item, &buffer), "Couldn't parse string.");
     assert_is_string(item);
@@ -63,6 +64,7 @@ static void assert_not_parse_string(const char * const string)
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
     buffer.ctx = &default_context;
+    item->ctx = &default_context;
 
     TEST_ASSERT_FALSE_MESSAGE(parse_string(item, &buffer), "Malformed string should not be accepted.");
     assert_is_invalid(item);

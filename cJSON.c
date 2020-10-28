@@ -265,10 +265,13 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Context * ctx, cJSON_Hooks* hooks)
     }
 
     /* use realloc only if both free and malloc are used */
-    ctx->hooks.realloc_fn = NULL;
-    if ((ctx->hooks.malloc_fn == default_malloc) && (ctx->hooks.free_fn == default_free))
-    {
-        ctx->hooks.realloc_fn = default_realloc;
+    if(ctx->hooks.realloc_fn == NULL) {
+        if ((ctx->hooks.malloc_fn == default_malloc) && (ctx->hooks.free_fn == default_free))
+        {
+            ctx->hooks.realloc_fn = default_realloc;
+        }
+    } else {
+        ctx->hooks.realloc_fn = hooks->realloc_fn;
     }
 
     if (hooks->memcpy_fn != NULL) {
@@ -276,6 +279,8 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Context * ctx, cJSON_Hooks* hooks)
     } else {
         ctx->hooks.memcpy_fn = default_memcpy;
     }
+
+    return;
 
 default_setting:
     /* Reset hooks */
@@ -1279,6 +1284,10 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format)
 
     memset(buffer, 0, sizeof(buffer));
 
+    if(item == NULL) {
+        return NULL;
+    }
+
     ctx = item->ctx;
 
     /* create buffer */
@@ -1358,6 +1367,10 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
         return NULL;
     }
 
+    if(item == NULL) {
+        return NULL;
+    }
+
     ctx = item->ctx;
 
     p.buffer = (unsigned char*)ctx->hooks.malloc_fn(ctx, (size_t)prebuffer);
@@ -1385,7 +1398,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, cons
 {
     print_buffer p = { 0, 0, 0, 0, 0, 0, 0 };
 
-    if ((length < 0) || (buffer == NULL))
+    if ((length < 0) || (buffer == NULL) || (item == NULL))
     {
         return false;
     }
@@ -2183,7 +2196,11 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const cha
 
 CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * const name)
 {
-    cJSON *null = cJSON_CreateNull(object->ctx);
+    cJSON *null = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    null = cJSON_CreateNull(object->ctx);
     if (add_item_to_object(object, name, null, false))
     {
         return null;
@@ -2195,7 +2212,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * co
 
 CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObject(cJSON * const object, const char * const name)
 {
-    cJSON *true_item = cJSON_CreateTrue(object->ctx);
+    cJSON *true_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    true_item = cJSON_CreateTrue(object->ctx);
     if (add_item_to_object(object, name, true_item, false))
     {
         return true_item;
@@ -2207,7 +2228,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObject(cJSON * const object, const char * co
 
 CJSON_PUBLIC(cJSON*) cJSON_AddFalseToObject(cJSON * const object, const char * const name)
 {
-    cJSON *false_item = cJSON_CreateFalse(object->ctx);
+    cJSON *false_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    false_item = cJSON_CreateFalse(object->ctx);
     if (add_item_to_object(object, name, false_item, false))
     {
         return false_item;
@@ -2219,7 +2244,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddFalseToObject(cJSON * const object, const char * c
 
 CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * const name, const cJSON_bool boolean)
 {
-    cJSON *bool_item = cJSON_CreateBool(object->ctx, boolean);
+    cJSON *bool_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    bool_item = cJSON_CreateBool(object->ctx, boolean);
     if (add_item_to_object(object, name, bool_item, false))
     {
         return bool_item;
@@ -2231,7 +2260,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
 
 CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number)
 {
-    cJSON *number_item = cJSON_CreateNumber(object->ctx, number);
+    cJSON *number_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    number_item = cJSON_CreateNumber(object->ctx, number);
     if (add_item_to_object(object, name, number_item, false))
     {
         return number_item;
@@ -2243,7 +2276,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * 
 
 CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string)
 {
-    cJSON *string_item = cJSON_CreateString(object->ctx, string);
+    cJSON *string_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    string_item = cJSON_CreateString(object->ctx, string);
     if (add_item_to_object(object, name, string_item, false))
     {
         return string_item;
@@ -2255,7 +2292,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * 
 
 CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * const name, const char * const raw)
 {
-    cJSON *raw_item = cJSON_CreateRaw(object->ctx, raw);
+    cJSON *raw_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    raw_item = cJSON_CreateRaw(object->ctx, raw);
     if (add_item_to_object(object, name, raw_item, false))
     {
         return raw_item;
@@ -2267,7 +2308,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * con
 
 CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * const name)
 {
-    cJSON *object_item = cJSON_CreateObject(object->ctx);
+    cJSON *object_item = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    object_item = cJSON_CreateObject(object->ctx);
     if (add_item_to_object(object, name, object_item, false))
     {
         return object_item;
@@ -2279,7 +2324,11 @@ CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * 
 
 CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * const name)
 {
-    cJSON *array = cJSON_CreateArray(object->ctx);
+    cJSON *array = NULL;
+    if(object == NULL) {
+        return NULL;
+    }
+    array = cJSON_CreateArray(object->ctx);
     if (add_item_to_object(object, name, array, false))
     {
         return array;
@@ -2558,7 +2607,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateString(cJSON_Context * ctx, const char *string
     if(item)
     {
         item->type = cJSON_String;
-        item->valuestring = (char*)cJSON_strdup((const unsigned char*)string, ctx);
+        item->valuestring = (char*)cJSON_strdup((const unsigned char*)string, item->ctx);
         if(!item->valuestring)
         {
             cJSON_Delete(item);
