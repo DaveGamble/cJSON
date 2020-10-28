@@ -292,12 +292,12 @@ default_setting:
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_InitContextMemoryPool(cJSON_Context_MemoryPool * ctx, size_t size, size_t alignment, void * addr) {
-    if(((unsigned int)addr & (alignment - 1u)) != 0) {
+    if(((size_t)addr & (alignment - 1u)) != 0) {
         return false;
     }
 
     ctx->index = 0;
-    ctx->addr = addr;
+    ctx->addr = (unsigned char *)addr;
     ctx->alignment = alignment;
     ctx->size = size;
     

@@ -37,7 +37,7 @@ static cJSON *parse_test_file(const char * const filename)
     file = read_file(filename);
     TEST_ASSERT_NOT_NULL_MESSAGE(file, "Failed to read file.");
 
-    json = cJSON_Parse(file);
+    json = cJSON_Parse(NULL, file);
     TEST_ASSERT_NOT_NULL_MESSAGE(json, "Failed to parse test json.");
     TEST_ASSERT_TRUE_MESSAGE(cJSON_IsArray(json), "Json is not an array.");
 

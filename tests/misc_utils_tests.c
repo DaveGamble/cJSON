@@ -31,7 +31,7 @@
 
 static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
 {
-    cJSON *item = cJSON_CreateString("item");
+    cJSON *item = cJSON_CreateString(NULL, "item");
     TEST_ASSERT_NOT_NULL(item);
 
     TEST_ASSERT_NULL(cJSONUtils_GetPointer(item, NULL));
@@ -51,9 +51,9 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSONUtils_ApplyPatchesCaseSensitive(item, NULL);
     cJSONUtils_ApplyPatchesCaseSensitive(NULL, item);
     TEST_ASSERT_NULL(cJSONUtils_MergePatch(item, NULL));
-    item = cJSON_CreateString("item");
+    item = cJSON_CreateString(NULL, "item");
     TEST_ASSERT_NULL(cJSONUtils_MergePatchCaseSensitive(item, NULL));
-    item = cJSON_CreateString("item");
+    item = cJSON_CreateString(NULL, "item");
     /* these calls are actually valid */
     /* cJSONUtils_MergePatch(NULL, item); */
     /* cJSONUtils_MergePatchCaseSensitive(NULL, item);*/

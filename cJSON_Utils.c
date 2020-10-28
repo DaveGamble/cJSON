@@ -63,13 +63,13 @@
 #endif
 #define false ((cJSON_bool)0)
 
-static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
+static unsigned char* cJSONUtils_strdup(const unsigned char* const string, cJSON_Context * ctx)
 {
     size_t length = 0;
     unsigned char *copy = NULL;
 
     length = strlen((const char*)string) + sizeof("");
-    copy = (unsigned char*) cJSON_malloc(length);
+    copy = (unsigned char*) cJSON_malloc(ctx, length);
     if (copy == NULL)
     {
         return NULL;
@@ -208,7 +208,7 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
     if (object == target)
     {
         /* found */
-        return (char*)cJSONUtils_strdup((const unsigned char*)"");
+        return (char*)cJSONUtils_strdup((const unsigned char*)"", object->ctx);
     }
 
     /* recursively search all children of the object or array */
@@ -221,35 +221,36 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
             if (cJSON_IsArray(object))
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
-                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + 20 + sizeof("/"));
+
+                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(object->ctx, strlen((char*)target_pointer) + 20 + sizeof("/"));
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
                 if (child_index > ULONG_MAX)
                 {
-                    cJSON_free(target_pointer);
-                    cJSON_free(full_pointer);
+                    cJSON_free(object->ctx, target_pointer);
+                    cJSON_free(object->ctx, full_pointer);
                     return NULL;
                 }
                 sprintf((char*)full_pointer, "/%lu%s", (unsigned long)child_index, target_pointer); /* /<array_index><path> */
-                cJSON_free(target_pointer);
+                cJSON_free(object->ctx, target_pointer);
 
                 return (char*)full_pointer;
             }
 
             if (cJSON_IsObject(object))
             {
-                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + pointer_encoded_length((unsigned char*)current_child->string) + 2);
+                unsigned char *full_pointer = (unsigned char*)cJSON_malloc(object->ctx, strlen((char*)target_pointer) + pointer_encoded_length((unsigned char*)current_child->string) + 2);
                 full_pointer[0] = '/';
                 encode_string_as_pointer(full_pointer + 1, (unsigned char*)current_child->string);
                 strcat((char*)full_pointer, (char*)target_pointer);
-                cJSON_free(target_pointer);
+                cJSON_free(object->ctx, target_pointer);
 
                 return (char*)full_pointer;
             }
 
             /* reached leaf of the tree, found nothing */
-            cJSON_free(target_pointer);
+            cJSON_free(object->ctx, target_pointer);
             return NULL;
         }
     }
@@ -435,7 +436,7 @@ static cJSON *detach_path(cJSON *object, const unsigned char *path, const cJSON_
     cJSON *detached_item = NULL;
 
     /* copy path and split it in parent and child */
-    parent_pointer = cJSONUtils_strdup(path);
+    parent_pointer = cJSONUtils_strdup(path, object->ctx);
     if (parent_pointer == NULL) {
         goto cleanup;
     }
@@ -474,7 +475,7 @@ static cJSON *detach_path(cJSON *object, const unsigned char *path, const cJSON_
 cleanup:
     if (parent_pointer != NULL)
     {
-        cJSON_free(parent_pointer);
+        cJSON_free(object->ctx, parent_pointer);
     }
 
     return detached_item;
@@ -790,11 +791,11 @@ static void overwrite_item(cJSON * const root, const cJSON replacement)
 
     if (root->string != NULL)
     {
-        cJSON_free(root->string);
+        cJSON_free(root->ctx, root->string);
     }
     if (root->valuestring != NULL)
     {
-        cJSON_free(root->valuestring);
+        cJSON_free(root->ctx, root->valuestring);
     }
     if (root->child != NULL)
     {
@@ -809,6 +810,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     cJSON *path = NULL;
     cJSON *value = NULL;
     cJSON *parent = NULL;
+    cJSON invalid = { NULL, NULL, NULL, cJSON_Invalid, NULL, 0, 0, NULL, NULL};
     enum patch_operation opcode = INVALID;
     unsigned char *parent_pointer = NULL;
     unsigned char *child_pointer = NULL;
@@ -840,8 +842,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     {
         if (opcode == REMOVE)
         {
-            static const cJSON invalid = { NULL, NULL, NULL, cJSON_Invalid, NULL, 0, 0, NULL};
-
+            invalid.ctx = object->ctx;
             overwrite_item(object, invalid);
 
             status = 0;
@@ -869,13 +870,13 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
             overwrite_item(object, *value);
 
             /* delete the duplicated value */
-            cJSON_free(value);
+            cJSON_free(value->ctx, value);
             value = NULL;
 
             /* the string "value" isn't needed */
             if (object->string != NULL)
             {
-                cJSON_free(object->string);
+                cJSON_free(object->ctx, object->string);
                 object->string = NULL;
             }
 
@@ -959,7 +960,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     /* Now, just add "value" to "path". */
 
     /* split pointer in parent and child */
-    parent_pointer = cJSONUtils_strdup((unsigned char*)path->valuestring);
+    parent_pointer = cJSONUtils_strdup((unsigned char*)path->valuestring, object->ctx);
     child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/');
     if (child_pointer != NULL)
     {
@@ -1027,7 +1028,7 @@ cleanup:
     }
     if (parent_pointer != NULL)
     {
-        cJSON_free(parent_pointer);
+        cJSON_free(object->ctx, parent_pointer);
     }
 
     return status;
@@ -1100,28 +1101,28 @@ static void compose_patch(cJSON * const patches, const unsigned char * const ope
         return;
     }
 
-    patch = cJSON_CreateObject();
+    patch = cJSON_CreateObject(patches->ctx);
     if (patch == NULL)
     {
         return;
     }
-    cJSON_AddItemToObject(patch, "op", cJSON_CreateString((const char*)operation));
+    cJSON_AddItemToObject(patch, "op", cJSON_CreateString(patch->ctx, (const char*)operation));
 
     if (suffix == NULL)
     {
-        cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)path));
+        cJSON_AddItemToObject(patch, "path", cJSON_CreateString(patch->ctx, (const char*)path));
     }
     else
     {
         size_t suffix_length = pointer_encoded_length(suffix);
         size_t path_length = strlen((const char*)path);
-        unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
+        unsigned char *full_path = (unsigned char*)cJSON_malloc(patch->ctx, path_length + suffix_length + sizeof("/"));
 
         sprintf((char*)full_path, "%s/", (const char*)path);
         encode_string_as_pointer(full_path + path_length + 1, suffix);
 
-        cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)full_path));
-        cJSON_free(full_path);
+        cJSON_AddItemToObject(patch, "path", cJSON_CreateString(patch->ctx, (const char*)full_path));
+        cJSON_free(patch->ctx, full_path);
     }
 
     if (value != NULL)
@@ -1170,7 +1171,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             size_t index = 0;
             cJSON *from_child = from->child;
             cJSON *to_child = to->child;
-            unsigned char *new_path = (unsigned char*)cJSON_malloc(strlen((const char*)path) + 20 + sizeof("/")); /* Allow space for 64bit int. log10(2^64) = 20 */
+            unsigned char *new_path = (unsigned char*)cJSON_malloc(patches->ctx, strlen((const char*)path) + 20 + sizeof("/")); /* Allow space for 64bit int. log10(2^64) = 20 */
 
             /* generate patches for all array elements that exist in both "from" and "to" */
             for (index = 0; (from_child != NULL) && (to_child != NULL); (void)(from_child = from_child->next), (void)(to_child = to_child->next), index++)
@@ -1180,7 +1181,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                  * if size_t is an alias of unsigned long, or if it is bigger */
                 if (index > ULONG_MAX)
                 {
-                    cJSON_free(new_path);
+                    cJSON_free(patches->ctx, new_path);
                     return;
                 }
                 sprintf((char*)new_path, "%s/%lu", path, (unsigned long)index); /* path of the current array element */
@@ -1195,7 +1196,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                  * if size_t is an alias of unsigned long, or if it is bigger */
                 if (index > ULONG_MAX)
                 {
-                    cJSON_free(new_path);
+                    cJSON_free(patches->ctx, new_path);
                     return;
                 }
                 sprintf((char*)new_path, "%lu", (unsigned long)index);
@@ -1206,7 +1207,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             {
                 compose_patch(patches, (const unsigned char*)"add", path, (const unsigned char*)"-", to_child);
             }
-            cJSON_free(new_path);
+            cJSON_free(patches->ctx, new_path);
             return;
         }
 
@@ -1241,14 +1242,14 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                     /* both object keys are the same */
                     size_t path_length = strlen((const char*)path);
                     size_t from_child_name_length = pointer_encoded_length((unsigned char*)from_child->string);
-                    unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + sizeof("/"));
+                    unsigned char *new_path = (unsigned char*)cJSON_malloc(patches->ctx, path_length + from_child_name_length + sizeof("/"));
 
                     sprintf((char*)new_path, "%s/", path);
                     encode_string_as_pointer(new_path + path_length + 1, (unsigned char*)from_child->string);
 
                     /* create a patch for the element */
                     create_patches(patches, new_path, from_child, to_child, case_sensitive);
-                    cJSON_free(new_path);
+                    cJSON_free(patches->ctx, new_path);
 
                     from_child = from_child->next;
                     to_child = to_child->next;
@@ -1285,7 +1286,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatches(cJSON * const from, cJSON * con
         return NULL;
     }
 
-    patches = cJSON_CreateArray();
+    patches = cJSON_CreateArray(from->ctx);
     create_patches(patches, (const unsigned char*)"", from, to, false);
 
     return patches;
@@ -1300,7 +1301,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_GeneratePatchesCaseSensitive(cJSON * const from
         return NULL;
     }
 
-    patches = cJSON_CreateArray();
+    patches = cJSON_CreateArray(from->ctx);
     create_patches(patches, (const unsigned char*)"", from, to, true);
 
     return patches;
@@ -1319,7 +1320,6 @@ CJSON_PUBLIC(void) cJSONUtils_SortObjectCaseSensitive(cJSON * const object)
 static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_bool case_sensitive)
 {
     cJSON *patch_child = NULL;
-
     if (!cJSON_IsObject(patch))
     {
         /* scalar value, array or NULL, just duplicate */
@@ -1330,7 +1330,7 @@ static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_
     if (!cJSON_IsObject(target))
     {
         cJSON_Delete(target);
-        target = cJSON_CreateObject();
+        target = cJSON_CreateObject(patch->ctx);
     }
 
     patch_child = patch->child;
@@ -1393,7 +1393,11 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
     if (to == NULL)
     {
         /* patch to delete everything */
-        return cJSON_CreateNull();
+        if(from != NULL) {
+            return cJSON_CreateNull(from->ctx);
+        } else {
+            return cJSON_CreateNull(NULL);
+        }
     }
     if (!cJSON_IsObject(to) || !cJSON_IsObject(from))
     {
@@ -1405,7 +1409,7 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
 
     from_child = from->child;
     to_child = to->child;
-    patch = cJSON_CreateObject();
+    patch = cJSON_CreateObject(to->ctx);
     if (patch == NULL)
     {
         return NULL;
@@ -1432,7 +1436,7 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
         if (diff < 0)
         {
             /* from has a value that to doesn't have -> remove */
-            cJSON_AddItemToObject(patch, from_child->string, cJSON_CreateNull());
+            cJSON_AddItemToObject(patch, from_child->string, cJSON_CreateNull(patch->ctx));
 
             from_child = from_child->next;
         }

@@ -66,7 +66,7 @@ static void json_pointer_tests(void)
         "\"m~n\": 8"
         "}";
 
-    root = cJSON_Parse(json);
+    root = cJSON_Parse(NULL, json);
 
     TEST_ASSERT_EQUAL_PTR(cJSONUtils_GetPointer(root, ""), root);
     TEST_ASSERT_EQUAL_PTR(cJSONUtils_GetPointer(root, "/foo"), cJSON_GetObjectItem(root, "foo"));
@@ -99,8 +99,8 @@ static void misc_tests(void)
     char *pointer = NULL;
 
     printf("JSON Pointer construct\n");
-    object = cJSON_CreateObject();
-    nums = cJSON_CreateIntArray(numbers, 10);
+    object = cJSON_CreateObject(NULL);
+    nums = cJSON_CreateIntArray(NULL, numbers, 10);
     num6 = cJSON_GetArrayItem(nums, 6);
     cJSON_AddItemToObject(object, "numbers", nums);
 
@@ -116,15 +116,15 @@ static void misc_tests(void)
     TEST_ASSERT_EQUAL_STRING("", pointer);
     free(pointer);
 
-    object1 = cJSON_CreateObject();
-    object2 = cJSON_CreateString("m~n");
+    object1 = cJSON_CreateObject(NULL);
+    object2 = cJSON_CreateString(NULL, "m~n");
     cJSON_AddItemToObject(object1, "m~n", object2);
     pointer = cJSONUtils_FindPointerFromObjectTo(object1, object2);
     TEST_ASSERT_EQUAL_STRING("/m~0n",pointer);
     free(pointer);
 
-    object3 = cJSON_CreateObject();
-    object4 = cJSON_CreateString("m/n");
+    object3 = cJSON_CreateObject(NULL);
+    object4 = cJSON_CreateString(NULL, "m/n");
     cJSON_AddItemToObject(object3, "m/n", object4);
     pointer = cJSONUtils_FindPointerFromObjectTo(object3, object4);
     TEST_ASSERT_EQUAL_STRING("/m~1n",pointer);
@@ -145,11 +145,11 @@ static void sort_tests(void)
     cJSON *current_element = NULL;
 
     /* JSON Sort test: */
-    sortme = cJSON_CreateObject();
+    sortme = cJSON_CreateObject(NULL);
     for (i = 0; i < 26; i++)
     {
         buf[0] = random[i];
-        cJSON_AddItemToObject(sortme, buf, cJSON_CreateNumber(1));
+        cJSON_AddItemToObject(sortme, buf, cJSON_CreateNumber(NULL, 1));
     }
 
     cJSONUtils_SortObject(sortme);
@@ -175,8 +175,8 @@ static void merge_tests(void)
     printf("JSON Merge Patch tests\n");
     for (i = 0; i < 15; i++)
     {
-        cJSON *object_to_be_merged = cJSON_Parse(merges[i][0]);
-        cJSON *patch = cJSON_Parse(merges[i][1]);
+        cJSON *object_to_be_merged = cJSON_Parse(NULL, merges[i][0]);
+        cJSON *patch = cJSON_Parse(NULL, merges[i][1]);
         patchtext = cJSON_PrintUnformatted(patch);
         object_to_be_merged = cJSONUtils_MergePatch(object_to_be_merged, patch);
         after = cJSON_PrintUnformatted(object_to_be_merged);
@@ -197,8 +197,8 @@ static void generate_merge_tests(void)
     /* Generate Merge tests: */
     for (i = 0; i < 15; i++)
     {
-        cJSON *from = cJSON_Parse(merges[i][0]);
-        cJSON *to = cJSON_Parse(merges[i][2]);
+        cJSON *from = cJSON_Parse(NULL, merges[i][0]);
+        cJSON *to = cJSON_Parse(NULL, merges[i][2]);
         cJSON *patch = cJSONUtils_GenerateMergePatch(from,to);
         from = cJSONUtils_MergePatch(from,patch);
         patchedtext = cJSON_PrintUnformatted(from);
