@@ -33,11 +33,11 @@ void reset(cJSON *item) {
     }
     if ((item->valuestring != NULL) && !(item->type & cJSON_IsReference))
     {
-        global_hooks.deallocate(item->valuestring);
+        item->ctx->hooks.free_fn(item->ctx, item->valuestring);
     }
     if ((item->string != NULL) && !(item->type & cJSON_StringIsConst))
     {
-        global_hooks.deallocate(item->string);
+        item->ctx->hooks.free_fn(item->ctx, item->string);
     }
 
     memset(item, 0, sizeof(cJSON));

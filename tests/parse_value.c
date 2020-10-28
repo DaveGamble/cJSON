@@ -43,10 +43,10 @@ static void assert_is_value(cJSON *value_item, int type)
 
 static void assert_parse_value(const char *string, int type)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, 0 };
     buffer.content = (const unsigned char*) string;
     buffer.length = strlen(string) + sizeof("");
-    buffer.hooks = global_hooks;
+    buffer.ctx = &default_context;
 
     TEST_ASSERT_TRUE(parse_value(item, &buffer));
     assert_is_value(item, type);

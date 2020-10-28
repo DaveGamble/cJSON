@@ -33,7 +33,7 @@ static cJSON *parse_file(const char *filename)
     cJSON *parsed = NULL;
     char *content = read_file(filename);
 
-    parsed = cJSON_Parse(content);
+    parsed = cJSON_Parse(NULL, content);
 
     if (content != NULL)
     {
@@ -139,10 +139,10 @@ static void file_test6_should_not_be_parsed(void)
     test6 = read_file("inputs/test6");
     TEST_ASSERT_NOT_NULL_MESSAGE(test6, "Failed to read test6 data.");
 
-    tree = cJSON_Parse(test6);
+    tree = cJSON_Parse(NULL, test6);
     TEST_ASSERT_NULL_MESSAGE(tree, "Should fail to parse what is not JSON.");
 
-    TEST_ASSERT_EQUAL_PTR_MESSAGE(test6, cJSON_GetErrorPtr(), "Error pointer is incorrect.");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(test6, cJSON_GetErrorPtr(NULL), "Error pointer is incorrect.");
 
     if (test6 != NULL)
     {
@@ -184,10 +184,10 @@ static void test12_should_not_be_parsed(void)
     const char *test12 = "{ \"name\": ";
     cJSON *tree = NULL;
 
-    tree = cJSON_Parse(test12);
+    tree = cJSON_Parse(NULL, test12);
     TEST_ASSERT_NULL_MESSAGE(tree, "Should fail to parse incomplete JSON.");
 
-    TEST_ASSERT_EQUAL_PTR_MESSAGE(test12 + strlen(test12), cJSON_GetErrorPtr(), "Error pointer is incorrect.");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(test12 + strlen(test12), cJSON_GetErrorPtr(NULL), "Error pointer is incorrect.");
 
     if (tree != NULL)
     {
@@ -215,7 +215,7 @@ static void test13_should_be_parsed_without_null_termination(void)
     char test_13_wo_null[sizeof(test_13) - 1];
     memcpy(test_13_wo_null, test_13, sizeof(test_13) - 1);
 
-    tree = cJSON_ParseWithLength(test_13_wo_null, sizeof(test_13) - 1);
+    tree = cJSON_ParseWithLength(NULL, test_13_wo_null, sizeof(test_13) - 1);
     TEST_ASSERT_NOT_NULL_MESSAGE(tree, "Failed to parse valid json.");
 
     if (tree != NULL)
@@ -241,7 +241,7 @@ static void test14_should_not_be_parsed(void)
                                 "}" \
                             "}";
 
-    tree = cJSON_ParseWithLength(test_14, sizeof(test_14) - 2);
+    tree = cJSON_ParseWithLength(NULL, test_14, sizeof(test_14) - 2);
     TEST_ASSERT_NULL_MESSAGE(tree, "Should not continue after buffer_length is reached.");
 
     if (tree != NULL)

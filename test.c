@@ -165,9 +165,9 @@ static void create_objects(void)
     /* Here we construct some JSON standards, from the JSON site. */
 
     /* Our "Video" datatype: */
-    root = cJSON_CreateObject();
-    cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
-    cJSON_AddItemToObject(root, "format", fmt = cJSON_CreateObject());
+    root = cJSON_CreateObject(NULL);
+    cJSON_AddItemToObject(root, "name", cJSON_CreateString(NULL, "Jack (\"Bee\") Nimble"));
+    cJSON_AddItemToObject(root, "format", fmt = cJSON_CreateObject(NULL));
     cJSON_AddStringToObject(fmt, "type", "rect");
     cJSON_AddNumberToObject(fmt, "width", 1920);
     cJSON_AddNumberToObject(fmt, "height", 1080);
@@ -182,7 +182,7 @@ static void create_objects(void)
     cJSON_Delete(root);
 
     /* Our "days of the week" array: */
-    root = cJSON_CreateStringArray(strings, 7);
+    root = cJSON_CreateStringArray(NULL, strings, 7);
 
     if (print_preallocated(root) != 0) {
         cJSON_Delete(root);
@@ -191,10 +191,10 @@ static void create_objects(void)
     cJSON_Delete(root);
 
     /* Our matrix: */
-    root = cJSON_CreateArray();
+    root = cJSON_CreateArray(NULL);
     for (i = 0; i < 3; i++)
     {
-        cJSON_AddItemToArray(root, cJSON_CreateIntArray(numbers[i], 3));
+        cJSON_AddItemToArray(root, cJSON_CreateIntArray(NULL, numbers[i], 3));
     }
 
     /* cJSON_ReplaceItemInArray(root, 1, cJSON_CreateString("Replacement")); */
@@ -206,16 +206,16 @@ static void create_objects(void)
     cJSON_Delete(root);
 
     /* Our "gallery" item: */
-    root = cJSON_CreateObject();
-    cJSON_AddItemToObject(root, "Image", img = cJSON_CreateObject());
+    root = cJSON_CreateObject(NULL);
+    cJSON_AddItemToObject(root, "Image", img = cJSON_CreateObject(NULL));
     cJSON_AddNumberToObject(img, "Width", 800);
     cJSON_AddNumberToObject(img, "Height", 600);
     cJSON_AddStringToObject(img, "Title", "View from 15th Floor");
-    cJSON_AddItemToObject(img, "Thumbnail", thm = cJSON_CreateObject());
+    cJSON_AddItemToObject(img, "Thumbnail", thm = cJSON_CreateObject(NULL));
     cJSON_AddStringToObject(thm, "Url", "http:/*www.example.com/image/481989943");
     cJSON_AddNumberToObject(thm, "Height", 125);
     cJSON_AddStringToObject(thm, "Width", "100");
-    cJSON_AddItemToObject(img, "IDs", cJSON_CreateIntArray(ids, 4));
+    cJSON_AddItemToObject(img, "IDs", cJSON_CreateIntArray(NULL, ids, 4));
 
     if (print_preallocated(root) != 0) {
         cJSON_Delete(root);
@@ -224,10 +224,10 @@ static void create_objects(void)
     cJSON_Delete(root);
 
     /* Our array of "records": */
-    root = cJSON_CreateArray();
+    root = cJSON_CreateArray(NULL);
     for (i = 0; i < 2; i++)
     {
-        cJSON_AddItemToArray(root, fld = cJSON_CreateObject());
+        cJSON_AddItemToArray(root, fld = cJSON_CreateObject(NULL));
         cJSON_AddStringToObject(fld, "precision", fields[i].precision);
         cJSON_AddNumberToObject(fld, "Latitude", fields[i].lat);
         cJSON_AddNumberToObject(fld, "Longitude", fields[i].lon);
@@ -246,7 +246,7 @@ static void create_objects(void)
     }
     cJSON_Delete(root);
 
-    root = cJSON_CreateObject();
+    root = cJSON_CreateObject(NULL);
     cJSON_AddNumberToObject(root, "number", 1.0 / zero);
 
     if (print_preallocated(root) != 0) {

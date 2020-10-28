@@ -28,7 +28,7 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
-static cJSON item[1];
+static cJSON item[1] = {{ 0, 0, 0, 0, 0 ,0 ,0 ,0, &default_context } };
 
 static void assert_is_string(cJSON *string_item)
 {
@@ -45,24 +45,24 @@ static void assert_is_string(cJSON *string_item)
 
 static void assert_parse_string(const char *string, const char *expected)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, 0 };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
-    buffer.hooks = global_hooks;
+    buffer.ctx = &default_context;
 
     TEST_ASSERT_TRUE_MESSAGE(parse_string(item, &buffer), "Couldn't parse string.");
     assert_is_string(item);
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, item->valuestring, "The parsed result isn't as expected.");
-    global_hooks.deallocate(item->valuestring);
+    item->ctx->hooks.free_fn(item->ctx, item->valuestring);
     item->valuestring = NULL;
 }
 
 static void assert_not_parse_string(const char * const string)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, 0 };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
-    buffer.hooks = global_hooks;
+    buffer.ctx = &default_context;
 
     TEST_ASSERT_FALSE_MESSAGE(parse_string(item, &buffer), "Malformed string should not be accepted.");
     assert_is_invalid(item);

@@ -99,6 +99,11 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
+typedef struct {
+    const unsigned char *json;
+    size_t position;
+} cJSON_Error;
+
 typedef struct cJSON_Hooks
 {
       /* malloc/free are CDECL on Windows regardless of the default calling convention of the compiler, so ensure the hooks allow passing those functions directly. */
@@ -110,7 +115,22 @@ typedef struct cJSON_Hooks
 
 typedef struct cJSON_Context {
       cJSON_Hooks hooks;
+      cJSON_Error error;
 } cJSON_Context;
+
+#define cJSON_1_ALIGNMENT 1
+#define cJSON_2_ALIGNMENT 2
+#define cJSON_4_ALIGNMENT 4
+#define cSJON_8_ALIGNMENT 8
+
+typedef struct cJSON_Context_MemoryPool {
+      cJSON_Context ctx;
+      size_t size;
+      size_t index;
+      size_t alignment;
+      unsigned char * addr;
+} cJSON_Context_MemoryPool;
+
 
 
 /* The cJSON structure: */
@@ -147,11 +167,15 @@ typedef int cJSON_bool;
 #define CJSON_NESTING_LIMIT 1000
 #endif
 
+
+
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 
 /* Supply malloc, realloc and free functions to cJSON */
-CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
+CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Context * ctx, cJSON_Hooks* hooks);
+
+CJSON_PUBLIC(cJSON_bool) cJSON_InitContextMemoryPool(cJSON_Context_MemoryPool * ctx, size_t size, size_t alignment, void * addr);
 
 /* Memory Management: the caller is always responsible to free the results from all variants of cJSON_Parse (with cJSON_Delete) and cJSON_Print (with stdlib free, cJSON_Hooks.free_fn, or cJSON_free as appropriate). The exception is cJSON_PrintPreallocated, where the caller has full responsibility of the buffer. */
 /* Supply a block of JSON, and this returns a cJSON object you can interrogate. */
@@ -183,7 +207,7 @@ CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON * const object, const char
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string);
 CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string);
 /* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when cJSON_Parse() returns 0. 0 when cJSON_Parse() succeeds. */
-CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
+CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(const cJSON_Context * ctx);
 
 /* Check item type and return its value */
 CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item);

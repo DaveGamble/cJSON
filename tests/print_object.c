@@ -31,30 +31,31 @@ static void assert_print_object(const char * const expected, const char * const 
 
     cJSON item[1];
 
-    printbuffer formatted_buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
-    printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
-    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    print_buffer formatted_buffer = { 0, 0, 0, 0, 0, 0, 0 };
+    print_buffer unformatted_buffer = { 0, 0, 0, 0, 0, 0, 0 };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, 0 };
 
     /* buffer for parsing */
     parsebuffer.content = (const unsigned char*)input;
     parsebuffer.length = strlen(input) + sizeof("");
-    parsebuffer.hooks = global_hooks;
+    parsebuffer.ctx = &default_context;
 
     /* buffer for formatted printing */
     formatted_buffer.buffer = printed_formatted;
     formatted_buffer.length = sizeof(printed_formatted);
     formatted_buffer.offset = 0;
     formatted_buffer.noalloc = true;
-    formatted_buffer.hooks = global_hooks;
+    formatted_buffer.ctx = &default_context;
 
     /* buffer for unformatted printing */
     unformatted_buffer.buffer = printed_unformatted;
     unformatted_buffer.length = sizeof(printed_unformatted);
     unformatted_buffer.offset = 0;
     unformatted_buffer.noalloc = true;
-    unformatted_buffer.hooks = global_hooks;
+    unformatted_buffer.ctx = &default_context;
 
     memset(item, 0, sizeof(item));
+    item->ctx = &default_context;
     TEST_ASSERT_TRUE_MESSAGE(parse_object(item, &parsebuffer), "Failed to parse object.");
 
     unformatted_buffer.format = false;

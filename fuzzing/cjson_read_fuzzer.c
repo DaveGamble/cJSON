@@ -31,7 +31,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     formatted           = data[2] == '1' ? 1 : 0;
     buffered            = data[3] == '1' ? 1 : 0;
 
-    json = cJSON_ParseWithOpts((const char*)data + offset, NULL, require_termination);
+    json = cJSON_ParseWithOpts(NULL, (const char*)data + offset, NULL, require_termination);
 
     if(json == NULL) return 0;
 

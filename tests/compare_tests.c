@@ -30,9 +30,9 @@ static cJSON_bool compare_from_string(const char * const a, const char * const b
     cJSON *b_json = NULL;
     cJSON_bool result = false;
 
-    a_json = cJSON_Parse(a);
+    a_json = cJSON_Parse(NULL, a);
     TEST_ASSERT_NOT_NULL_MESSAGE(a_json, "Failed to parse a.");
-    b_json = cJSON_Parse(b);
+    b_json = cJSON_Parse(NULL, b);
     TEST_ASSERT_NOT_NULL_MESSAGE(b_json, "Failed to parse b.");
 
     result = cJSON_Compare(a_json, b_json, case_sensitive);
@@ -123,9 +123,9 @@ static void cjson_compare_should_compare_raw(void)
     cJSON *raw1 = NULL;
     cJSON *raw2 = NULL;
 
-    raw1 = cJSON_Parse("\"[true, false]\"");
+    raw1 = cJSON_Parse(NULL, "\"[true, false]\"");
     TEST_ASSERT_NOT_NULL(raw1);
-    raw2 = cJSON_Parse("\"[true, false]\"");
+    raw2 = cJSON_Parse(NULL, "\"[true, false]\"");
     TEST_ASSERT_NOT_NULL(raw2);
 
     raw1->type = cJSON_Raw;

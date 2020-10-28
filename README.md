@@ -363,7 +363,7 @@ char *create_monitor(void)
      * thereby transferring ownership of the pointer to it */
     cJSON_AddItemToObject(monitor, "name", name);
 
-    resolutions = cJSON_CreateArray();
+    resolutions = cJSON_CreateArray(NULL);
     if (resolutions == NULL)
     {
         goto end;
@@ -478,7 +478,7 @@ int supports_full_hd(const char * const monitor)
     cJSON *monitor_json = cJSON_Parse(monitor);
     if (monitor_json == NULL)
     {
-        const char *error_ptr = cJSON_GetErrorPtr();
+        const char *error_ptr = cJSON_GetErrorPtr(NULL);
         if (error_ptr != NULL)
         {
             fprintf(stderr, "Error before: %s\n", error_ptr);

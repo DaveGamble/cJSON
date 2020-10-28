@@ -30,16 +30,19 @@ static void assert_print_number(const char *expected, double input)
     unsigned char new_buffer[26];
     unsigned int i = 0;
     cJSON item[1];
-    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    print_buffer buffer = { 0, 0, 0, 0, 0, 0, 0 };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;
     buffer.noalloc = true;
-    buffer.hooks = global_hooks;
+    buffer.ctx = &default_context;
     buffer.buffer = new_buffer;
 
     memset(item, 0, sizeof(item));
+    item->ctx = &default_context;
+
     memset(new_buffer, 0, sizeof(new_buffer));
+    
     cJSON_SetNumberValue(item, input);
     TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
     
