@@ -2548,7 +2548,12 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
     }
 
     a = cJSON_CreateArray();
-    for(i = 0; a && (i < (size_t)count); i++)
+    if (!a)
+    {
+        return NULL;
+    }
+
+    for(i = 0; i < (size_t)count; i++)
     {
         n = cJSON_CreateNumber(numbers[i]);
         if (!n)
@@ -2584,8 +2589,12 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
     }
 
     a = cJSON_CreateArray();
+    if (!a)
+    {
+        return NULL;
+    }
 
-    for(i = 0; a && (i < (size_t)count); i++)
+    for(i = 0; i < (size_t)count; i++)
     {
         n = cJSON_CreateNumber((double)numbers[i]);
         if(!n)
@@ -2621,8 +2630,12 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
     }
 
     a = cJSON_CreateArray();
+    if (!a)
+    {
+        return NULL;
+    }
 
-    for(i = 0;a && (i < (size_t)count); i++)
+    for(i = 0; i < (size_t)count; i++)
     {
         n = cJSON_CreateNumber(numbers[i]);
         if(!n)
@@ -2658,8 +2671,12 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int co
     }
 
     a = cJSON_CreateArray();
+    if (!a)
+    {
+        return NULL;
+    }
 
-    for (i = 0; a && (i < (size_t)count); i++)
+    for (i = 0; i < (size_t)count; i++)
     {
         n = cJSON_CreateString(strings[i]);
         if(!n)

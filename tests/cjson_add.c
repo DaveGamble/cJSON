@@ -117,6 +117,50 @@ static void cjson_add_true_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
+static void cjson_create_int_array_should_fail_on_allocation_failure(void)
+{
+    int numbers[] = {1, 2, 3};
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_CreateIntArray(numbers, 3));
+
+    cJSON_InitHooks(NULL);
+}
+
+static void cjson_create_float_array_should_fail_on_allocation_failure(void)
+{
+    float numbers[] = {1.0f, 2.0f, 3.0f};
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_CreateFloatArray(numbers, 3));
+
+    cJSON_InitHooks(NULL);
+}
+
+static void cjson_create_double_array_should_fail_on_allocation_failure(void)
+{
+    double numbers[] = {1.0, 2.0, 3.0};
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_CreateDoubleArray(numbers, 3));
+
+    cJSON_InitHooks(NULL);
+}
+
+static void cjson_create_string_array_should_fail_on_allocation_failure(void)
+{
+    const char* strings[] = {"1", "2", "3"};
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_CreateStringArray(strings, 3));
+
+    cJSON_InitHooks(NULL);
+}
+
 static void cjson_add_false_should_add_false(void)
 {
     cJSON *root = cJSON_CreateObject();
@@ -389,6 +433,11 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_add_true_should_add_true);
     RUN_TEST(cjson_add_true_should_fail_with_null_pointers);
     RUN_TEST(cjson_add_true_should_fail_on_allocation_failure);
+
+    RUN_TEST(cjson_create_int_array_should_fail_on_allocation_failure);
+    RUN_TEST(cjson_create_float_array_should_fail_on_allocation_failure);
+    RUN_TEST(cjson_create_double_array_should_fail_on_allocation_failure);
+    RUN_TEST(cjson_create_string_array_should_fail_on_allocation_failure);
 
     RUN_TEST(cjson_add_false_should_add_false);
     RUN_TEST(cjson_add_false_should_fail_with_null_pointers);
