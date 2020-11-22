@@ -273,6 +273,39 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number);
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size);
 CJSON_PUBLIC(void) cJSON_free(void *object);
 
+/* This will write out a json object to the specified file name
+
+ Args:
+   filename - the name of the file to load
+   **item - a ptr to the cJSON structure to store the parsed root item in
+   **errorMessage - an optional field to return an error message
+
+ Returns:
+   1 - on success
+  -1 - on failure to open the file to write
+  -2 - on failure to stringify the cJSON object
+*/
+CJSON_PUBLIC(int) cJSON_saveJSONfile(const char *filename, cJSON *item, char *errorMessage);
+
+/* This will load and parse a json file.
+
+ Args:
+   filename - the name of the file to load
+   **item - a ptr to the cJSON structure to store the parsed root item in.
+            If an object already exists at this ptr value, it will be deleted
+            and overwritten.
+   **errorMessage - an optional field to return an error message
+
+ Returns:
+   1 - on success
+   0 - file not found
+  -1 - on failure to open the file to read
+  -2 - on intial memory allocation failure
+  -3 - on failure to reallocate more memory
+  -4 - bad filename arg
+*/
+CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *errorMessage);
+
 #ifdef __cplusplus
 }
 #endif
