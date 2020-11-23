@@ -3014,7 +3014,7 @@ CJSON_PUBLIC(int) cJSON_saveJSONfile(const char *filename, cJSON *item, char *er
     if (fptr == NULL) {
         if (errorMessage != NULL)
         {
-            sprintf(errorMessage, "Cannot open the file '%s' to write.", filename);
+            sprintf(errorMessage, "Cannot open the file '%.420s' to write.", filename);
         }
         return -1;
     }
@@ -3085,7 +3085,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
     if (fptr == NULL) {
         if (errorMessage != NULL)
         {
-            sprintf(errorMessage, "Cannot open the file '%s' to read.", filename);
+            sprintf(errorMessage, "Cannot open the file '%s.420' to read.", filename);
         }
         return 0;
     }
@@ -3095,7 +3095,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
     if (buffer == NULL) {
         if (errorMessage != NULL)
         {
-            sprintf(errorMessage, "Memory allocation error while reading '%s'.", filename);
+            sprintf(errorMessage, "Memory allocation error while reading '%s.420'.", filename);
         }
         return -1;
     }
@@ -3110,7 +3110,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
             {
                 if (errorMessage != NULL)
                 {
-                    sprintf(errorMessage, "Memory allocation error while reading '%s'.", filename);
+                    sprintf(errorMessage, "Memory allocation error while reading '%.420s'.", filename);
                 }
                 return -2;
             }

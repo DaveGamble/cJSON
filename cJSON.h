@@ -278,7 +278,8 @@ CJSON_PUBLIC(void) cJSON_free(void *object);
  Args:
    filename - the name of the file to load
    **item - a ptr to the cJSON structure to store the parsed root item in
-   **errorMessage - an optional field to return an error message
+   **errorMessage - an optional field to return an error message. 
+                    If provided, this should be at least 512 bytes long.
 
  Returns:
    1 - on success
@@ -295,7 +296,7 @@ CJSON_PUBLIC(int) cJSON_saveJSONfile(const char *filename, cJSON *item, char *er
             If an object already exists at this ptr value, it will be deleted
             and overwritten.
    **errorMessage - an optional field to return an error message
-
+                    If provided, this should be at least 512 bytes long.
  Returns:
    1 - on success
    0 - file not found
