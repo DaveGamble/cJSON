@@ -3085,7 +3085,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
     if (fptr == NULL) {
         if (errorMessage != NULL)
         {
-            sprintf(errorMessage, "Cannot open the file '%s.420' to read.", filename);
+            sprintf(errorMessage, "Cannot open the file '%.420s' to read.", filename);
         }
         return 0;
     }
@@ -3097,6 +3097,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
         {
             sprintf(errorMessage, "Memory allocation error while reading '%s.420'.", filename);
         }
+        free(fptr);
         return -1;
     }
     /* Read in the file until there's nothing left to read
@@ -3112,6 +3113,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
                 {
                     sprintf(errorMessage, "Memory allocation error while reading '%.420s'.", filename);
                 }
+                fclose(fptr);
                 return -2;
             }
             /* Keep track of where we are in our enlarged buffer */
@@ -3131,5 +3133,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
     /* Parse the final buffer */
     *item = cJSON_Parse(buffer);
 
+    /* We're done with the buffer */
+    free(buffer);
     return 1;
 }
