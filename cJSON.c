@@ -3097,7 +3097,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
         {
             sprintf(errorMessage, "Memory allocation error while reading '%s.420'.", filename);
         }
-        free(fptr);
+        fclose(fptr);
         return -1;
     }
     /* Read in the file until there's nothing left to read
