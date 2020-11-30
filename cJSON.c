@@ -3060,8 +3060,9 @@ CJSON_PUBLIC(int) cJSON_saveJSONfile(const char *filename, cJSON *item, char *er
 #define cJSON_LOAD_BUFFER_INCREMENT 2048
 CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *errorMessage) {
 
-    FILE *fptr;
-    char *buffer;
+    FILE *fptr = NULL;
+    char *buffer = NULL;
+    char *oldBuffer = NULL;
     size_t bufferSize = cJSON_LOAD_BUFFER_INCREMENT;
     size_t bytesRead = 0;
     int i = 0;
@@ -3100,12 +3101,14 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
         fclose(fptr);
         return -1;
     }
+
     /* Read in the file until there's nothing left to read
     Keep reading in the file, expanding our buffer if needed */
     while ((bytesRead = fread(buffer + (cJSON_LOAD_BUFFER_INCREMENT * i), 1, cJSON_LOAD_BUFFER_INCREMENT, fptr)) > 0) {
         if (bytesRead == sizeof(buffer))
         {
             /* We filled the buffer, realloc the final buffer so it's larger */
+            oldBuffer = buffer;
             buffer = (char *)realloc(buffer, bufferSize + cJSON_LOAD_BUFFER_INCREMENT);
             if (buffer == NULL)
             {
@@ -3113,6 +3116,7 @@ CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *e
                 {
                     sprintf(errorMessage, "Memory allocation error while reading '%.420s'.", filename);
                 }
+                free(oldBuffer);
                 fclose(fptr);
                 return -2;
             }
