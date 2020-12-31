@@ -237,7 +237,7 @@ You can also replace an item in an array in place. Either with `cJSON_ReplaceIte
 
 To get the size of an array, use `cJSON_GetArraySize`. Use `cJSON_GetArrayItem` to get an element at a given index.
 
-Because an array is stored as a linked list, iterating it via index is inefficient (`O(n²)`), so you can iterate over an array using the `cJSON_ArrayForEach` macro in `O(n)` time complexity.
+Because an array is stored as a linked list, iterating it via index is inefficient (`O(n²)`), so you can iterate over an array using the `cJSON_ArrayForEach` macro in `O(n)` time complexity. Alternatively, for heterogeneous arrays, the `cJSON_ArrayFirst` and `cJSON_ArrayNext` macros might be more useful.
 
 #### Objects
 

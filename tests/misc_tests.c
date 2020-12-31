@@ -64,6 +64,87 @@ static void cjson_array_foreach_should_not_dereference_null_pointer(void)
     cJSON_ArrayForEach(element, array);
 }
 
+static void cjson_array_first_should_get_first(void)
+{
+    cJSON array[1];
+    cJSON elements[10];
+    cJSON *element_pointer = NULL;
+    size_t i = 0;
+
+    memset(array, 0, sizeof(array));
+    memset(elements, 0, sizeof(elements));
+
+    /* create array */
+    array[0].child = &elements[0];
+    elements[0].prev = NULL;
+    elements[9].next = NULL;
+    for (i = 0; i < 9; i++)
+    {
+        elements[i].next = &elements[i + 1];
+        elements[i + 1].prev = &elements[i];
+    }
+
+    cJSON_ArrayFirst(array, element_pointer);
+    TEST_ASSERT_TRUE_MESSAGE(element_pointer == &elements[0], "Failed to store first.");
+}
+
+static void cjson_array_first_should_not_dereference_null_pointer(void)
+{
+    cJSON *array = NULL;
+    cJSON *element = NULL;
+    cJSON_ArrayFirst(array, element);
+    /* suppress unused var warning */
+    if (element)
+    {
+    }
+}
+
+static void cjson_array_next_should_iterate(void)
+{
+    cJSON array[1];
+    cJSON elements[3];
+    cJSON *element_pointer = NULL;
+    size_t i = 0;
+
+    memset(array, 0, sizeof(array));
+    memset(elements, 0, sizeof(elements));
+
+    /* create array */
+    array[0].child = &elements[0];
+    elements[0].prev = NULL;
+    elements[2].next = NULL;
+    for (i = 0; i < 2; i++)
+    {
+        elements[i].next = &elements[i + 1];
+        elements[i + 1].prev = &elements[i];
+    }
+
+    cJSON_ArrayFirst(array, element_pointer);
+
+    if (cJSON_ArrayNext(element_pointer))
+    {
+        TEST_ASSERT_TRUE_MESSAGE(element_pointer == &elements[1], "Stored incorrect second.");
+    }
+    else
+    {
+        TEST_FAIL_MESSAGE("Failed to store second.");
+    }
+
+    if (cJSON_ArrayNext(element_pointer))
+    {
+        TEST_ASSERT_TRUE_MESSAGE(element_pointer == &elements[2], "Stored incorrect second.");
+    }
+    else
+    {
+        TEST_FAIL_MESSAGE("Failed to store third.");
+    }
+
+    if (cJSON_ArrayNext(element_pointer))
+    {
+        TEST_FAIL_MESSAGE("Failed to return NULL at end of array.");
+    }
+}
+
 static void cjson_get_object_item_should_get_object_items(void)
 {
     cJSON *item = NULL;
@@ -656,6 +737,9 @@ int CJSON_CDECL main(void)
 
     RUN_TEST(cjson_array_foreach_should_loop_over_arrays);
     RUN_TEST(cjson_array_foreach_should_not_dereference_null_pointer);
+    RUN_TEST(cjson_array_first_should_get_first);
+    RUN_TEST(cjson_array_first_should_not_dereference_null_pointer);
+    RUN_TEST(cjson_array_next_should_iterate);
     RUN_TEST(cjson_get_object_item_should_get_object_items);
     RUN_TEST(cjson_get_object_item_case_sensitive_should_get_object_items);
     RUN_TEST(cjson_get_object_item_should_not_crash_with_array);
