@@ -960,7 +960,9 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
 
     /* split pointer in parent and child */
     parent_pointer = cJSONUtils_strdup((unsigned char*)path->valuestring);
-    child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/');
+    if (parent_pointer) {
+        child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/');
+    }
     if (child_pointer != NULL)
     {
         child_pointer[0] = '\0';
