@@ -83,7 +83,12 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define CJSON_VERSION_MINOR 7
 #define CJSON_VERSION_PATCH 14
 
-#include <stddef.h>
+#if defined(_CARIBOU_RTOS_)
+  #include <caribou/stdint.h>
+  #include <caribou/stddef.h>
+#else
+  #include <stddef.h>
+#endif
 
 /* cJSON Types: */
 #define cJSON_Invalid (0)
