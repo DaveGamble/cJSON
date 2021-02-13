@@ -37,13 +37,23 @@
 #pragma warning (disable : 4001)
 #endif
 
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <ctype.h>
-#include <float.h>
+#if defined(_CARIBOU_RTOS_)
+    #include <caribou/lib/string.h>
+    #include <caribou/lib/stdio.h>
+    #include <caribou/lib/stddef.h>
+    #include <caribou/lib/stdint.h>
+    #include <caribou/lib/heap.h>
+    #include <math.h>
+    #include <float.h>
+#else
+    #include <string.h>
+    #include <stdio.h>
+    #include <math.h>
+    #include <stdlib.h>
+    #include <limits.h>
+    #include <ctype.h>
+    #include <float.h>
+#endif
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
