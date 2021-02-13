@@ -38,11 +38,13 @@
 #endif
 
 #if defined(_CARIBOU_RTOS_)
-    #include <caribou/string.h>
-    #include <caribou/stdio.h>
-    #include <caribou/stddef.h>
-    #include <caribou/stdint.h>
+    #include <caribou/lib/string.h>
+    #include <caribou/lib/stdio.h>
+    #include <caribou/lib/stddef.h>
+    #include <caribou/lib/stdint.h>
+    #include <caribou/lib/heap.h>
     #include <math.h>
+    #include <float.h>
 #else
     #include <string.h>
     #include <stdio.h>
