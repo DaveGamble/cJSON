@@ -192,7 +192,11 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 #define internal_malloc malloc
 #define internal_free free
 #define internal_realloc realloc
+#if defined(_CARIBOU_RTOS_)
 #define internal_strtod strtof
+#else
+#define internal_strtod strtod
+#endif
 #endif
 
 /* strlen of character literals resolved at compile time */
@@ -550,7 +554,7 @@ static void update_offset(printbuffer * const buffer)
 }
 
 /* securely comparison of floating-point variables */
-static cJSON_bool compare_real_t(real_t a, real_t b)
+static cJSON_bool compare_double(real_t a, real_t b)
 {
     real_t maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
@@ -583,7 +587,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
         length = sprintf((char*)number_buffer, "%1.15g", d);
 
         /* Check whether the original real_t can be recovered */
-        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_real_t((real_t)test, d))
+        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((real_t)test, d))
         {
             /* If not, print with 17 decimal places of precision */
             length = sprintf((char*)number_buffer, "%1.17g", d);
@@ -3028,7 +3032,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
             return true;
 
         case cJSON_Number:
-            if (compare_real_t(a->valuedouble, b->valuedouble))
+            if (compare_double(a->valuedouble, b->valuedouble))
             {
                 return true;
             }
