@@ -187,10 +187,12 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 {
     return realloc(pointer, size);
 }
+#define internal_strtod strtod
 #else
 #define internal_malloc malloc
 #define internal_free free
 #define internal_realloc realloc
+#define internal_strtod strtof
 #endif
 
 /* strlen of character literals resolved at compile time */
@@ -363,7 +365,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 loop_end:
     number_c_string[i] = '\0';
 
-    number = strtod((const char*)number_c_string, (char**)&after_end);
+    number = internal_strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
     {
         return false; /* parse_error */
