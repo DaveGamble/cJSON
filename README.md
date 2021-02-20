@@ -218,7 +218,8 @@ it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `
 
 * **null** is created with `cJSON_CreateNull`
 * **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
-* **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
+* **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `LLONG_MAX` or `LONG_MIN` are used for `valueint`
+* * **integers** are created with `cJSON_CreateInt`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `LONG_MAX` or `LONG_MIN` are used for `valueint`
 * **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for its lifetime, useful for constants)
 
 #### Arrays
@@ -379,14 +380,14 @@ char *create_monitor(void)
         }
         cJSON_AddItemToArray(resolutions, resolution);
 
-        width = cJSON_CreateNumber(resolution_numbers[index][0]);
+        width = cJSON_CreateInt(resolution_numbers[index][0]);
         if (width == NULL)
         {
             goto end;
         }
         cJSON_AddItemToObject(resolution, "width", width);
 
-        height = cJSON_CreateNumber(resolution_numbers[index][1]);
+        height = cJSON_CreateInt(resolution_numbers[index][1]);
         if (height == NULL)
         {
             goto end;
@@ -438,12 +439,12 @@ char *create_monitor_with_helpers(void)
     {
         cJSON *resolution = cJSON_CreateObject();
 
-        if (cJSON_AddNumberToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
+        if (cJSON_AddIntToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
         {
             goto end;
         }
 
-        if (cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
+        if (cJSON_AddIntToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
         {
             goto end;
         }
@@ -499,13 +500,13 @@ int supports_full_hd(const char * const monitor)
         cJSON *width = cJSON_GetObjectItemCaseSensitive(resolution, "width");
         cJSON *height = cJSON_GetObjectItemCaseSensitive(resolution, "height");
 
-        if (!cJSON_IsNumber(width) || !cJSON_IsNumber(height))
+        if (!cJSON_IsInt(width) || !cJSON_IsInt(height))
         {
             status = 0;
             goto end;
         }
 
-        if ((width->valuedouble == 1920) && (height->valuedouble == 1080))
+        if ((width->valueint == 1920) && (height->valueint == 1080))
         {
             status = 1;
             goto end;
@@ -567,5 +568,5 @@ cJSON supports parsing and printing JSON that contains objects that have multipl
 # Enjoy cJSON!
 
 - Dave Gamble (original author)
-- Max Bruckner and Alan Wang (current maintainer)
+- Yu Xuebao (current maintainer)
 - and the other [cJSON contributors](CONTRIBUTORS.md)
