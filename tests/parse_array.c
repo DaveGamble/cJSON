@@ -79,7 +79,7 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 
     assert_parse_array("[1]");
     assert_has_child(item);
-    assert_has_type(item->child, cJSON_Number);
+    assert_has_type(item->child, cJSON_Int);
     reset(item);
 
     assert_parse_array("[\"hello!\"]");
@@ -90,8 +90,7 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 
     assert_parse_array("[[]]");
     assert_has_child(item);
-    TEST_ASSERT_NOT_NULL(item->child);
-    assert_has_type(item->child, cJSON_Array);
+    assert_is_array(item->child);
     assert_has_no_child(item->child);
     reset(item);
 
@@ -103,14 +102,14 @@ static void parse_array_should_parse_arrays_with_one_element(void)
 
 static void parse_array_should_parse_arrays_with_multiple_elements(void)
 {
-    assert_parse_array("[1\t,\n2, 3]");
+    assert_parse_array("[1.0\t,\n2.0, 3]");
     assert_has_child(item);
     TEST_ASSERT_NOT_NULL(item->child->next);
     TEST_ASSERT_NOT_NULL(item->child->next->next);
     TEST_ASSERT_NULL(item->child->next->next->next);
     assert_has_type(item->child, cJSON_Number);
     assert_has_type(item->child->next, cJSON_Number);
-    assert_has_type(item->child->next->next, cJSON_Number);
+    assert_has_type(item->child->next->next, cJSON_Int);
     reset(item);
 
     {
@@ -120,13 +119,13 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
         {
             cJSON_Number,
             cJSON_NULL,
-            cJSON_True,
-            cJSON_False,
+            cJSON_Bool,
+            cJSON_Int,
             cJSON_Array,
             cJSON_String,
             cJSON_Object
         };
-        assert_parse_array("[1, null, true, false, [], \"hello\", {}]");
+        assert_parse_array("[1.0, null, false, 1, [], \"hello\", {}]");
 
         node = item->child;
         for (

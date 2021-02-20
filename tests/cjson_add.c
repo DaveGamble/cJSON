@@ -89,7 +89,7 @@ static void cjson_add_true_should_add_true(void)
     cJSON_AddTrueToObject(root, "true");
 
     TEST_ASSERT_NOT_NULL(true_item = cJSON_GetObjectItemCaseSensitive(root, "true"));
-    TEST_ASSERT_EQUAL_INT(true_item->type, cJSON_True);
+    TEST_ASSERT_EQUAL_INT(true_item->type, cJSON_Bool);
 
     cJSON_Delete(root);
 }
@@ -117,50 +117,6 @@ static void cjson_add_true_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
-static void cjson_create_int_array_should_fail_on_allocation_failure(void)
-{
-    int numbers[] = {1, 2, 3};
-
-    cJSON_InitHooks(&failing_hooks);
-
-    TEST_ASSERT_NULL(cJSON_CreateIntArray(numbers, 3));
-
-    cJSON_InitHooks(NULL);
-}
-
-static void cjson_create_float_array_should_fail_on_allocation_failure(void)
-{
-    float numbers[] = {1.0f, 2.0f, 3.0f};
-
-    cJSON_InitHooks(&failing_hooks);
-
-    TEST_ASSERT_NULL(cJSON_CreateFloatArray(numbers, 3));
-
-    cJSON_InitHooks(NULL);
-}
-
-static void cjson_create_double_array_should_fail_on_allocation_failure(void)
-{
-    double numbers[] = {1.0, 2.0, 3.0};
-
-    cJSON_InitHooks(&failing_hooks);
-
-    TEST_ASSERT_NULL(cJSON_CreateDoubleArray(numbers, 3));
-
-    cJSON_InitHooks(NULL);
-}
-
-static void cjson_create_string_array_should_fail_on_allocation_failure(void)
-{
-    const char* strings[] = {"1", "2", "3"};
-
-    cJSON_InitHooks(&failing_hooks);
-
-    TEST_ASSERT_NULL(cJSON_CreateStringArray(strings, 3));
-
-    cJSON_InitHooks(NULL);
-}
-
 static void cjson_add_false_should_add_false(void)
 {
     cJSON *root = cJSON_CreateObject();
@@ -169,7 +125,7 @@ static void cjson_add_false_should_add_false(void)
     cJSON_AddFalseToObject(root, "false");
 
     TEST_ASSERT_NOT_NULL(false_item = cJSON_GetObjectItemCaseSensitive(root, "false"));
-    TEST_ASSERT_EQUAL_INT(false_item->type, cJSON_False);
+    TEST_ASSERT_EQUAL_INT(false_item->type, cJSON_Bool);
 
     cJSON_Delete(root);
 }
@@ -206,12 +162,12 @@ static void cjson_add_bool_should_add_bool(void)
     /* true */
     cJSON_AddBoolToObject(root, "true", true);
     TEST_ASSERT_NOT_NULL(true_item = cJSON_GetObjectItemCaseSensitive(root, "true"));
-    TEST_ASSERT_EQUAL_INT(true_item->type, cJSON_True);
+    TEST_ASSERT_EQUAL_INT(true_item->type, cJSON_Bool);
 
     /* false */
     cJSON_AddBoolToObject(root, "false", false);
     TEST_ASSERT_NOT_NULL(false_item = cJSON_GetObjectItemCaseSensitive(root, "false"));
-    TEST_ASSERT_EQUAL_INT(false_item->type, cJSON_False);
+    TEST_ASSERT_EQUAL_INT(false_item->type, cJSON_Bool);
 
     cJSON_Delete(root);
 }
@@ -244,7 +200,7 @@ static void cjson_add_number_should_add_number(void)
     cJSON *root = cJSON_CreateObject();
     cJSON *number = NULL;
 
-    cJSON_AddNumberToObject(root, "number", 42);
+    cJSON_AddNumberToObject(root, "number", 42.0);
 
     TEST_ASSERT_NOT_NULL(number = cJSON_GetObjectItemCaseSensitive(root, "number"));
 
@@ -433,11 +389,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_add_true_should_add_true);
     RUN_TEST(cjson_add_true_should_fail_with_null_pointers);
     RUN_TEST(cjson_add_true_should_fail_on_allocation_failure);
-
-    RUN_TEST(cjson_create_int_array_should_fail_on_allocation_failure);
-    RUN_TEST(cjson_create_float_array_should_fail_on_allocation_failure);
-    RUN_TEST(cjson_create_double_array_should_fail_on_allocation_failure);
-    RUN_TEST(cjson_create_string_array_should_fail_on_allocation_failure);
 
     RUN_TEST(cjson_add_false_should_add_false);
     RUN_TEST(cjson_add_false_should_fail_with_null_pointers);

@@ -69,7 +69,7 @@ static char* create_monitor(void)
         goto end;
     }
     /* after creation was successful, immediately add it to the monitor,
-     * thereby transferring ownership of the pointer to it */
+     * thereby transfering ownership of the pointer to it */
     cJSON_AddItemToObject(monitor, "name", name);
 
     resolutions = cJSON_CreateArray();
@@ -88,14 +88,14 @@ static char* create_monitor(void)
         }
         cJSON_AddItemToArray(resolutions, resolution);
 
-        width = cJSON_CreateNumber(resolution_numbers[index][0]);
+        width = cJSON_CreateInt(resolution_numbers[index][0]);
         if (width == NULL)
         {
             goto end;
         }
         cJSON_AddItemToObject(resolution, "width", width);
 
-        height = cJSON_CreateNumber(resolution_numbers[index][1]);
+        height = cJSON_CreateInt(resolution_numbers[index][1]);
         if (height == NULL)
         {
             goto end;
@@ -142,12 +142,12 @@ static char *create_monitor_with_helpers(void)
     {
         cJSON *resolution = cJSON_CreateObject();
 
-        if (cJSON_AddNumberToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
+        if (cJSON_AddIntToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
         {
             goto end;
         }
 
-        if(cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
+        if(cJSON_AddIntToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
         {
             goto end;
         }
@@ -196,13 +196,13 @@ static int supports_full_hd(const char * const monitor)
         cJSON *width = cJSON_GetObjectItemCaseSensitive(resolution, "width");
         cJSON *height = cJSON_GetObjectItemCaseSensitive(resolution, "height");
 
-        if (!cJSON_IsNumber(width) || !cJSON_IsNumber(height))
+        if (!cJSON_IsInt(width) || !cJSON_IsInt(height))
         {
             status = 0;
             goto end;
         }
 
-        if (compare_double(width->valuedouble, 1920) && compare_double(height->valuedouble, 1080))
+        if ((width->valueint== 1920) && (height->valueint == 1080))
         {
             status = 1;
             goto end;
