@@ -324,9 +324,6 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     {
         switch (buffer_at_offset(input_buffer)[i])
         {
-            case 'e':
-            case 'E':
-                is_integer = false;
             case '0':
             case '1':
             case '2':
@@ -341,7 +338,11 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
             case '-':
                 number_c_string[i] = buffer_at_offset(input_buffer)[i];
                 break;
-
+            case 'e':
+            case 'E':
+                number_c_string[i] = buffer_at_offset(input_buffer)[i];
+                is_integer = false;
+                break;
             case '.':
                 number_c_string[i] = decimal_point;
                 is_integer = false;
