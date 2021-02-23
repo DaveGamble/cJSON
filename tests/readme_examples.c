@@ -69,7 +69,7 @@ static char* create_monitor(void)
         goto end;
     }
     /* after creation was successful, immediately add it to the monitor,
-     * thereby transfering ownership of the pointer to it */
+     * thereby transferring ownership of the pointer to it */
     cJSON_AddItemToObject(monitor, "name", name);
 
     resolutions = cJSON_CreateArray();
