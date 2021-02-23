@@ -8,7 +8,7 @@ CJSON_TEST_SRC = cJSON.c test.c
 
 LDLIBS = -lm
 
-LIBVERSION = 1.7.14
+LIBVERSION = 1.7.15
 CJSON_SOVERSION = 1
 UTILS_SOVERSION = 1
 
@@ -24,7 +24,7 @@ INSTALL_LIBRARY_PATH = $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 
 INSTALL ?= cp -a
 
-CC = gcc -std=c89
+CC = gcc -std=c99
 
 # validate gcc version for use fstack-protector-strong
 MIN_GCC_VERSION = "4.9"

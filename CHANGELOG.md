@@ -1,3 +1,9 @@
+1.7.15 (Feb 23, 2021)
+======
+Fixes:
+------
+* Add support for int64 (long long), merge cJSON_False and cJSON_True to cJSON_Bool(https://github.com/yuxuebao/cJSON/)
+
 1.7.14 (Sep 3, 2020)
 ======
 Fixes:

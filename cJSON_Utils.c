@@ -39,6 +39,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <math.h>
+#include <float.h>
+#include <math.h>
 
 #if defined(_MSC_VER)
 #pragma warning (pop)
@@ -105,6 +108,14 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
     return tolower(*string1) - tolower(*string2);
 }
 
+/* securely comparison of floating-point variables */
+static cJSON_bool compare_double(double a, double b)
+{
+    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= maxVal * DBL_EPSILON);
+}
+
+
 /* Compare the next path element of two JSON pointers, two NULL pointers are considered unequal: */
 static cJSON_bool compare_pointers(const unsigned char *name, const unsigned char *pointer, const cJSON_bool case_sensitive)
 {
@@ -165,13 +176,14 @@ static void encode_string_as_pointer(unsigned char *destination, const unsigned 
     {
         if (source[0] == '/')
         {
+            destination[0] = '~';
             destination[1] = '1';
             destination++;
         }
         else if (source[0] == '~')
         {
             destination[0] = '~';
-            destination[1] = '1';
+            destination[1] = '0';
             destination++;
         }
         else
@@ -216,6 +228,7 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
                 if (child_index > ULONG_MAX)
                 {
                     cJSON_free(target_pointer);
+                    cJSON_free(full_pointer);
                     return NULL;
                 }
                 sprintf((char*)full_pointer, "/%lu%s", (unsigned long)child_index, target_pointer); /* /<array_index><path> */
@@ -390,7 +403,7 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
         /* item doesn't exist */
         return NULL;
     }
-    if (c->prev)
+    if (c != array->child)
     {
         /* not the first element */
         c->prev->next = c->next;
@@ -399,9 +412,13 @@ static cJSON *detach_item_from_array(cJSON *array, size_t which)
     {
         c->next->prev = c->prev;
     }
-    if (c==array->child)
+    if (c == array->child)
     {
         array->child = c->next;
+    }
+    else if (c->next == NULL)
+    {
+        array->child->prev = c->prev;
     }
     /* make sure the detached item doesn't point anywhere anymore */
     c->prev = c->next = NULL;
@@ -595,7 +612,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
     {
         case cJSON_Number:
             /* numeric mismatch. */
-            if ((a->valueint != b->valueint) || (a->valuedouble != b->valuedouble))
+            if ((a->valueint != b->valueint) || (!compare_double(a->valuedouble, b->valuedouble)))
             {
                 return false;
             }
@@ -954,7 +971,9 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
 
     /* split pointer in parent and child */
     parent_pointer = cJSONUtils_strdup((unsigned char*)path->valuestring);
-    child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/');
+    if (parent_pointer) {
+        child_pointer = (unsigned char*)strrchr((char*)parent_pointer, '/');
+    }
     if (child_pointer != NULL)
     {
         child_pointer[0] = '\0';
@@ -1153,7 +1172,7 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             return;
 
         case cJSON_Number:
-            if ((from->valueint != to->valueint) || (from->valuedouble != to->valuedouble))
+            if ((from->valueint != to->valueint) || !compare_double(from->valuedouble, to->valuedouble))
             {
                 compose_patch(patches, (const unsigned char*)"replace", path, NULL, to);
             }
@@ -1407,6 +1426,10 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
     from_child = from->child;
     to_child = to->child;
     patch = cJSON_CreateObject();
+    if (patch == NULL)
+    {
+        return NULL;
+    }
     while (from_child || to_child)
     {
         int diff;

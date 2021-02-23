@@ -71,6 +71,7 @@ Contributors:
 * [xiaomianhehe](https://github.com/xiaomianhehe)
 * [yangfl](https://github.com/yangfl)
 * [yuta-oxo](https://github.com/yuta-oxo)
+* [yuxuebao](https://github.com/yuxuebao)
 * [Zach Hindes](https://github.com/zhindes)
 * [Zhao Zhixu](https://github.com/zhaozhixu)
 
