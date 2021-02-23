@@ -85,6 +85,7 @@ There are several ways to incorporate cJSON into your project.
 Because the entire library is only one C file and one header file, you can just copy `cJSON.h` and `cJSON.c` to your projects source and start using it.
 
 cJSON is written in ANSI C (C89) in order to support as many platforms and compilers as possible.
+PS:v1.7.15 update to C99 to support int64 (long long) type integer. -by yuxuebao.
 
 #### CMake
 
