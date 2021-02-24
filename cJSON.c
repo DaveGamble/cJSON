@@ -2052,7 +2052,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObjectCS(cJSON *object, const char *stri
     return add_item_to_object(object, string, item, &global_hooks, true);
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, const cJSON *item)
 {
     if (array == NULL)
     {
@@ -2062,7 +2062,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item
     return add_item_to_array(array, create_reference(item, &global_hooks));
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item)
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, const cJSON *item)
 {
     if ((object == NULL) || (string == NULL))
     {
