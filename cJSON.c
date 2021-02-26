@@ -3047,12 +3047,14 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
 
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
 {
-    int type = a->type & 0xFF;
+    int type;
 
     if ((a == NULL) || (b == NULL) || cJSON_IsInvalid(a))
     {
         return false;
     }
+
+    type = a->type & 0xFF;
 
     if ((a->type & 0xFF) != (b->type & 0xFF))
     {
