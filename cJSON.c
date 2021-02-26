@@ -106,6 +106,17 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
     return item->valuestring;
 }
 
+CJSON_PUBLIC(long long) cJSON_GetIntValue(const cJSON * const item)
+{
+    if (!cJSON_IsInt(item))
+    {
+        return 0;
+    }
+
+    return item->valueint;
+}
+
+
 CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
 {
     if (!cJSON_IsNumber(item))
@@ -2991,7 +3002,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_Number;
+    return ((item->type & 0xFF) == cJSON_Number || (item->type & 0xFF) == cJSON_Int);
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item)
@@ -3036,13 +3047,28 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
 
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
 {
-    if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)) || cJSON_IsInvalid(a))
+    int type = a->type & 0xFF;
+
+    if ((a == NULL) || (b == NULL) || cJSON_IsInvalid(a))
     {
         return false;
     }
 
+    if ((a->type & 0xFF) != (b->type & 0xFF))
+    {
+         if (((a->type & 0xFF) == cJSON_Int &&  (b->type & 0xFF) == cJSON_Number) ||
+              ((b->type & 0xFF) == cJSON_Int &&  (a->type & 0xFF) == cJSON_Number))
+          {
+                type = cJSON_Number;
+          }
+          else
+          {
+                return false;
+          }
+    }
+
     /* check if type is valid */
-    switch (a->type & 0xFF)
+    switch (type)
     {
         case cJSON_Bool:
         case cJSON_Int:
@@ -3064,7 +3090,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         return true;
     }
 
-    switch (a->type & 0xFF)
+    switch (type)
     {
         /* in these cases and equal type is enough */
         case cJSON_NULL:
