@@ -244,7 +244,7 @@ static void cjson_add_number_should_add_number(void)
     cJSON *root = cJSON_CreateObject();
     cJSON *number = NULL;
 
-    cJSON_AddNumberToObject(root, "number", 42);
+    cJSON_AddNumberToObject(root, "number", 42.0);
 
     TEST_ASSERT_NOT_NULL(number = cJSON_GetObjectItemCaseSensitive(root, "number"));
 

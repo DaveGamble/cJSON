@@ -86,6 +86,8 @@ Because the entire library is only one C file and one header file, you can just 
 
 cJSON is written in ANSI C (C89) in order to support as many platforms and compilers as possible.
 
+PS:Current version(v1.7.15) update to C99 to support int64 (long long) type integer. -by yuxuebao.
+
 #### CMake
 
 With CMake, cJSON supports a full blown build system. This way you get the most features. CMake with an equal or higher version than 2.8.5 is supported. With CMake it is recommended to do an out of tree build, meaning the compiled files are put in a directory separate from the source files. So in order to build cJSON with CMake on a Unix platform, make a `build` directory and run CMake inside it.
@@ -218,7 +220,8 @@ it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `
 
 * **null** is created with `cJSON_CreateNull`
 * **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
-* **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
+* **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `LLONG_MAX` or `LONG_MIN` are used for `valueint`
+* * **integers** are created with `cJSON_CreateInt`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `LONG_MAX` or `LONG_MIN` are used for `valueint`
 * **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for its lifetime, useful for constants)
 
 #### Arrays
@@ -379,14 +382,14 @@ char *create_monitor(void)
         }
         cJSON_AddItemToArray(resolutions, resolution);
 
-        width = cJSON_CreateNumber(resolution_numbers[index][0]);
+        width = cJSON_CreateInt(resolution_numbers[index][0]);
         if (width == NULL)
         {
             goto end;
         }
         cJSON_AddItemToObject(resolution, "width", width);
 
-        height = cJSON_CreateNumber(resolution_numbers[index][1]);
+        height = cJSON_CreateInt(resolution_numbers[index][1]);
         if (height == NULL)
         {
             goto end;
@@ -438,12 +441,12 @@ char *create_monitor_with_helpers(void)
     {
         cJSON *resolution = cJSON_CreateObject();
 
-        if (cJSON_AddNumberToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
+        if (cJSON_AddIntToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
         {
             goto end;
         }
 
-        if (cJSON_AddNumberToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
+        if (cJSON_AddIntToObject(resolution, "height", resolution_numbers[index][1]) == NULL)
         {
             goto end;
         }
@@ -499,13 +502,13 @@ int supports_full_hd(const char * const monitor)
         cJSON *width = cJSON_GetObjectItemCaseSensitive(resolution, "width");
         cJSON *height = cJSON_GetObjectItemCaseSensitive(resolution, "height");
 
-        if (!cJSON_IsNumber(width) || !cJSON_IsNumber(height))
+        if (!cJSON_IsInt(width) || !cJSON_IsInt(height))
         {
             status = 0;
             goto end;
         }
 
-        if ((width->valuedouble == 1920) && (height->valuedouble == 1080))
+        if ((width->valueint == 1920) && (height->valueint == 1080))
         {
             status = 1;
             goto end;

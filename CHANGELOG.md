@@ -2,7 +2,7 @@
 ======
 Fixes:
 ------
-* Merge cJSON_False and cJSON_True to cJSON_Bool
+* Add support for int64 (long long), merge cJSON_False and cJSON_True to cJSON_Bool(https://github.com/yuxuebao/cJSON/)
 
 1.7.14 (Sep 3, 2020)
 ======
