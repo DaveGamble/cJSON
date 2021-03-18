@@ -155,20 +155,22 @@ static void typecheck_functions_should_check_type(void)
     cJSON item[1];
     invalid->type = cJSON_Invalid;
     invalid->type |= cJSON_StringIsConst;
-    item->type = cJSON_False;
+    item->type = cJSON_Bool;
     item->type |= cJSON_StringIsConst;
 
     TEST_ASSERT_FALSE(cJSON_IsInvalid(NULL));
     TEST_ASSERT_FALSE(cJSON_IsInvalid(item));
     TEST_ASSERT_TRUE(cJSON_IsInvalid(invalid));
 
-    item->type = cJSON_False | cJSON_StringIsConst;
+    item->valueint = 0;
+    item->type = cJSON_Bool | cJSON_StringIsConst;
     TEST_ASSERT_FALSE(cJSON_IsFalse(NULL));
     TEST_ASSERT_FALSE(cJSON_IsFalse(invalid));
     TEST_ASSERT_TRUE(cJSON_IsFalse(item));
     TEST_ASSERT_TRUE(cJSON_IsBool(item));
 
-    item->type = cJSON_True | cJSON_StringIsConst;
+    item->valueint = 1;
+    item->type = cJSON_Bool | cJSON_StringIsConst;
     TEST_ASSERT_FALSE(cJSON_IsTrue(NULL));
     TEST_ASSERT_FALSE(cJSON_IsTrue(invalid));
     TEST_ASSERT_TRUE(cJSON_IsTrue(item));
@@ -231,13 +233,13 @@ static void cjson_set_number_value_should_set_numbers(void)
     TEST_ASSERT_EQUAL(-1, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
 
-    cJSON_SetNumberValue(number, 1 + (double)INT_MAX);
-    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
-    TEST_ASSERT_EQUAL_DOUBLE(1 + (double)INT_MAX, number->valuedouble);
+    cJSON_SetNumberValue(number, 1 + (double)LLONG_MAX);
+    TEST_ASSERT_EQUAL(LLONG_MAX, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(1 + (double)LLONG_MAX, number->valuedouble);
 
-    cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
-    TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
-    TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+    cJSON_SetNumberValue(number, -1 + (double)LLONG_MIN);
+    TEST_ASSERT_EQUAL(LLONG_MIN, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)LLONG_MIN, number->valuedouble);
 }
 
 static void cjson_detach_item_via_pointer_should_detach_items(void)
