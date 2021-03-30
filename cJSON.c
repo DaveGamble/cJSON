@@ -70,8 +70,19 @@
 #define false ((cJSON_bool)0)
 
 /* define our own int max and min */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define CJSON_INT_MAX LLONG_MAX
+#define CJSON_INT_MIN LLONG_MIN
+#define strtoint(s) strtoll((const char*)(s), NULL, 0)
+#define intfmt "%lld"
+#else
 #define CJSON_INT_MAX INT_MAX
 #define CJSON_INT_MIN INT_MIN
+#define strtoint(s) atoi((const char*)(s))
+#define intfmt "%d"
+#endif
+
+#define isint(d) (d == floor(d))
 
 /* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
 #ifndef isinf
@@ -309,6 +320,7 @@ typedef struct
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
+    cJSON_bool integer = cJSON_True;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
     unsigned char decimal_point = get_decimal_point();
@@ -338,12 +350,17 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
             case '9':
             case '+':
             case '-':
+                number_c_string[i] = buffer_at_offset(input_buffer)[i];
+                break;
+
             case 'e':
             case 'E':
+                integer = cJSON_False;
                 number_c_string[i] = buffer_at_offset(input_buffer)[i];
                 break;
 
             case '.':
+                integer = cJSON_False;
                 number_c_string[i] = decimal_point;
                 break;
 
@@ -370,6 +387,11 @@ loop_end:
     else if (number <= (double)CJSON_INT_MIN)
     {
         item->valueint = CJSON_INT_MIN;
+    }
+    else if (integer == cJSON_True)
+    {
+        /* parse again to handle the very big integer */
+        item->valueint = strtoint(number_c_string);
     }
     else
     {
@@ -565,6 +587,11 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     if (isnan(d) || isinf(d))
     {
         length = sprintf((char*)number_buffer, "null");
+    }
+    else if (isint(d) && ((item->valueint != CJSON_INT_MAX &&
+             item->valueint != CJSON_INT_MIN) || d == item->valueint))
+    {
+        length = sprintf((char*)number_buffer, intfmt, item->valueint);
     }
     else
     {
@@ -3015,7 +3042,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
             return true;
 
         case cJSON_Number:
-            if (compare_double(a->valuedouble, b->valuedouble))
+            if ((a->valueint == b->valueint) && compare_double(a->valuedouble, b->valuedouble))
             {
                 return true;
             }
