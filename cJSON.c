@@ -69,6 +69,10 @@
 #endif
 #define false ((cJSON_bool)0)
 
+/* define our own int max and min */
+#define CJSON_INT_MAX INT_MAX
+#define CJSON_INT_MIN INT_MIN
+
 /* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
 #ifndef isinf
 #define isinf(d) (isnan((d - d)) && !isnan(d))
@@ -359,17 +363,17 @@ loop_end:
     item->valuedouble = number;
 
     /* use saturation in case of overflow */
-    if (number >= INT_MAX)
+    if (number >= CJSON_INT_MAX)
     {
-        item->valueint = INT_MAX;
+        item->valueint = CJSON_INT_MAX;
     }
-    else if (number <= (double)INT_MIN)
+    else if (number <= (double)CJSON_INT_MIN)
     {
-        item->valueint = INT_MIN;
+        item->valueint = CJSON_INT_MIN;
     }
     else
     {
-        item->valueint = (int)number;
+        item->valueint = (cJSON_int)number;
     }
 
     item->type = cJSON_Number;
@@ -381,13 +385,13 @@ loop_end:
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 {
-    if (number >= INT_MAX)
+    if (number >= CJSON_INT_MAX)
     {
-        object->valueint = INT_MAX;
+        object->valueint = CJSON_INT_MAX;
     }
-    else if (number <= (double)INT_MIN)
+    else if (number <= (double)CJSON_INT_MIN)
     {
-        object->valueint = INT_MIN;
+        object->valueint = CJSON_INT_MIN;
     }
     else
     {
@@ -2417,7 +2421,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     return item;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_CreateInt(int num)
+CJSON_PUBLIC(cJSON *) cJSON_CreateInt(cJSON_int num)
 {
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
