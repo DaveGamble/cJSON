@@ -483,7 +483,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
     }
     else
     {
-        newsize = needed * 2;
+        newsize = needed + 1;
     }
 
     if (p->hooks.reallocate != NULL)
