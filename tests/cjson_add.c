@@ -315,6 +315,43 @@ static void cjson_add_string_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
+static void cjson_add_string_with_length_should_add_string(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *string = NULL;
+
+    cJSON_AddStringWithLengthToObject(root, "string", "Hello World!", strlen("Hello World!"));
+
+    TEST_ASSERT_NOT_NULL(string = cJSON_GetObjectItemCaseSensitive(root, "string"));
+    TEST_ASSERT_EQUAL_INT(string->type, cJSON_String);
+    TEST_ASSERT_EQUAL_STRING(string->valuestring, "Hello World!");
+
+    cJSON_Delete(root);
+}
+
+static void cjson_add_string_with_length_should_fail_with_null_pointers(void)
+{
+    cJSON *root = cJSON_CreateObject();
+
+    TEST_ASSERT_NULL(cJSON_AddStringWithLengthToObject(NULL, "string", "string", strlen("string")));
+    TEST_ASSERT_NULL(cJSON_AddStringWithLengthToObject(root, NULL, "string", strlen("string")));
+
+    cJSON_Delete(root);
+}
+
+static void cjson_add_string_with_length_should_fail_on_allocation_failure(void)
+{
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_AddStringWithLengthToObject(root, "string", "string", strlen("string")));
+
+    cJSON_InitHooks(NULL);
+
+    cJSON_Delete(root);
+}
+
 static void cjson_add_raw_should_add_raw(void)
 {
     cJSON *root = cJSON_CreateObject();
@@ -454,6 +491,10 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_add_string_should_add_string);
     RUN_TEST(cjson_add_string_should_fail_with_null_pointers);
     RUN_TEST(cjson_add_string_should_fail_on_allocation_failure);
+
+    RUN_TEST(cjson_add_string_with_length_should_add_string);
+    RUN_TEST(cjson_add_string_with_length_should_fail_with_null_pointers);
+    RUN_TEST(cjson_add_string_with_length_should_fail_on_allocation_failure);
 
     RUN_TEST(cjson_add_raw_should_add_raw);
     RUN_TEST(cjson_add_raw_should_fail_with_null_pointers);
