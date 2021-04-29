@@ -320,11 +320,17 @@ static void cjson_add_string_with_length_should_add_string(void)
     cJSON *root = cJSON_CreateObject();
     cJSON *string = NULL;
 
+
     cJSON_AddStringWithLengthToObject(root, "string", "Hello World!", strlen("Hello World!"));
+    cJSON_AddStringWithLengthToObject(root, "substring", "Hello World!", strlen("Hello World!") - 7);
 
     TEST_ASSERT_NOT_NULL(string = cJSON_GetObjectItemCaseSensitive(root, "string"));
     TEST_ASSERT_EQUAL_INT(string->type, cJSON_String);
     TEST_ASSERT_EQUAL_STRING(string->valuestring, "Hello World!");
+
+    TEST_ASSERT_NOT_NULL(string = cJSON_GetObjectItemCaseSensitive(root, "substring"));
+    TEST_ASSERT_EQUAL_INT(string->type, cJSON_String);
+    TEST_ASSERT_EQUAL_STRING(string->valuestring, "Hello");
 
     cJSON_Delete(root);
 }
