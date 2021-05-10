@@ -225,6 +225,17 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObject(cJSON *object, const char *string
  * WARNING: When this function was used, make sure to always check that (item->type & cJSON_StringIsConst) is zero before
  * writing to `item->string` */
 CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item);
+CJSON_PUBLIC(void) cJSON_AddItemReferenceToObjectCS(cJSON *object, const char *string, cJSON *item);
+CJSON_PUBLIC(cJSON*) cJSON_AddNullToObjectCS(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObjectCS(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddFalseToObjectCS(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObjectCS(cJSON * const object, const char * const name, const cJSON_bool boolean);
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObjectCS(cJSON * const object, const char * const name, const double number);
+CJSON_PUBLIC(cJSON*) cJSON_AddStringToObjectCS(cJSON * const object, const char * const name, const char * const string);
+CJSON_PUBLIC(cJSON*) cJSON_AddRawToObjectCS(cJSON * const object, const char * const name, const char * const raw);
+CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObjectCS(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObjectCS(cJSON * const object, const char * const name);
+
 /* Append reference to item to the specified array/object. Use this when you want to add an existing cJSON to a new cJSON, but don't want to corrupt your existing cJSON. */
 CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item);
 CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item);
