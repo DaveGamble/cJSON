@@ -350,6 +350,12 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 loop_end:
     number_c_string[i] = '\0';
 
+    item->valuestring = (char*) cJSON_strdup(number_c_string, &input_buffer->hooks);
+    if (item->valuestring == NULL)
+    {
+        return false; /* allocation failure */
+    }
+
     number = strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
     {

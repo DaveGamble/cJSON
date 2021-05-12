@@ -39,7 +39,7 @@ static void assert_is_number(cJSON *number_item)
     assert_has_type(number_item, cJSON_Number);
     assert_has_no_reference(number_item);
     assert_has_no_const_string(number_item);
-    assert_has_no_valuestring(number_item);
+    assert_has_valuestring(number_item);
     assert_has_no_string(number_item);
 }
 
@@ -48,11 +48,15 @@ static void assert_parse_number(const char *string, int integer, double real)
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
+    buffer.hooks = global_hooks;
 
     TEST_ASSERT_TRUE(parse_number(item, &buffer));
     assert_is_number(item);
     TEST_ASSERT_EQUAL_INT(integer, item->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(string, item->valuestring, "The parsed result isn't as expected.");
+    global_hooks.deallocate(item->valuestring);
+    item->valuestring = NULL;
 }
 
 static void parse_number_should_parse_zero(void)
