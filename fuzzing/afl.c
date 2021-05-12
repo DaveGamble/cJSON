@@ -119,7 +119,7 @@ int main(int argc, char** argv)
         goto cleanup;
     }
 
-    if ((argc == 3) && (strncmp(argv[2], "yes", 3) == 0))
+    if ((argc == 3) && (strcmp(argv[2], "yes") == 0))
     {
         int do_format = 0;
         if (json[1] == 'f')
