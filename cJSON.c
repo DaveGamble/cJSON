@@ -206,6 +206,26 @@ static unsigned char* cJSON_strdup(const unsigned char* string, const internal_h
     return copy;
 }
 
+static unsigned char* cJSON_strdup_with_length(const unsigned char* string, size_t length, const internal_hooks * const hooks)
+{
+    unsigned char *copy = NULL;
+
+    if (string == NULL)
+    {
+        return NULL;
+    }
+
+    copy = (unsigned char*)hooks->allocate(length + 1);
+    if (copy == NULL)
+    {
+        return NULL;
+    }
+    memcpy(copy, string, length);
+    copy[length] = '\0';
+
+    return copy;
+}
+
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 {
     if (hooks == NULL)
@@ -2144,6 +2164,18 @@ CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * 
     return NULL;
 }
 
+CJSON_PUBLIC(cJSON*) cJSON_AddStringWithLengthToObject(cJSON * const object, const char * const name, const char * const string, size_t length)
+{
+    cJSON *string_item = cJSON_CreateStringWithLength(string, length);
+    if (add_item_to_object(object, name, string_item, &global_hooks, false))
+    {
+        return string_item;
+    }
+
+    cJSON_Delete(string_item);
+    return NULL;
+}
+
 CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * const name, const char * const raw)
 {
     cJSON *raw_item = cJSON_CreateRaw(raw);
@@ -2450,6 +2482,23 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string)
     {
         item->type = cJSON_String;
         item->valuestring = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
+        if(!item->valuestring)
+        {
+            cJSON_Delete(item);
+            return NULL;
+        }
+    }
+
+    return item;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_CreateStringWithLength(const char *string, size_t length)
+{
+    cJSON *item = cJSON_New_Item(&global_hooks);
+    if(item)
+    {
+        item->type = cJSON_String;
+        item->valuestring = (char*)cJSON_strdup_with_length((const unsigned char*)string, length, &global_hooks);
         if(!item->valuestring)
         {
             cJSON_Delete(item);
