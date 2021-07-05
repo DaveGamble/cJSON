@@ -47,7 +47,7 @@ static void assert_is_child(cJSON *child_item, const char *name, int type)
     TEST_ASSERT_NOT_NULL_MESSAGE(child_item, "Child item is NULL.");
     TEST_ASSERT_NOT_NULL_MESSAGE(child_item->string, "Child item doesn't have a name.");
     TEST_ASSERT_EQUAL_STRING_MESSAGE(name, child_item->string, "Child item has the wrong name.");
-    TEST_ASSERT_BITS(0xFF, type, child_item->type);
+    TEST_ASSERT_BITS(0x1FF, type, child_item->type);
 }
 
 static void assert_not_object(const char *json)
@@ -88,7 +88,11 @@ static void parse_object_should_parse_objects_with_one_element(void)
 {
 
     assert_parse_object("{\"one\":1}");
-    assert_is_child(item->child, "one", cJSON_Number);
+    assert_is_child(item->child, "one", cJSON_Int);
+    reset(item);
+
+    assert_parse_object("{\"one\":1.0}");
+    assert_is_child(item->child, "one", cJSON_Float);
     reset(item);
 
     assert_parse_object("{\"hello\":\"world!\"}");
@@ -107,17 +111,23 @@ static void parse_object_should_parse_objects_with_one_element(void)
 static void parse_object_should_parse_objects_with_multiple_elements(void)
 {
     assert_parse_object("{\"one\":1\t,\t\"two\"\n:2, \"three\":3}");
-    assert_is_child(item->child, "one", cJSON_Number);
-    assert_is_child(item->child->next, "two", cJSON_Number);
-    assert_is_child(item->child->next->next, "three", cJSON_Number);
+    assert_is_child(item->child, "one", cJSON_Int);
+    assert_is_child(item->child->next, "two", cJSON_Int);
+    assert_is_child(item->child->next->next, "three", cJSON_Int);
+    reset(item);
+    assert_parse_object("{\"one\":1.0\t,\t\"two\"\n:2.0, \"three\":3.0}");
+    assert_is_child(item->child, "one", cJSON_Float);
+    assert_is_child(item->child->next, "two", cJSON_Float);
+    assert_is_child(item->child->next->next, "three", cJSON_Float);
     reset(item);
 
     {
         size_t i = 0;
         cJSON *node = NULL;
-        int expected_types[7] =
+        int expected_types[8] =
         {
-            cJSON_Number,
+            cJSON_Int,
+            cJSON_Float,
             cJSON_NULL,
             cJSON_True,
             cJSON_False,
@@ -125,9 +135,10 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
             cJSON_String,
             cJSON_Object
         };
-        const char *expected_names[7] =
+        const char *expected_names[8] =
         {
             "one",
+            "two",
             "NULL",
             "TRUE",
             "FALSE",
@@ -135,7 +146,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
             "world",
             "object"
         };
-        assert_parse_object("{\"one\":1, \"NULL\":null, \"TRUE\":true, \"FALSE\":false, \"array\":[], \"world\":\"hello\", \"object\":{}}");
+        assert_parse_object("{\"one\":1, \"two\":1.0, \"NULL\":null, \"TRUE\":true, \"FALSE\":false, \"array\":[], \"world\":\"hello\", \"object\":{}}");
 
         node = item->child;
         for (
@@ -146,7 +157,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
         {
             assert_is_child(node, expected_names[i], expected_types[i]);
         }
-        TEST_ASSERT_EQUAL_INT(i, 7);
+        TEST_ASSERT_EQUAL_INT(i, 8);
         reset(item);
     }
 }

@@ -169,10 +169,10 @@ static void create_objects(void)
     cJSON_AddItemToObject(root, "name", cJSON_CreateString("Jack (\"Bee\") Nimble"));
     cJSON_AddItemToObject(root, "format", fmt = cJSON_CreateObject());
     cJSON_AddStringToObject(fmt, "type", "rect");
-    cJSON_AddNumberToObject(fmt, "width", 1920);
-    cJSON_AddNumberToObject(fmt, "height", 1080);
+    cJSON_AddIntToObject(fmt, "width", 1920);
+    cJSON_AddIntToObject(fmt, "height", 1080);
     cJSON_AddFalseToObject (fmt, "interlace");
-    cJSON_AddNumberToObject(fmt, "frame rate", 24);
+    cJSON_AddIntToObject(fmt, "frame rate", 24);
 
     /* Print to text */
     if (print_preallocated(root) != 0) {
@@ -208,12 +208,12 @@ static void create_objects(void)
     /* Our "gallery" item: */
     root = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "Image", img = cJSON_CreateObject());
-    cJSON_AddNumberToObject(img, "Width", 800);
-    cJSON_AddNumberToObject(img, "Height", 600);
+    cJSON_AddIntToObject(img, "Width", 800);
+    cJSON_AddIntToObject(img, "Height", 600);
     cJSON_AddStringToObject(img, "Title", "View from 15th Floor");
     cJSON_AddItemToObject(img, "Thumbnail", thm = cJSON_CreateObject());
     cJSON_AddStringToObject(thm, "Url", "http:/*www.example.com/image/481989943");
-    cJSON_AddNumberToObject(thm, "Height", 125);
+    cJSON_AddIntToObject(thm, "Height", 125);
     cJSON_AddStringToObject(thm, "Width", "100");
     cJSON_AddItemToObject(img, "IDs", cJSON_CreateIntArray(ids, 4));
 
@@ -229,8 +229,8 @@ static void create_objects(void)
     {
         cJSON_AddItemToArray(root, fld = cJSON_CreateObject());
         cJSON_AddStringToObject(fld, "precision", fields[i].precision);
-        cJSON_AddNumberToObject(fld, "Latitude", fields[i].lat);
-        cJSON_AddNumberToObject(fld, "Longitude", fields[i].lon);
+        cJSON_AddFloatToObject(fld, "Latitude", fields[i].lat);
+        cJSON_AddFloatToObject(fld, "Longitude", fields[i].lon);
         cJSON_AddStringToObject(fld, "Address", fields[i].address);
         cJSON_AddStringToObject(fld, "City", fields[i].city);
         cJSON_AddStringToObject(fld, "State", fields[i].state);
@@ -247,7 +247,7 @@ static void create_objects(void)
     cJSON_Delete(root);
 
     root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "number", 1.0 / zero);
+    cJSON_AddFloatToObject(root, "number", 1.0 / zero);
 
     if (print_preallocated(root) != 0) {
         cJSON_Delete(root);

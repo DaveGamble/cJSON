@@ -103,7 +103,7 @@ static void cjson_compare_should_not_accept_invalid_types(void)
     cJSON invalid[1];
     memset(invalid, '\0', sizeof(invalid));
 
-    invalid->type = cJSON_Number | cJSON_String;
+    invalid->type = cJSON_Int | cJSON_String;
 
     TEST_ASSERT_FALSE(cJSON_Compare(invalid, invalid, true));
     TEST_ASSERT_FALSE(cJSON_Compare(invalid, invalid, false));

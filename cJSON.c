@@ -44,6 +44,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <float.h>
+#include <errno.h>
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -96,9 +97,9 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
     return (const char*) (global_error.json + global_error.position);
 }
 
-CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item) 
+CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
 {
-    if (!cJSON_IsString(item)) 
+    if (!cJSON_IsString(item))
     {
         return NULL;
     }
@@ -106,9 +107,18 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
     return item->valuestring;
 }
 
-CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item) 
+CJSON_PUBLIC(int64_t) cJSON_GetIntValue(const cJSON * const item)
 {
-    if (!cJSON_IsNumber(item)) 
+    if (!cJSON_IsInt(item))
+    {
+        return 0;
+    }
+
+    return item->valueint;
+}
+
+CJSON_PUBLIC(double) cJSON_GetFloatValue(const cJSON * const item) {
+    if (!cJSON_IsFloat(item))
     {
         return (double) NAN;
     }
@@ -301,10 +311,34 @@ typedef struct
 /* get a pointer to the buffer at the position */
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
+static unsigned char *parse_integer(cJSON * const item, const char *num) {
+  errno = 0;
+  char* ptr;
+  long long val = strtoll(num, &ptr, 10);
+  if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN))
+      || (errno != 0 && val == 0)) return NULL;
+  if (ptr == num) return NULL;
+  item->valueint    = val;
+  item->type        = cJSON_Int;
+  return (unsigned char *)ptr;
+}
+
+static unsigned char *parse_float(cJSON * const item, const char *num) {
+  errno = 0;
+  char* ptr;
+  double val = strtod(num, &ptr);
+  if ((errno == ERANGE && (val == HUGE_VAL || val == -HUGE_VAL))
+      || (errno != 0 && val == 0.0)) return NULL;
+  if (ptr == num) return NULL;
+  item->valuedouble  = val;
+  item->type         = cJSON_Float;
+  return (unsigned char *)ptr;
+}
+
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
-    double number = 0;
+    cJSON_bool integer = cJSON_True;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
     unsigned char decimal_point = get_decimal_point();
@@ -334,12 +368,17 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
             case '9':
             case '+':
             case '-':
+                number_c_string[i] = buffer_at_offset(input_buffer)[i];
+                break;
+
             case 'e':
             case 'E':
+                integer = cJSON_False;
                 number_c_string[i] = buffer_at_offset(input_buffer)[i];
                 break;
 
             case '.':
+                integer = cJSON_False;
                 number_c_string[i] = decimal_point;
                 break;
 
@@ -350,51 +389,16 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 loop_end:
     number_c_string[i] = '\0';
 
-    number = strtod((const char*)number_c_string, (char**)&after_end);
-    if (number_c_string == after_end)
-    {
-        return false; /* parse_error */
+    if (integer == cJSON_True) {
+      after_end = parse_integer(item, (const char *)number_c_string);
+      if (after_end == NULL) return false;
+    } else {
+      after_end = parse_float(item, (const char *)number_c_string);
+      if (after_end == NULL) return false;
     }
-
-    item->valuedouble = number;
-
-    /* use saturation in case of overflow */
-    if (number >= INT_MAX)
-    {
-        item->valueint = INT_MAX;
-    }
-    else if (number <= (double)INT_MIN)
-    {
-        item->valueint = INT_MIN;
-    }
-    else
-    {
-        item->valueint = (int)number;
-    }
-
-    item->type = cJSON_Number;
 
     input_buffer->offset += (size_t)(after_end - number_c_string);
     return true;
-}
-
-/* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
-CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
-{
-    if (number >= INT_MAX)
-    {
-        object->valueint = INT_MAX;
-    }
-    else if (number <= (double)INT_MIN)
-    {
-        object->valueint = INT_MIN;
-    }
-    else
-    {
-        object->valueint = (int)number;
-    }
-
-    return object->valuedouble = number;
 }
 
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
@@ -511,7 +515,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
 
             return NULL;
         }
-        
+
         memcpy(newbuffer, p->buffer, p->offset + 1);
         p->hooks.deallocate(p->buffer);
     }
@@ -541,8 +545,28 @@ static cJSON_bool compare_double(double a, double b)
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
-/* Render the number nicely from the given item into a string. */
-static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
+/* Render the integer nicely from the given item into a string. */
+static cJSON_bool print_int(const cJSON * const item, printbuffer * const output_buffer)
+{
+    if (output_buffer == NULL) return false;
+
+    unsigned char number_buffer[26]; /* temporary buffer to print the number into */
+    int length = snprintf((char*)number_buffer, 26, "%lld", (long long)item->valueint);
+
+    /* reserve appropriate space in the output */
+    unsigned char *output_pointer = ensure(output_buffer, (size_t)length + sizeof(""));
+    if (output_pointer == NULL) return false;
+
+    memcpy(output_pointer, number_buffer, (size_t)length);
+    output_pointer[length] = '\0';
+
+    output_buffer->offset += (size_t)length;
+
+    return true;
+}
+
+/* Render the float nicely from the given item into a string. */
+static cJSON_bool print_float(const cJSON * const item, printbuffer * const output_buffer)
 {
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
@@ -1103,7 +1127,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer
     }
 
     buffer.content = (const unsigned char*)value;
-    buffer.length = buffer_length; 
+    buffer.length = buffer_length;
     buffer.offset = 0;
     buffer.hooks = global_hooks;
 
@@ -1369,7 +1393,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
         return false;
     }
 
-    switch ((item->type) & 0xFF)
+    switch ((item->type) & 0x1FF)
     {
         case cJSON_NULL:
             output = ensure(output_buffer, 5);
@@ -1398,8 +1422,10 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             strcpy((char*)output, "true");
             return true;
 
-        case cJSON_Number:
-            return print_number(item, output_buffer);
+        case cJSON_Int:
+            return print_int(item, output_buffer);
+        case cJSON_Float:
+            return print_float(item, output_buffer);
 
         case cJSON_Raw:
         {
@@ -2007,7 +2033,7 @@ static void* cast_away_const(const void* string)
 static cJSON_bool add_item_to_object(cJSON * const object, const char * const string, cJSON * const item, const internal_hooks * const hooks, const cJSON_bool constant_key)
 {
     char *new_key = NULL;
-    int new_type = cJSON_Invalid;
+    uint32_t new_type = cJSON_Invalid;
 
     if ((object == NULL) || (string == NULL) || (item == NULL) || (object == item))
     {
@@ -2120,9 +2146,21 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
     return NULL;
 }
 
-CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number)
+CJSON_PUBLIC(cJSON*) cJSON_AddIntToObject(cJSON * const object, const char * const name, const int64_t number)
 {
-    cJSON *number_item = cJSON_CreateNumber(number);
+    cJSON *number_item = cJSON_CreateInt(number);
+    if (add_item_to_object(object, name, number_item, &global_hooks, false))
+    {
+        return number_item;
+    }
+
+    cJSON_Delete(number_item);
+    return NULL;
+}
+
+CJSON_PUBLIC(cJSON*) cJSON_AddFloatToObject(cJSON * const object, const char * const name, const double number)
+{
+    cJSON *number_item = cJSON_CreateFloat(number);
     if (add_item_to_object(object, name, number_item, &global_hooks, false))
     {
         return number_item;
@@ -2417,27 +2455,25 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     return item;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
+CJSON_PUBLIC(cJSON *) cJSON_CreateInt(cJSON_int num)
 {
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
     {
-        item->type = cJSON_Number;
-        item->valuedouble = num;
+        item->type = cJSON_Int;
+        cJSON_SetIntValue(item, num);
+    }
 
-        /* use saturation in case of overflow */
-        if (num >= INT_MAX)
-        {
-            item->valueint = INT_MAX;
-        }
-        else if (num <= (double)INT_MIN)
-        {
-            item->valueint = INT_MIN;
-        }
-        else
-        {
-            item->valueint = (int)num;
-        }
+    return item;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_CreateFloat(double num)
+{
+    cJSON *item = cJSON_New_Item(&global_hooks);
+    if(item)
+    {
+        item->type = cJSON_Float;
+        cJSON_SetFloatValue(item, num);
     }
 
     return item;
@@ -2549,7 +2585,48 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
 
     for(i = 0; a && (i < (size_t)count); i++)
     {
-        n = cJSON_CreateNumber(numbers[i]);
+        n = cJSON_CreateInt(numbers[i]);
+        if (!n)
+        {
+            cJSON_Delete(a);
+            return NULL;
+        }
+        if(!i)
+        {
+            a->child = n;
+        }
+        else
+        {
+            suffix_object(p, n);
+        }
+        p = n;
+    }
+
+    if (a && a->child) {
+        a->child->prev = n;
+    }
+
+    return a;
+}
+
+/* Create Arrays: */
+CJSON_PUBLIC(cJSON *) cJSON_CreateInt64Array(const int64_t *numbers, int count)
+{
+    size_t i = 0;
+    cJSON *n = NULL;
+    cJSON *p = NULL;
+    cJSON *a = NULL;
+
+    if ((count < 0) || (numbers == NULL))
+    {
+        return NULL;
+    }
+
+    a = cJSON_CreateArray();
+
+    for(i = 0; a && (i < (size_t)count); i++)
+    {
+        n = cJSON_CreateInt(numbers[i]);
         if (!n)
         {
             cJSON_Delete(a);
@@ -2589,7 +2666,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
 
     for(i = 0; a && (i < (size_t)count); i++)
     {
-        n = cJSON_CreateNumber((double)numbers[i]);
+        n = cJSON_CreateFloat((double)numbers[i]);
         if(!n)
         {
             cJSON_Delete(a);
@@ -2629,7 +2706,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
 
     for(i = 0; a && (i < (size_t)count); i++)
     {
-        n = cJSON_CreateNumber(numbers[i]);
+        n = cJSON_CreateFloat(numbers[i]);
         if(!n)
         {
             cJSON_Delete(a);
@@ -2689,7 +2766,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int co
     if (a && a->child) {
         a->child->prev = n;
     }
-    
+
     return a;
 }
 
@@ -2881,7 +2958,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_Invalid;
+    return (item->type & 0x1FF) == cJSON_Invalid;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsFalse(const cJSON * const item)
@@ -2891,7 +2968,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsFalse(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_False;
+    return (item->type & 0x1FF) == cJSON_False;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsTrue(const cJSON * const item)
@@ -2921,17 +2998,27 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_NULL;
+    return (item->type & 0x1FF) == cJSON_NULL;
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item)
+CJSON_PUBLIC(cJSON_bool) cJSON_IsInt(const cJSON * const item)
 {
     if (item == NULL)
     {
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_Number;
+    return (item->type & 0x1FF) == cJSON_Int;
+}
+
+CJSON_PUBLIC(cJSON_bool) cJSON_IsFloat(const cJSON * const item)
+{
+    if (item == NULL)
+    {
+        return false;
+    }
+
+    return (item->type & 0x1FF) == cJSON_Float;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item)
@@ -2941,7 +3028,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_String;
+    return (item->type & 0x1FF) == cJSON_String;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsArray(const cJSON * const item)
@@ -2951,7 +3038,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsArray(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_Array;
+    return (item->type & 0x1FF) == cJSON_Array;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsObject(const cJSON * const item)
@@ -2961,7 +3048,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsObject(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_Object;
+    return (item->type & 0x1FF) == cJSON_Object;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
@@ -2971,23 +3058,24 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xFF) == cJSON_Raw;
+    return (item->type & 0x1FF) == cJSON_Raw;
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
 {
-    if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)) || cJSON_IsInvalid(a))
+    if ((a == NULL) || (b == NULL) || ((a->type & 0x1FF) != (b->type & 0x1FF)) || cJSON_IsInvalid(a))
     {
         return false;
     }
 
     /* check if type is valid */
-    switch (a->type & 0xFF)
+    switch (a->type & 0x1FF)
     {
         case cJSON_False:
         case cJSON_True:
         case cJSON_NULL:
-        case cJSON_Number:
+        case cJSON_Int:
+        case cJSON_Float:
         case cJSON_String:
         case cJSON_Raw:
         case cJSON_Array:
@@ -3004,7 +3092,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         return true;
     }
 
-    switch (a->type & 0xFF)
+    switch (a->type & 0x1FF)
     {
         /* in these cases and equal type is enough */
         case cJSON_False:
@@ -3012,12 +3100,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         case cJSON_NULL:
             return true;
 
-        case cJSON_Number:
-            if (compare_double(a->valuedouble, b->valuedouble))
-            {
-                return true;
-            }
-            return false;
+        case cJSON_Int:
+            return a->valueint == b->valueint;
+        case cJSON_Float:
+            return compare_double(a->valuedouble, b->valuedouble);
 
         case cJSON_String:
         case cJSON_Raw:

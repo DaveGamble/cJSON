@@ -30,70 +30,130 @@
 
 static cJSON item[1];
 
-static void assert_is_number(cJSON *number_item)
+static void assert_is_int(cJSON *number_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(number_item, "Item is NULL.");
 
     assert_not_in_list(number_item);
     assert_has_no_child(number_item);
-    assert_has_type(number_item, cJSON_Number);
+    assert_has_type(number_item, cJSON_Int);
     assert_has_no_reference(number_item);
     assert_has_no_const_string(number_item);
     assert_has_no_valuestring(number_item);
     assert_has_no_string(number_item);
 }
 
-static void assert_parse_number(const char *string, int integer, double real)
+static void assert_is_float(cJSON *number_item)
+{
+    TEST_ASSERT_NOT_NULL_MESSAGE(number_item, "Item is NULL.");
+
+    assert_not_in_list(number_item);
+    assert_has_no_child(number_item);
+    assert_has_type(number_item, cJSON_Float);
+    assert_has_no_reference(number_item);
+    assert_has_no_const_string(number_item);
+    assert_has_no_valuestring(number_item);
+    assert_has_no_string(number_item);
+}
+
+static void assert_parse_int_fail(const char *string) {
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = (const unsigned char*)string;
+    buffer.length = strlen(string) + sizeof("");
+
+    cJSON_bool b = parse_number(item, &buffer);
+    TEST_ASSERT_FALSE(b);
+    reset(item);
+}
+
+static void assert_parse_int(const char *string, int64_t integer)
 {
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
 
-    TEST_ASSERT_TRUE(parse_number(item, &buffer));
-    assert_is_number(item);
+    cJSON_bool b = parse_number(item, &buffer);
+    TEST_ASSERT_TRUE(b);
+    assert_is_int(item);
     TEST_ASSERT_EQUAL_INT(integer, item->valueint);
+}
+
+// static void assert_parse_float_fail(const char *string)
+// {
+//     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+//     buffer.content = (const unsigned char*)string;
+//     buffer.length = strlen(string) + sizeof("");
+//
+//     cJSON_bool b = parse_number(item, &buffer);
+//     TEST_ASSERT_FALSE(b);
+// }
+
+static void assert_parse_float(const char *string, double real)
+{
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = (const unsigned char*)string;
+    buffer.length = strlen(string) + sizeof("");
+
+    cJSON_bool b = parse_number(item, &buffer);
+    TEST_ASSERT_TRUE(b);
+    assert_is_float(item);
     TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
 }
 
 static void parse_number_should_parse_zero(void)
 {
-    assert_parse_number("0", 0, 0);
-    assert_parse_number("0.0", 0, 0.0);
-    assert_parse_number("-0", 0, -0.0);
+    assert_parse_int("0", 0);
+    assert_parse_int("-0", 0);
+    assert_parse_float("0.0", 0.0);
+    assert_parse_float("-0.0", -0.0);
+}
+
+static void parse_number_fail(void)
+{
+    assert_parse_int_fail("-9223372036854775809");
+    assert_parse_int_fail("9223372036854775808");
 }
 
 static void parse_number_should_parse_negative_integers(void)
 {
-    assert_parse_number("-1", -1, -1);
-    assert_parse_number("-32768", -32768, -32768.0);
-    assert_parse_number("-2147483648", (int)-2147483648.0, -2147483648.0);
+    assert_parse_int("-1", -1);
+    assert_parse_int("-32768", -32768);
+    assert_parse_int("-2147483648", -2147483648);
+    assert_parse_int("-9223372036854775808", INT64_MIN);
+    assert_parse_float("-1.0", -1.0);
+    assert_parse_float("-32768.0", -32768.0);
+    assert_parse_float("-2147483648.0", -2147483648.0);
 }
 
 static void parse_number_should_parse_positive_integers(void)
 {
-    assert_parse_number("1", 1, 1);
-    assert_parse_number("32767", 32767, 32767.0);
-    assert_parse_number("2147483647", (int)2147483647.0, 2147483647.0);
+    assert_parse_int("1", 1);
+    assert_parse_int("32767", 32767);
+    assert_parse_int("2147483647", 2147483647);
+    assert_parse_int("9223372036854775807", INT64_MAX);
+    assert_parse_float("1.0", 1);
+    assert_parse_float("32767.0", 32767.0);
+    assert_parse_float("2147483647.0", 2147483647.0);
 }
 
 static void parse_number_should_parse_positive_reals(void)
 {
-    assert_parse_number("0.001", 0, 0.001);
-    assert_parse_number("10e-10", 0, 10e-10);
-    assert_parse_number("10E-10", 0, 10e-10);
-    assert_parse_number("10e10", INT_MAX, 10e10);
-    assert_parse_number("123e+127", INT_MAX, 123e127);
-    assert_parse_number("123e-128", 0, 123e-128);
+    assert_parse_float("0.001", 0.001);
+    assert_parse_float("10e-10", 10e-10);
+    assert_parse_float("10E-10", 10e-10);
+    assert_parse_float("10e10", 10e10);
+    assert_parse_float("123e+127", 123e127);
+    assert_parse_float("123e-128", 123e-128);
 }
 
 static void parse_number_should_parse_negative_reals(void)
 {
-    assert_parse_number("-0.001", 0, -0.001);
-    assert_parse_number("-10e-10", 0, -10e-10);
-    assert_parse_number("-10E-10", 0, -10e-10);
-    assert_parse_number("-10e20", INT_MIN, -10e20);
-    assert_parse_number("-123e+127", INT_MIN, -123e127);
-    assert_parse_number("-123e-128", 0, -123e-128);
+    assert_parse_float("-0.001", -0.001);
+    assert_parse_float("-10e-10", -10e-10);
+    assert_parse_float("-10E-10", -10e-10);
+    assert_parse_float("-10e20", -10e20);
+    assert_parse_float("-123e+127", -123e127);
+    assert_parse_float("-123e-128", -123e-128);
 }
 
 int CJSON_CDECL main(void)
@@ -102,6 +162,7 @@ int CJSON_CDECL main(void)
     memset(item, 0, sizeof(cJSON));
     UNITY_BEGIN();
     RUN_TEST(parse_number_should_parse_zero);
+    RUN_TEST(parse_number_fail);
     RUN_TEST(parse_number_should_parse_negative_integers);
     RUN_TEST(parse_number_should_parse_positive_integers);
     RUN_TEST(parse_number_should_parse_positive_reals);

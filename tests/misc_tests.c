@@ -69,7 +69,7 @@ static void cjson_get_object_item_should_get_object_items(void)
     cJSON *item = NULL;
     cJSON *found = NULL;
 
-    item = cJSON_Parse("{\"one\":1, \"Two\":2, \"tHree\":3}");
+    item = cJSON_Parse("{\"one\":1, \"Two\":2, \"tHree\":3, \"Four\": 4.0}");
 
     found = cJSON_GetObjectItem(NULL, "test");
     TEST_ASSERT_NULL_MESSAGE(found, "Failed to fail on NULL pointer.");
@@ -80,17 +80,21 @@ static void cjson_get_object_item_should_get_object_items(void)
 
     found = cJSON_GetObjectItem(item, "one");
     TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find first item.");
-    TEST_ASSERT_EQUAL_DOUBLE(found->valuedouble, 1);
+    TEST_ASSERT_EQUAL_INT(found->valueint, 1);
 
     found = cJSON_GetObjectItem(item, "tWo");
     TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find first item.");
-    TEST_ASSERT_EQUAL_DOUBLE(found->valuedouble, 2);
+    TEST_ASSERT_EQUAL_INT(found->valueint, 2);
 
     found = cJSON_GetObjectItem(item, "three");
     TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find item.");
-    TEST_ASSERT_EQUAL_DOUBLE(found->valuedouble, 3);
+    TEST_ASSERT_EQUAL_INT(found->valueint, 3);
 
-    found = cJSON_GetObjectItem(item, "four");
+    found = cJSON_GetObjectItem(item, "Four");
+    TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find item.");
+    TEST_ASSERT_EQUAL_INT(found->valuedouble, 4.0);
+
+    found = cJSON_GetObjectItem(item, "five");
     TEST_ASSERT_NULL_MESSAGE(found, "Should not find something that isn't there.");
 
     cJSON_Delete(item);
@@ -111,15 +115,15 @@ static void cjson_get_object_item_case_sensitive_should_get_object_items(void)
 
     found = cJSON_GetObjectItemCaseSensitive(item, "one");
     TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find first item.");
-    TEST_ASSERT_EQUAL_DOUBLE(found->valuedouble, 1);
+    TEST_ASSERT_EQUAL_INT(found->valueint, 1);
 
     found = cJSON_GetObjectItemCaseSensitive(item, "Two");
     TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find first item.");
-    TEST_ASSERT_EQUAL_DOUBLE(found->valuedouble, 2);
+    TEST_ASSERT_EQUAL_INT(found->valueint, 2);
 
     found = cJSON_GetObjectItemCaseSensitive(item, "tHree");
     TEST_ASSERT_NOT_NULL_MESSAGE(found, "Failed to find item.");
-    TEST_ASSERT_EQUAL_DOUBLE(found->valuedouble, 3);
+    TEST_ASSERT_EQUAL_INT(found->valueint, 3);
 
     found = cJSON_GetObjectItemCaseSensitive(item, "One");
     TEST_ASSERT_NULL_MESSAGE(found, "Should not find something that isn't there.");
@@ -179,10 +183,15 @@ static void typecheck_functions_should_check_type(void)
     TEST_ASSERT_FALSE(cJSON_IsNull(invalid));
     TEST_ASSERT_TRUE(cJSON_IsNull(item));
 
-    item->type = cJSON_Number | cJSON_StringIsConst;
-    TEST_ASSERT_FALSE(cJSON_IsNumber(NULL));
-    TEST_ASSERT_FALSE(cJSON_IsNumber(invalid));
-    TEST_ASSERT_TRUE(cJSON_IsNumber(item));
+    item->type = cJSON_Int | cJSON_StringIsConst;
+    TEST_ASSERT_FALSE(cJSON_IsInt(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsInt(invalid));
+    TEST_ASSERT_TRUE(cJSON_IsInt(item));
+
+    item->type = cJSON_Float | cJSON_StringIsConst;
+    TEST_ASSERT_FALSE(cJSON_IsFloat(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsFloat(invalid));
+    TEST_ASSERT_TRUE(cJSON_IsFloat(item));
 
     item->type = cJSON_String | cJSON_StringIsConst;
     TEST_ASSERT_FALSE(cJSON_IsString(NULL));
@@ -219,24 +228,39 @@ static void cjson_should_not_parse_to_deeply_nested_jsons(void)
     TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(deep_json), "To deep JSONs should not be parsed.");
 }
 
-static void cjson_set_number_value_should_set_numbers(void)
+static void cjson_set_int_value_should_set_ints(void)
 {
-    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
+    cJSON numberX[1] = {{NULL, NULL, NULL, cJSON_Int, NULL, 0, 0, NULL}};
+    cJSON* number = numberX;
 
-    cJSON_SetNumberValue(number, 1.5);
+    cJSON_SetIntValue(number, 1);
     TEST_ASSERT_EQUAL(1, number->valueint);
+
+    cJSON_SetIntValue(number, -1);
+    TEST_ASSERT_EQUAL(-1, number->valueint);
+
+    cJSON_SetIntValue(number, INT_MAX);
+    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
+
+    cJSON_SetIntValue(number, INT_MIN);
+    TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
+}
+
+static void cjson_set_float_value_should_set_floats(void)
+{
+    cJSON numberX[1] = {{NULL, NULL, NULL, cJSON_Float, NULL, 0, 0, NULL}};
+    cJSON* number = numberX;
+
+    cJSON_SetFloatValue(number, 1.5);
     TEST_ASSERT_EQUAL_DOUBLE(1.5, number->valuedouble);
 
-    cJSON_SetNumberValue(number, -1.5);
-    TEST_ASSERT_EQUAL(-1, number->valueint);
+    cJSON_SetFloatValue(number, -1.5);
     TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
 
-    cJSON_SetNumberValue(number, 1 + (double)INT_MAX);
-    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
+    cJSON_SetFloatValue(number, 1 + (double)INT_MAX);
     TEST_ASSERT_EQUAL_DOUBLE(1 + (double)INT_MAX, number->valuedouble);
 
-    cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
-    TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
+    cJSON_SetFloatValue(number, -1 + (double)INT_MIN);
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
 }
 
@@ -334,9 +358,9 @@ static void cjson_replace_item_in_object_should_preserve_name(void)
     cJSON *replacement = NULL;
     cJSON_bool flag = false;
 
-    child = cJSON_CreateNumber(1);
+    child = cJSON_CreateInt(1);
     TEST_ASSERT_NOT_NULL(child);
-    replacement = cJSON_CreateNumber(2);
+    replacement = cJSON_CreateInt(2);
     TEST_ASSERT_NOT_NULL(replacement);
 
     flag  = cJSON_AddItemToObject(root, "child", child);
@@ -376,7 +400,8 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     TEST_ASSERT_FALSE(cJSON_IsTrue(NULL));
     TEST_ASSERT_FALSE(cJSON_IsBool(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNull(NULL));
-    TEST_ASSERT_FALSE(cJSON_IsNumber(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsInt(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsFloat(NULL));
     TEST_ASSERT_FALSE(cJSON_IsString(NULL));
     TEST_ASSERT_FALSE(cJSON_IsArray(NULL));
     TEST_ASSERT_FALSE(cJSON_IsObject(NULL));
@@ -478,7 +503,7 @@ static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
 static void cjson_get_string_value_should_get_a_string(void)
 {
     cJSON *string = cJSON_CreateString("test");
-    cJSON *number = cJSON_CreateNumber(1);
+    cJSON *number = cJSON_CreateInt(1);
 
     TEST_ASSERT_TRUE(cJSON_GetStringValue(string) == string->valuestring);
     TEST_ASSERT_NULL(cJSON_GetStringValue(number));
@@ -488,15 +513,26 @@ static void cjson_get_string_value_should_get_a_string(void)
     cJSON_Delete(string);
 }
 
-static void cjson_get_number_value_should_get_a_number(void)
+static void cjson_get_int_value_should_get_a_int(void)
 {
     cJSON *string = cJSON_CreateString("test");
-    cJSON *number = cJSON_CreateNumber(1);
+    cJSON *number = cJSON_CreateInt(1);
 
-    TEST_ASSERT_EQUAL_DOUBLE(cJSON_GetNumberValue(number), number->valuedouble);
-    TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetNumberValue(string));
-    TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetNumberValue(NULL));
-    
+    TEST_ASSERT_EQUAL(cJSON_GetIntValue(number), number->valueint);
+
+    cJSON_Delete(number);
+    cJSON_Delete(string);
+}
+
+static void cjson_get_float_value_should_get_a_float(void)
+{
+    cJSON *string = cJSON_CreateString("test");
+    cJSON *number = cJSON_CreateFloat(1);
+
+    TEST_ASSERT_EQUAL_DOUBLE(cJSON_GetFloatValue(number), number->valuedouble);
+    TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetFloatValue(string));
+    TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetFloatValue(NULL));
+
     cJSON_Delete(number);
     cJSON_Delete(string);
 }
@@ -514,10 +550,10 @@ static void cjson_create_string_reference_should_create_a_string_reference(void)
 static void cjson_create_object_reference_should_create_an_object_reference(void) {
     cJSON *number_reference = NULL;
     cJSON *number_object = cJSON_CreateObject();
-    cJSON *number = cJSON_CreateNumber(42);
+    cJSON *number = cJSON_CreateInt(42);
     const char key[] = "number";
 
-    TEST_ASSERT_TRUE(cJSON_IsNumber(number));
+    TEST_ASSERT_TRUE(cJSON_IsInt(number));
     TEST_ASSERT_TRUE(cJSON_IsObject(number_object));
     cJSON_AddItemToObjectCS(number_object, key, number);
 
@@ -532,9 +568,9 @@ static void cjson_create_object_reference_should_create_an_object_reference(void
 static void cjson_create_array_reference_should_create_an_array_reference(void) {
     cJSON *number_reference = NULL;
     cJSON *number_array = cJSON_CreateArray();
-    cJSON *number = cJSON_CreateNumber(42);
+    cJSON *number = cJSON_CreateInt(42);
 
-    TEST_ASSERT_TRUE(cJSON_IsNumber(number));
+    TEST_ASSERT_TRUE(cJSON_IsInt(number));
     TEST_ASSERT_TRUE(cJSON_IsArray(number_array));
     cJSON_AddItemToArray(number_array, number);
 
@@ -565,7 +601,7 @@ static void cjson_add_item_to_object_or_array_should_not_add_itself(void)
 static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased(void)
 {
     cJSON *object = cJSON_CreateObject();
-    cJSON *number = cJSON_CreateNumber(42);
+    cJSON *number = cJSON_CreateInt(42);
     char *name = (char*)cJSON_strdup((const unsigned char*)"number", &global_hooks);
 
     TEST_ASSERT_NOT_NULL(object);
@@ -626,7 +662,7 @@ static void cjson_set_valuestring_to_object_should_not_leak_memory(void)
     cJSON *item2 = cJSON_CreateStringReference(reference_valuestring);
     char *ptr1 = NULL;
     char *return_value = NULL;
-    
+
     cJSON_AddItemToObject(root, "one", item1);
     cJSON_AddItemToObject(root, "two", item2);
 
@@ -662,7 +698,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_get_object_item_case_sensitive_should_not_crash_with_array);
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
-    RUN_TEST(cjson_set_number_value_should_set_numbers);
+    RUN_TEST(cjson_set_int_value_should_set_ints);
+    RUN_TEST(cjson_set_float_value_should_set_floats);
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
@@ -671,7 +708,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
     RUN_TEST(cjson_get_string_value_should_get_a_string);
-    RUN_TEST(cjson_get_number_value_should_get_a_number);
+    RUN_TEST(cjson_get_int_value_should_get_a_int);
+    RUN_TEST(cjson_get_float_value_should_get_a_float);
     RUN_TEST(cjson_create_string_reference_should_create_a_string_reference);
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
