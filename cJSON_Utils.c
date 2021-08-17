@@ -840,7 +840,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     {
         if (opcode == REMOVE)
         {
-            static const cJSON invalid = { NULL, NULL, NULL, cJSON_Invalid, NULL, 0, 0, NULL};
+            static const cJSON invalid = { NULL, NULL, NULL, cJSON_Invalid, 0, NULL, 0, NULL};
 
             overwrite_item(object, invalid);
 
