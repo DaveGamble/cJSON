@@ -66,7 +66,7 @@ static cJSON_bool test_apply_patch(const cJSON * const test)
     }
     else
     {
-        printf("Testing unkown\n");
+        printf("Testing unknown\n");
     }
 
     disabled = cJSON_GetObjectItemCaseSensitive(test, "disabled");
