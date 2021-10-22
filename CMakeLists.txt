@@ -2,6 +2,7 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 2.8.5)
 
 project(cJSON C)
+cmake_policy(SET CMP0054 NEW)  # 设置 CMP0054 策略
 
 include(GNUInstallDirs)
 
