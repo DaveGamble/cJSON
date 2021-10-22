@@ -5,6 +5,8 @@ project(cJSON
     VERSION 1.7.15
     LANGUAGES C)
 
+cmake_policy(SET CMP0054 NEW)  # set CMP0054 policy
+
 include(GNUInstallDirs)
 
 set(CJSON_VERSION_SO 1)
@@ -252,7 +254,11 @@ if(ENABLE_CJSON_TEST)
 endif()
 
 #Create the uninstall target
-add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${PROJECT_SOURCE_DIR}/library_config/uninstall.cmake")
+option(ENABLE_CJSON_UNINSTALL "Enable creating uninstall target" ON)
+if(ENABLE_CJSON_UNINSTALL)
+  add_custom_target(uninstall "${CMAKE_COMMAND}" -P
+    "${PROJECT_SOURCE_DIR}/library_config/uninstall.cmake")
+endif()
 
 # Enable the use of locales
 option(ENABLE_LOCALES "Enable the use of locales" ON)
