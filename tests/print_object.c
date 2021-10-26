@@ -33,7 +33,7 @@ static void assert_print_object(const char * const expected, const char * const 
 
     printbuffer formatted_buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
     printbuffer unformatted_buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
-    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer parsebuffer = { 0, 0, 0, 0, { 0, 0, 0 }, false };
 
     /* buffer for parsing */
     parsebuffer.content = (const unsigned char*)input;

@@ -226,18 +226,48 @@ static void cjson_set_number_value_should_set_numbers(void)
     cJSON_SetNumberValue(number, 1.5);
     TEST_ASSERT_EQUAL(1, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(1.5, number->valuedouble);
+    TEST_ASSERT_NULL(number->valuestring);
 
     cJSON_SetNumberValue(number, -1.5);
     TEST_ASSERT_EQUAL(-1, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
+    TEST_ASSERT_NULL(number->valuestring);
 
     cJSON_SetNumberValue(number, 1 + (double)INT_MAX);
     TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(1 + (double)INT_MAX, number->valuedouble);
+    TEST_ASSERT_NULL(number->valuestring);
 
     cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
     TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+    TEST_ASSERT_NULL(number->valuestring);
+}
+
+static void cjson_set_number_value_as_string_should_set_string_numbers(void)
+{
+    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
+
+    TEST_ASSERT_NOT_NULL(cJSON_SetNumberValueAsString(number, "1.5"));
+    TEST_ASSERT_EQUAL(1, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(1.5, number->valuedouble);
+    TEST_ASSERT_EQUAL_STRING("1.5", number->valuestring);
+
+    TEST_ASSERT_NOT_NULL(cJSON_SetNumberValueAsString(number, "-1.5"));
+    TEST_ASSERT_EQUAL(-1, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
+    TEST_ASSERT_EQUAL_STRING("-1.5", number->valuestring);
+
+    TEST_ASSERT_NOT_NULL(cJSON_SetNumberValueAsString(number, "4294967296"));
+    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE((double)4294967296, number->valuedouble);
+    TEST_ASSERT_EQUAL_STRING("4294967296", number->valuestring);
+
+    TEST_ASSERT_NULL(cJSON_SetNumberValueAsString(number, "invalid"));
+    /* Ensure the previous value is unchanged. */
+    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE((double)4294967296, number->valuedouble);
+    TEST_ASSERT_EQUAL_STRING("4294967296", number->valuestring);
 }
 
 static void cjson_detach_item_via_pointer_should_detach_items(void)
@@ -454,7 +484,7 @@ static void ensure_should_fail_on_failed_realloc(void)
 static void skip_utf8_bom_should_skip_bom(void)
 {
     const unsigned char string[] = "\xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 }, false };
     buffer.content = string;
     buffer.length = sizeof(string);
     buffer.hooks = global_hooks;
@@ -466,7 +496,7 @@ static void skip_utf8_bom_should_skip_bom(void)
 static void skip_utf8_bom_should_not_skip_bom_if_not_at_beginning(void)
 {
     const unsigned char string[] = " \xEF\xBB\xBF{}";
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 }, false };
     buffer.content = string;
     buffer.length = sizeof(string);
     buffer.hooks = global_hooks;
@@ -499,6 +529,24 @@ static void cjson_get_number_value_should_get_a_number(void)
     
     cJSON_Delete(number);
     cJSON_Delete(string);
+}
+
+static void cjson_get_number_string_value_should_get_a_number_string(void)
+{
+    cJSON *string = cJSON_CreateString("test");
+    cJSON *number = cJSON_CreateNumberAsString("1");
+
+    TEST_ASSERT_EQUAL_STRING(cJSON_GetNumberValueAsString(number), number->valuestring);
+    TEST_ASSERT_NULL(cJSON_GetNumberValueAsString(string));
+    TEST_ASSERT_NULL(cJSON_GetNumberValueAsString(NULL));
+    
+    cJSON_Delete(number);
+    cJSON_Delete(string);
+}
+
+static void cjson_try_creating_and_invalid_number(void)
+{
+    TEST_ASSERT_NULL(cJSON_CreateNumberAsString("invalid"));
 }
 
 static void cjson_create_string_reference_should_create_a_string_reference(void) {
@@ -663,6 +711,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
     RUN_TEST(cjson_set_number_value_should_set_numbers);
+    RUN_TEST(cjson_set_number_value_as_string_should_set_string_numbers);
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
@@ -672,6 +721,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
     RUN_TEST(cjson_get_string_value_should_get_a_string);
     RUN_TEST(cjson_get_number_value_should_get_a_number);
+    RUN_TEST(cjson_get_number_string_value_should_get_a_number_string);
+    RUN_TEST(cjson_try_creating_and_invalid_number);
     RUN_TEST(cjson_create_string_reference_should_create_a_string_reference);
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
