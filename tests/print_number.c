@@ -39,6 +39,8 @@ static void assert_print_number(const char *expected, double input)
     buffer.buffer = new_buffer;
 
     memset(item, 0, sizeof(item));
+    item->type = cJSON_Number;
+
     memset(new_buffer, 0, sizeof(new_buffer));
     cJSON_SetNumberValue(item, input);
     TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
@@ -60,6 +62,23 @@ static void assert_print_number(const char *expected, double input)
         }  
     }    
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
+
+    if (0 != strcmp("null", expected))
+    {
+        char * foo = cJSON_SetNumberValueAsString(item, expected);
+
+        if( NULL == foo ) {
+            printf( "Expected: '%s' - got NULL\n", expected);
+        }
+        TEST_ASSERT_NOT_NULL(cJSON_SetNumberValueAsString(item, expected));
+
+        /* Reset the buffer. */
+        buffer.offset = 0;
+        TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
+
+        /* Free up the new string. */
+        cJSON_free(item->valuestring);
+    }
 }
 
 static void print_number_should_print_zero(void)
@@ -102,11 +121,9 @@ static void print_number_should_print_negative_reals(void)
 
 static void print_number_should_print_non_number(void)
 {
-    TEST_IGNORE();
-    /* FIXME: Cannot test this easily in C89! */
-    /* assert_print_number("null", NaN); */
-    /* assert_print_number("null", INFTY); */
-    /* assert_print_number("null", -INFTY); */
+    assert_print_number("null", (0.0/0.0));     /* NaN */
+    assert_print_number("null", (1.0/0.0));     /* +inf */
+    assert_print_number("null", (-1.0/0.0));    /* -inf */
 }
 
 int CJSON_CDECL main(void)

@@ -30,7 +30,7 @@
 
 static cJSON item[1];
 
-static void assert_is_number(cJSON *number_item)
+static void assert_is_number(cJSON *number_item, cJSON_bool keep_string)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(number_item, "Item is NULL.");
 
@@ -39,26 +39,63 @@ static void assert_is_number(cJSON *number_item)
     assert_has_type(number_item, cJSON_Number);
     assert_has_no_reference(number_item);
     assert_has_no_const_string(number_item);
-    assert_has_no_valuestring(number_item);
+    if (keep_string)
+    {
+        assert_has_valuestring(number_item);
+    }
+    else
+    {
+        assert_has_no_valuestring(number_item);
+    }
     assert_has_no_string(number_item);
+}
+
+static void assert_parse_number_internal(const char *string, int integer, double real, cJSON_bool keep_string)
+{
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 }, false };
+    buffer.content = (const unsigned char*)string;
+    buffer.length = strlen(string) + sizeof("");
+    buffer.hooks = global_hooks;
+    buffer.keep_number_strings = keep_string;
+
+    TEST_ASSERT_TRUE(parse_number(item, &buffer));
+    assert_is_number(item, keep_string);
+    TEST_ASSERT_EQUAL_INT(integer, item->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
+    if (keep_string)
+    {
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(string, item->valuestring, "The parsed result isn't as expected.");
+    }
+    else
+    {
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(NULL, item->valuestring, "The string should be NULL.");
+    }
+    global_hooks.deallocate(item->valuestring);
+    item->valuestring = NULL;
 }
 
 static void assert_parse_number(const char *string, int integer, double real)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    assert_parse_number_internal(string, integer, real, false);
+    assert_parse_number_internal(string, integer, real, true);
+}
+
+static void assert_parse_number_failure(const char *string)
+{
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 }, false };
     buffer.content = (const unsigned char*)string;
     buffer.length = strlen(string) + sizeof("");
+    buffer.hooks = global_hooks;
 
-    TEST_ASSERT_TRUE(parse_number(item, &buffer));
-    assert_is_number(item);
-    TEST_ASSERT_EQUAL_INT(integer, item->valueint);
-    TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
+    TEST_ASSERT_FALSE(parse_number(item, &buffer));
 }
+
 
 static void parse_number_should_parse_zero(void)
 {
     assert_parse_number("0", 0, 0);
     assert_parse_number("0.0", 0, 0.0);
+    assert_parse_number("-0.0", 0, 0.0);
     assert_parse_number("-0", 0, -0.0);
 }
 
@@ -96,6 +133,56 @@ static void parse_number_should_parse_negative_reals(void)
     assert_parse_number("-123e-128", 0, -123e-128);
 }
 
+static void parse_number_should_parse_large_number(void)
+{
+    assert_parse_number("12884901888", INT_MAX, 1.2884901888e10);
+    assert_parse_number("100000000000000000000000000000000000000000000000000000000000000000.1",
+                        INT_MAX,
+                        99999999999999999209038626283633850822756121694230455365568299008.000000);
+    assert_parse_number("1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000",
+                        INT_MAX,
+                        1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000.0);
+    assert_parse_number("1e999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                        INT_MAX,
+                        (1.0/0.0));
+    assert_parse_number("-1e999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                        INT_MIN,
+                        (-1.0/0.0));
+    assert_parse_number("1e-999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                        0,
+                        0.0);
+}
+
+static void parse_number_invalid_checks(void)
+{
+    const char *tests[] = {
+        "",
+        "-",
+        ".",
+        ".0",
+        "0.",
+        "0.0.1",
+        "e",
+        "E",
+        "e10",
+        "E10",
+        "0e",
+        "0E",
+        "1E+",
+        "1E-",
+        "1e1e2",
+        "1E1E2",
+        "09",
+        "0.+",
+    };
+    size_t i = 0;
+
+    for (i = 0; i < sizeof(tests)/sizeof(char *); i++)
+    {
+        assert_parse_number_failure(tests[i]);
+    }
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -106,5 +193,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_number_should_parse_positive_integers);
     RUN_TEST(parse_number_should_parse_positive_reals);
     RUN_TEST(parse_number_should_parse_negative_reals);
+    RUN_TEST(parse_number_should_parse_large_number);
+    RUN_TEST(parse_number_invalid_checks);
     return UNITY_END();
 }
