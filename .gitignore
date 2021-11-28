@@ -6,7 +6,7 @@ test
 *.swp
 *.patch
 tags
-*.dylib
+*.dylib*
 build/
 cJSON_test
 cJSON_test_utils
