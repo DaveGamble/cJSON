@@ -535,6 +535,11 @@ static void update_offset(printbuffer * const buffer)
 }
 
 /* securely comparison of floating-point variables */
+static cJSON_bool compare_float(float a, float b)
+{
+    float maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= maxVal * FLT_EPSILON);
+}
 static cJSON_bool compare_double(double a, double b)
 {
     double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
@@ -550,6 +555,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     size_t i = 0;
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
+    float test_f = 0.0;
     double test = 0.0;
 
     if (output_buffer == NULL)
@@ -564,14 +570,21 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
     else
     {
-        /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = sprintf((char*)number_buffer, "%1.15g", d);
+        /* Try 7 decimal places of precision to avoid nonsignificant nonzero digits */
+        length = sprintf((char*)number_buffer, "%1.7g", (float)d);
 
         /* Check whether the original double can be recovered */
-        if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
+        if ((sscanf((char*)number_buffer, "%g", &test_f) != 1) || !compare_float(test_f, (float)d))
         {
             /* If not, print with 17 decimal places of precision */
-            length = sprintf((char*)number_buffer, "%1.17g", d);
+            length = sprintf((char*)number_buffer, "%1.15g", d);
+
+            /* Check whether the original double can be recovered */
+            if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
+            {
+                /* If not, print with 17 decimal places of precision */
+                length = sprintf((char*)number_buffer, "%1.17g", d);
+            }
         }
     }
 
