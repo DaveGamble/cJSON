@@ -650,6 +650,63 @@ static void cjson_set_valuestring_to_object_should_not_leak_memory(void)
     cJSON_Delete(root);
 }
 
+static void cjson_set_bool_value_must_not_break_objects(void)
+{
+    cJSON *bobj, *sobj,*oobj,*refobj=NULL;
+
+    TEST_ASSERT_TRUE((cJSON_SetBoolValue(refobj,1)==cJSON_Invalid));
+
+    bobj=cJSON_CreateFalse();
+    TEST_ASSERT_TRUE(cJSON_IsFalse(bobj));
+    TEST_ASSERT_TRUE((cJSON_SetBoolValue(bobj,1)==cJSON_True));
+    TEST_ASSERT_TRUE(cJSON_IsTrue(bobj));
+    cJSON_SetBoolValue(bobj,1);
+    TEST_ASSERT_TRUE(cJSON_IsTrue(bobj));
+    TEST_ASSERT_TRUE((cJSON_SetBoolValue(bobj,0)==cJSON_False));
+    TEST_ASSERT_TRUE(cJSON_IsFalse(bobj));
+    cJSON_SetBoolValue(bobj,0);
+    TEST_ASSERT_TRUE(cJSON_IsFalse(bobj));
+
+    sobj=cJSON_CreateString("test");
+    TEST_ASSERT_TRUE(cJSON_IsString(sobj));
+    cJSON_SetBoolValue(sobj,1);
+    TEST_ASSERT_TRUE(cJSON_IsString(sobj));
+    cJSON_SetBoolValue(sobj,0);
+    TEST_ASSERT_TRUE(cJSON_IsString(sobj));
+
+    oobj=cJSON_CreateObject();
+    TEST_ASSERT_TRUE(cJSON_IsObject(oobj));
+    cJSON_SetBoolValue(oobj,1);
+    TEST_ASSERT_TRUE(cJSON_IsObject(oobj));
+    cJSON_SetBoolValue(oobj,0);
+    TEST_ASSERT_TRUE(cJSON_IsObject(oobj));
+
+    refobj=cJSON_CreateStringReference("conststring");
+    TEST_ASSERT_TRUE(cJSON_IsString(refobj));
+    TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
+    cJSON_SetBoolValue(refobj,1);
+    TEST_ASSERT_TRUE(cJSON_IsString(refobj));
+    TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
+    cJSON_SetBoolValue(refobj,0);
+    TEST_ASSERT_TRUE(cJSON_IsString(refobj));
+    TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
+    cJSON_Delete(refobj);
+
+    refobj=cJSON_CreateObjectReference(oobj);
+    TEST_ASSERT_TRUE(cJSON_IsObject(refobj));
+    TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
+    cJSON_SetBoolValue(refobj,1);
+    TEST_ASSERT_TRUE(cJSON_IsObject(refobj));
+    TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
+    cJSON_SetBoolValue(refobj,0);
+    TEST_ASSERT_TRUE(cJSON_IsObject(refobj));
+    TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
+    cJSON_Delete(refobj);
+
+    cJSON_Delete(bobj);
+    cJSON_Delete(sobj);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -679,6 +736,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_add_item_to_object_should_not_use_after_free_when_string_is_aliased);
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
+    RUN_TEST(cjson_set_bool_value_must_not_break_objects);
 
     return UNITY_END();
 }
