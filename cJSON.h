@@ -283,7 +283,7 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 #define cJSON_SetBoolValue(object, boolValue) ( \
     (object != NULL && ((object)->type & (cJSON_False|cJSON_True))) ? \
     (object)->type=((object)->type &(~(cJSON_False|cJSON_True)))|((boolValue)?cJSON_True:cJSON_False) : \
-    0\
+    cJSON_Invalid\
 )
 
 /* Macro for iterating over an array or object */
