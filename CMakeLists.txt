@@ -121,6 +121,7 @@ set(SOURCES cJSON.c)
 option(BUILD_SHARED_AND_STATIC_LIBS "Build both shared and static libraries" Off)
 option(CJSON_OVERRIDE_BUILD_SHARED_LIBS "Override BUILD_SHARED_LIBS with CJSON_BUILD_SHARED_LIBS" OFF)
 option(CJSON_BUILD_SHARED_LIBS "Overrides BUILD_SHARED_LIBS if CJSON_OVERRIDE_BUILD_SHARED_LIBS is enabled" ON)
+option(ENABLE_CJSON_VERSION_SO "Enables cJSON so version" ON)
 
 if ((CJSON_OVERRIDE_BUILD_SHARED_LIBS AND CJSON_BUILD_SHARED_LIBS) OR ((NOT CJSON_OVERRIDE_BUILD_SHARED_LIBS) AND BUILD_SHARED_LIBS))
     set(CJSON_LIBRARY_TYPE SHARED)
@@ -162,10 +163,12 @@ if(ENABLE_TARGET_EXPORT)
     install(EXPORT "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
 endif()
 
-set_target_properties("${CJSON_LIB}"
-    PROPERTIES
-        SOVERSION "${CJSON_VERSION_SO}"
-        VERSION "${PROJECT_VERSION}")
+if(ENABLE_CJSON_VERSION_SO)
+    set_target_properties("${CJSON_LIB}"
+        PROPERTIES
+            SOVERSION "${CJSON_VERSION_SO}"
+            VERSION "${PROJECT_VERSION}")
+endif()
 
 #cJSON_Utils
 option(ENABLE_CJSON_UTILS "Enable building the cJSON_Utils library." OFF)
@@ -207,10 +210,12 @@ if(ENABLE_CJSON_UTILS)
       install(EXPORT "${CJSON_UTILS_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
     endif()
 
-    set_target_properties("${CJSON_UTILS_LIB}"
-        PROPERTIES
-            SOVERSION "${CJSON_UTILS_VERSION_SO}"
-            VERSION "${PROJECT_VERSION}")
+    if(ENABLE_CJSON_VERSION_SO)
+        set_target_properties("${CJSON_UTILS_LIB}"
+            PROPERTIES
+                SOVERSION "${CJSON_UTILS_VERSION_SO}"
+                VERSION "${PROJECT_VERSION}")
+    endif()
 endif()
 
 # create the other package config files
