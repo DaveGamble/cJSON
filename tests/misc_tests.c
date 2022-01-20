@@ -703,6 +703,7 @@ static void cjson_set_bool_value_must_not_break_objects(void)
     TEST_ASSERT_TRUE(refobj->type&cJSON_IsReference);
     cJSON_Delete(refobj);
 
+    cJSON_Delete(oobj);
     cJSON_Delete(bobj);
     cJSON_Delete(sobj);
 }
