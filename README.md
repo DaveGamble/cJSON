@@ -407,7 +407,7 @@ end:
 }
 ```
 
-Alternatively we can use the `cJSON_Add...ToObject` helper functions to make our lifes a little easier:
+Alternatively we can use the `cJSON_Add...ToObject` helper functions to make our lives a little easier:
 
 ```c
 //NOTE: Returns a heap allocated string, you are required to free it after use.
