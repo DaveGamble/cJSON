@@ -405,9 +405,11 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     {
         return NULL;
     }
-    if (strlen(valuestring) <= strlen(object->valuestring))
+    int objectLen = strlen(object->valuestring);
+    if (strlen(valuestring) <= objectLen)
     {
-        strncpy(object->valuestring, valuestring, strlen(object->valuestring));
+        strncpy(object->valuestring, valuestring, objectLen+1);
+        object->valuestring[objectLen] = '\0';
         return object->valuestring;
     }
     copy = (char*) cJSON_strdup((const unsigned char*)valuestring, &global_hooks);
@@ -1382,6 +1384,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
                 return false;
             }
             strncpy((char*)output, "null", 5);
+            output[4] = 0;
             return true;
 
         case cJSON_False:
@@ -1391,6 +1394,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
                 return false;
             }
             strncpy((char*)output, "false", 6);
+            output[5] = 0;
             return true;
 
         case cJSON_True:
@@ -1400,6 +1404,7 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
                 return false;
             }
             strncpy((char*)output, "true", 5);
+            output[4] = 0;
             return true;
 
         case cJSON_Number:
