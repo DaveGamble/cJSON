@@ -72,6 +72,11 @@ static void print_number_should_print_negative_integers(void)
     assert_print_number("-1", -1.0);
     assert_print_number("-32768", -32768.0);
     assert_print_number("-2147483648", -2147483648.0);
+    assert_print_number("-2147483649", -2147483649.0);
+    assert_print_number("-4294967296", -4294967296.0);
+    assert_print_number("-4294967297", -4294967297.0);
+    /* Approx lowest integer exactly representable in double */
+    assert_print_number("-8765432101234567", -8765432101234567.0);
 }
 
 static void print_number_should_print_positive_integers(void)
@@ -79,6 +84,11 @@ static void print_number_should_print_positive_integers(void)
     assert_print_number("1", 1.0);
     assert_print_number("32767", 32767.0);
     assert_print_number("2147483647", 2147483647.0);
+    assert_print_number("2147483648", 2147483648.0);
+    assert_print_number("4294967295", 4294967295.0);
+    assert_print_number("4294967296", 4294967296.0);
+    /* Approx highest integer exactly representable in double */
+    assert_print_number("8765432101234567", 8765432101234567.0);
 }
 
 static void print_number_should_print_positive_reals(void)
