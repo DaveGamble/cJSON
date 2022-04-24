@@ -70,7 +70,7 @@
 #define false ((cJSON_bool)0)
 
 /* define our own int max and min */
-#if defined(CJSON_INT_USE_LONGLONG) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#ifdef CJSON_INT_USE_LONGLONG
 #define CJSON_INT_MAX LLONG_MAX
 #define CJSON_INT_MIN LLONG_MIN
 #define strtoint(s) strtoll((const char*)(s), NULL, 0)
@@ -82,7 +82,7 @@
 #define intfmt "%d"
 #endif
 
-#define isint(d) (d == floor(d))
+#define has_no_decimals(d) (d == floor(d))
 
 /* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
 #ifndef isinf
@@ -320,7 +320,7 @@ typedef struct
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
-    cJSON_bool integer = cJSON_True;
+    cJSON_bool is_integer = cJSON_True;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
     unsigned char decimal_point = get_decimal_point();
@@ -355,12 +355,12 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 
             case 'e':
             case 'E':
-                integer = cJSON_False;
+                is_integer = cJSON_False;
                 number_c_string[i] = buffer_at_offset(input_buffer)[i];
                 break;
 
             case '.':
-                integer = cJSON_False;
+                is_integer = cJSON_False;
                 number_c_string[i] = decimal_point;
                 break;
 
@@ -380,7 +380,8 @@ loop_end:
     item->valuedouble = number;
 
     /* use saturation in case of overflow */
-    if (number >= CJSON_INT_MAX)
+    /* note that even float has range beyond long long (though inexactly) */
+    if (number >= (double)CJSON_INT_MAX)
     {
         item->valueint = CJSON_INT_MAX;
     }
@@ -388,9 +389,9 @@ loop_end:
     {
         item->valueint = CJSON_INT_MIN;
     }
-    else if (integer == cJSON_True)
+    else if (is_integer == cJSON_True)
     {
-        /* parse again to handle the very big integer */
+        /* integer is in range, parse as integer to prevent float inexactness */
         item->valueint = strtoint(number_c_string);
     }
     else
@@ -407,7 +408,7 @@ loop_end:
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 {
-    if (number >= CJSON_INT_MAX)
+    if (number >= (double)CJSON_INT_MAX)
     {
         object->valueint = CJSON_INT_MAX;
     }
@@ -588,8 +589,8 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-    else if (isint(d) && ((item->valueint != CJSON_INT_MAX &&
-             item->valueint != CJSON_INT_MIN) || d == (double)item->valueint))
+    else if (has_no_decimals(d) && item->valueint != CJSON_INT_MAX &&
+             item->valueint != CJSON_INT_MIN && d == (double)item->valueint)
     {
         length = sprintf((char*)number_buffer, intfmt, item->valueint);
     }
