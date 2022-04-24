@@ -70,7 +70,7 @@
 #define false ((cJSON_bool)0)
 
 /* define our own int max and min */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#if defined(CJSON_INT_USE_LONGLONG) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define CJSON_INT_MAX LLONG_MAX
 #define CJSON_INT_MIN LLONG_MIN
 #define strtoint(s) strtoll((const char*)(s), NULL, 0)

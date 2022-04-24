@@ -99,7 +99,9 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define notCJSON_INT_USE_LONGLONG
+
+#if defined(CJSON_INT_USE_LONGLONG) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 typedef long long cJSON_int;
 #else
 typedef int cJSON_int;
