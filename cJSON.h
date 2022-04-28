@@ -100,9 +100,10 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define cJSON_StringIsConst 512
 
 #define notCJSON_INT_USE_LONGLONG
-// Note: Default cmake rules will force C89 and prevent long long.
-// To use long long, delete build tree, then run:
-// CFLAGS="-Wall -Werror" cmake -DENABLE_CUSTOM_COMPILER_FLAGS=Off <sourcedir>
+/* Note: Default cmake rules will force C89 and prevent long long.
+   To use long long, delete build tree, then run:
+   CFLAGS="-Wall -Werror" cmake -DENABLE_CUSTOM_COMPILER_FLAGS=Off <sourcedir>
+ */
 
 #ifdef CJSON_INT_USE_LONGLONG
 typedef long long cJSON_int;

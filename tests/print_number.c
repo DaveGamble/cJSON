@@ -24,7 +24,7 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
-static void assert_print_number(const char *expected, double input)
+static void assert_print_number(const char *expected, cJSON_float input)
 {
     unsigned char printed[1024];
     unsigned char new_buffer[26];
@@ -71,34 +71,41 @@ static void print_number_should_print_negative_integers(void)
 {
     assert_print_number("-1", -1.0);
     assert_print_number("-32768", -32768.0);
+#ifndef CJSON_FLOAT_USE_FLOAT
     assert_print_number("-2147483648", -2147483648.0);
     assert_print_number("-2147483649", -2147483649.0);
     assert_print_number("-4294967296", -4294967296.0);
     assert_print_number("-4294967297", -4294967297.0);
     /* Approx lowest integer exactly representable in double */
     assert_print_number("-8765432101234567", -8765432101234567.0);
+#endif
 }
 
 static void print_number_should_print_positive_integers(void)
 {
     assert_print_number("1", 1.0);
     assert_print_number("32767", 32767.0);
+#ifndef CJSON_FLOAT_USE_FLOAT
     assert_print_number("2147483647", 2147483647.0);
     assert_print_number("2147483648", 2147483648.0);
     assert_print_number("4294967295", 4294967295.0);
     assert_print_number("4294967296", 4294967296.0);
     /* Approx highest integer exactly representable in double */
     assert_print_number("8765432101234567", 8765432101234567.0);
+#endif
 }
 
 static void print_number_should_print_positive_reals(void)
 {
     assert_print_number("0.123", 0.123);
     assert_print_number("1e-09", 10e-10);
+    assert_print_number("1e+21", 10e20);
+#ifndef CJSON_FLOAT_USE_FLOAT
     assert_print_number("1000000000000", 10e11);
     assert_print_number("1.23e+129", 123e+127);
     assert_print_number("1.23e-126", 123e-128);
     assert_print_number("3.1415926535897931", 3.1415926535897931);
+#endif
 }
 
 static void print_number_should_print_negative_reals(void)
@@ -106,8 +113,10 @@ static void print_number_should_print_negative_reals(void)
     assert_print_number("-0.0123", -0.0123);
     assert_print_number("-1e-09", -10e-10);
     assert_print_number("-1e+21", -10e20);
+#ifndef CJSON_FLOAT_USE_FLOAT
     assert_print_number("-1.23e+129", -123e+127);
     assert_print_number("-1.23e-126", -123e-128);
+#endif
 }
 
 static void print_number_should_print_non_number(void)

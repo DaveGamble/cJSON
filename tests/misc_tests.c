@@ -28,6 +28,11 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
+#ifdef CJSON_FLOAT_USE_FLOAT
+#undef TEST_ASSERT_EQUAL_DOUBLE
+#define TEST_ASSERT_EQUAL_DOUBLE TEST_ASSERT_EQUAL_FLOAT
+#endif
+
 static void cjson_array_foreach_should_loop_over_arrays(void)
 {
     cJSON array[1];
