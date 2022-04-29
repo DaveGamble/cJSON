@@ -105,7 +105,7 @@
 #ifdef _WIN32
 #define NAN sqrt(-1.0)
 #else
-#define NAN 0.0/0.0
+#define NAN (0.0/0.0)
 #endif
 #endif
 
@@ -138,6 +138,16 @@ CJSON_PUBLIC(cJSON_float) cJSON_GetNumberValue(const cJSON * const item)
     }
 
     return item->valuedouble;
+}
+
+CJSON_PUBLIC(cJSON_int) cJSON_GetIntValue(const cJSON * const item)
+{
+    if (!cJSON_IsNumber(item))
+    {
+        return 0;
+    }
+
+    return item->valueint;
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
@@ -387,6 +397,7 @@ loop_end:
     }
 
     item->valuedouble = number;
+    item->type = cJSON_Number;
 
     /* use saturation in case of overflow */
     /* note that even float has range beyond long long (though inexactly) */
@@ -402,13 +413,12 @@ loop_end:
     {
         /* integer is in range, parse as integer to prevent float inexactness */
         item->valueint = strtoint(number_c_string);
+        item->type |= cJSON_PreferInt;
     }
     else
     {
         item->valueint = (cJSON_int)number;
     }
-
-    item->type = cJSON_Number;
 
     input_buffer->offset += (size_t)(after_end - number_c_string);
     return true;
@@ -429,7 +439,7 @@ CJSON_PUBLIC(cJSON_float) cJSON_SetNumberHelper(cJSON *object, cJSON_float numbe
     {
         object->valueint = (cJSON_int)number;
     }
-
+    object->type &= ~cJSON_PreferInt;
     return object->valuedouble = number;
 }
 
@@ -602,22 +612,21 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
         return false;
     }
 
-    /* This checks for NaN and Infinity */
-    if (isnan(d) || isinf(d))
-    {
-        length = sprintf((char*)number_buffer, "null");
-    }
-    else if (has_no_decimals(d) && item->valueint != CJSON_INT_MAX &&
-             item->valueint != CJSON_INT_MIN && d == (cJSON_float)item->valueint)
+    if (item->type & cJSON_PreferInt)
     {
         length = sprintf((char*)number_buffer, intfmt, item->valueint);
+    }
+    else if (isnan(d) || isinf(d))
+    /* note that isnan/isinf will never work when compiling with -ffast-math */
+    {
+        length = sprintf((char*)number_buffer, "null");
     }
     else
     {
         /* Try 15 (6) decimal places of precision to avoid nonsignificant nonzero digits */
         length = sprintf((char*)number_buffer, floatfmt_shorter, d);
 
-        /* Check whether the original double can be recovered */
+        /* Check whether the original value can be recovered */
         test = strtofloat((char*)number_buffer, &test_endptr);
         if (test_endptr == NULL || test_endptr == (char *)number_buffer || *test_endptr != '\0' || !compare_cJSON_float((cJSON_float)test, d))
         {

@@ -28,6 +28,19 @@ extern "C"
 {
 #endif
 
+/* CJSON_INT_USE_LONGLONG
+   Compile-time option to use "long long" instead of default "int".
+   Note: Default cmake rules will force C89 and prevent long long.
+   To use long long, delete build tree, then run:
+   CFLAGS="-Wall -Werror" cmake -DENABLE_CUSTOM_COMPILER_FLAGS=Off <sourcedir>
+ */
+#define notCJSON_INT_USE_LONGLONG
+
+/* CJSON_FLOAT_USE_FLOAT
+   Compile-time option to use "float" instead of default "double".
+ */
+#define notCJSON_FLOAT_USE_FLOAT
+
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 #define __WINDOWS__
 #endif
@@ -98,20 +111,13 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
-
-#define notCJSON_INT_USE_LONGLONG
-/* Note: Default cmake rules will force C89 and prevent long long.
-   To use long long, delete build tree, then run:
-   CFLAGS="-Wall -Werror" cmake -DENABLE_CUSTOM_COMPILER_FLAGS=Off <sourcedir>
- */
+#define cJSON_PreferInt 1024
 
 #ifdef CJSON_INT_USE_LONGLONG
 typedef long long cJSON_int;
 #else
 typedef int cJSON_int;
 #endif
-
-#define notCJSON_FLOAT_USE_FLOAT
 
 #ifdef CJSON_FLOAT_USE_FLOAT
 typedef float cJSON_float;
@@ -133,9 +139,10 @@ typedef struct cJSON
 
     /* The item's string, if type==cJSON_String  and type == cJSON_Raw */
     char *valuestring;
-    /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
+    /* writing to valueint is DEPRECATED, use cJSON_SetIntValue instead */
     cJSON_int valueint;
     /* The item's number, if type==cJSON_Number */
+    /* writing to valuedouble is DEPRECATED, use cJSON_SetNumberValue instead */
     cJSON_float valuedouble;
 
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
@@ -198,6 +205,7 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
 /* Check item type and return its value */
 CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item);
 CJSON_PUBLIC(cJSON_float) cJSON_GetNumberValue(const cJSON * const item);
+CJSON_PUBLIC(cJSON_int) cJSON_GetIntValue(const cJSON * const item);
 
 /* These functions check the type of an item */
 CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item);
@@ -293,7 +301,7 @@ CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * 
 CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * const name);
 
 /* When assigning an integer value, it needs to be propagated to valuedouble too. */
-#define cJSON_SetIntValue(object, number) ((object) ? ((object)->valuedouble = (number), (object)->valueint = (number)) : (number))
+#define cJSON_SetIntValue(object, number) ((object != NULL) ? ((object)->valuedouble = (number), (object)->type |= cJSON_PreferInt, (object)->valueint = (number)) : (number))
 /* helper for the cJSON_SetNumberValue macro */
 CJSON_PUBLIC(cJSON_float) cJSON_SetNumberHelper(cJSON *object, cJSON_float number);
 #define cJSON_SetNumberValue(object, number) ((object != NULL) ? cJSON_SetNumberHelper(object, (cJSON_float)number) : (number))

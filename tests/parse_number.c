@@ -73,8 +73,13 @@ static void parse_number_should_parse_zero(void)
 static void parse_number_should_parse_negative_integers(void)
 {
     assert_parse_number("-1", -1, -1);
-    assert_parse_number("-32768", -32768, -32768.0);
-    assert_parse_number("-2147483648", -2147483648, -2147483648.0);
+
+    /* not -32768: C allows int as 15bit + signbit, or one's complement */
+    assert_parse_number("-32767", -32767, -32767.0);
+
+    if (sizeof(cJSON_int) >= 4)
+        assert_parse_number("-2147483648", -2147483648, -2147483648.0);
+
 #ifdef CJSON_INT_USE_LONGLONG
     assert_parse_number("-8765432101234567", -8765432101234567LL, -8765432101234567.0);
 #else
@@ -86,7 +91,10 @@ static void parse_number_should_parse_positive_integers(void)
 {
     assert_parse_number("1", 1, 1);
     assert_parse_number("32767", 32767, 32767.0);
-    assert_parse_number("2147483647", 2147483647, 2147483647.0);
+
+    if (sizeof(cJSON_int) >= 4)
+        assert_parse_number("2147483647", 2147483647, 2147483647.0);
+
 #ifdef CJSON_INT_USE_LONGLONG
     assert_parse_number("8765432101234567", 8765432101234567LL, 8765432101234567.0);
 #else

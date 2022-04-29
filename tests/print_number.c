@@ -62,9 +62,30 @@ static void assert_print_number(const char *expected, cJSON_float input)
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
 }
 
+static void assert_print_integer(const char *expected, cJSON_int input)
+{
+    unsigned char printed[1024];
+    unsigned char new_buffer[26];
+    cJSON item[1];
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.buffer = printed;
+    buffer.length = sizeof(printed);
+    buffer.offset = 0;
+    buffer.noalloc = true;
+    buffer.hooks = global_hooks;
+    buffer.buffer = new_buffer;
+
+    memset(item, 0, sizeof(item));
+    memset(new_buffer, 0, sizeof(new_buffer));
+    cJSON_SetIntValue(item, input);
+    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print integer.");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed integer is not as expected.");
+}
+
 static void print_number_should_print_zero(void)
 {
     assert_print_number("0", 0);
+    assert_print_integer("0", 0);
 }
 
 static void print_number_should_print_negative_integers(void)
@@ -79,6 +100,18 @@ static void print_number_should_print_negative_integers(void)
     /* Approx lowest integer exactly representable in double */
     assert_print_number("-8765432101234567", -8765432101234567.0);
 #endif
+
+    assert_print_integer("-1", -1);
+
+    /* not -32768: C allows int as 15bit + signbit, or one's complement */
+    assert_print_integer("-32767", -32767);
+
+    if (sizeof(cJSON_int) >= 4)
+        assert_print_integer("-2147483647", -2147483647);
+
+#ifdef CJSON_INT_USE_LONGLONG
+    assert_print_integer("-9223372036854775807", -9223372036854775807LL);
+#endif
 }
 
 static void print_number_should_print_positive_integers(void)
@@ -92,6 +125,16 @@ static void print_number_should_print_positive_integers(void)
     assert_print_number("4294967296", 4294967296.0);
     /* Approx highest integer exactly representable in double */
     assert_print_number("8765432101234567", 8765432101234567.0);
+#endif
+
+    assert_print_integer("1", 1);
+    assert_print_integer("32767", 32767);
+
+    if (sizeof(cJSON_int) >= 4)
+        assert_print_integer("2147483647", 2147483647);
+
+#ifdef CJSON_INT_USE_LONGLONG
+    assert_print_integer("9223372036854775807", 9223372036854775807LL);
 #endif
 }
 
@@ -121,11 +164,10 @@ static void print_number_should_print_negative_reals(void)
 
 static void print_number_should_print_non_number(void)
 {
-    TEST_IGNORE();
-    /* FIXME: Cannot test this easily in C89! */
-    /* assert_print_number("null", NaN); */
-    /* assert_print_number("null", INFTY); */
-    /* assert_print_number("null", -INFTY); */
+    assert_print_number("null", 0.0/0.0);
+    assert_print_number("null", -(0.0/0.0));
+    assert_print_number("null", 1.0/0.0);
+    assert_print_number("null", (-1.0)/0.0);
 }
 
 int CJSON_CDECL main(void)
