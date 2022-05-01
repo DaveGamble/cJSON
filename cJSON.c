@@ -582,15 +582,15 @@ static void update_offset(printbuffer * const buffer)
 
 /* securely comparison of floating-point variables */
 #ifdef CJSON_FLOAT_USE_FLOAT
-static cJSON_bool compare_cJSON_float(float a, float b)
+static cJSON_bool compare_cJSON_float(cJSON_float a, cJSON_float b)
 {
-    float maxVal = fabsf(a) > fabsf(b) ? fabsf(a) : fabsf(b);
+    cJSON_float maxVal = fabsf(a) > fabsf(b) ? fabsf(a) : fabsf(b);
     return (fabsf(a - b) <= maxVal * FLT_EPSILON);
 }
 #else
-static cJSON_bool compare_cJSON_float(double a, double b)
+static cJSON_bool compare_cJSON_float(cJSON_float a, cJSON_float b)
 {
-    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    cJSON_float maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 #endif
