@@ -404,6 +404,9 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     cJSON_AddItemReferenceToObject(item, "item", NULL);
     cJSON_AddItemReferenceToObject(item, NULL, item);
     cJSON_AddItemReferenceToObject(NULL, "item", item);
+    cJSON_AddItemReferenceToObjectCS(item, "item", NULL);
+    cJSON_AddItemReferenceToObjectCS(item, NULL, item);
+    cJSON_AddItemReferenceToObjectCS(NULL, "item", item);
     TEST_ASSERT_NULL(cJSON_DetachItemViaPointer(NULL, item));
     TEST_ASSERT_NULL(cJSON_DetachItemViaPointer(item, NULL));
     TEST_ASSERT_NULL(cJSON_DetachItemFromArray(NULL, 0));
