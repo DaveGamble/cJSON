@@ -2910,7 +2910,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsTrue(const cJSON * const item)
         return false;
     }
 
-    return (item->type & 0xff) == cJSON_True;
+    return (item->type & 0xFF) == cJSON_True;
 }
 
 
