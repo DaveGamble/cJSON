@@ -24,6 +24,25 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
+#ifdef __CJSON_USE_INT64
+static void assert_print_int64_number(const char *expected, long long input)
+{
+    unsigned char printed[1024];
+    cJSON item[1] = {{ NULL, NULL, NULL, cJSON_Number | cJSON_IsInt64, NULL, 0, 0, NULL }};
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.buffer = printed;
+    buffer.length = sizeof(printed);
+    buffer.offset = 0;
+    buffer.noalloc = true;
+    buffer.hooks = global_hooks;
+
+    cJSON_SetInt64NumberValue(item, input);
+    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print int64 number.");
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed int64 number is not as expected.");
+}
+#endif /* __CJSON_USE_INT64 */
+
 static void assert_print_number(const char *expected, double input)
 {
     unsigned char printed[1024];
@@ -72,6 +91,12 @@ static void print_number_should_print_negative_integers(void)
     assert_print_number("-1", -1.0);
     assert_print_number("-32768", -32768.0);
     assert_print_number("-2147483648", -2147483648.0);
+#ifdef __CJSON_USE_INT64
+    assert_print_int64_number("-1", -1LL);
+    assert_print_int64_number("-32768", -32768LL);
+    assert_print_int64_number("-2147483647", -2147483647LL);
+    assert_print_int64_number("-9223372036854775808", LLONG_MIN);
+#endif /* __CJSON_USE_INT64 */
 }
 
 static void print_number_should_print_positive_integers(void)
@@ -79,6 +104,12 @@ static void print_number_should_print_positive_integers(void)
     assert_print_number("1", 1.0);
     assert_print_number("32767", 32767.0);
     assert_print_number("2147483647", 2147483647.0);
+#ifdef __CJSON_USE_INT64
+    assert_print_int64_number("1", 1LL);
+    assert_print_int64_number("32767", 32767LL);
+    assert_print_int64_number("2147483647", 2147483647LL);
+    assert_print_int64_number("9223372036854775807", LLONG_MAX);
+#endif /* __CJSON_USE_INT64 */
 }
 
 static void print_number_should_print_positive_reals(void)

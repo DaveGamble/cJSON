@@ -610,6 +610,22 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
     }
     switch (a->type & 0xFF)
     {
+#ifdef __CJSON_USE_INT64
+        case cJSON_Number:
+            /* numeric mismatch. */
+            if ((a->valueint != b->valueint) || (!compare_double(a->valuedouble, b->valuedouble)))
+            {
+                return false;
+            }
+
+            if ((a->type & cJSON_IsInt64) != (b->type & cJSON_IsInt64))
+            {
+                /* cJSON_IsInt64 should also be considered */
+                return false;
+            }
+
+            return true;
+#else
         case cJSON_Number:
             /* numeric mismatch. */
             if ((a->valueint != b->valueint) || (!compare_double(a->valuedouble, b->valuedouble)))
@@ -620,6 +636,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
             {
                 return true;
             }
+#endif /* __CJSON_USE_INT64 */
 
         case cJSON_String:
             /* string mismatch. */
