@@ -27,6 +27,7 @@ Ultralightweight JSON parser in ANSI C.
     * [Character Encoding](#character-encoding)
     * [C Standard](#c-standard)
     * [Floating Point Numbers](#floating-point-numbers)
+    * [Integer numbers](#integer-numbers)
     * [Deep Nesting Of Arrays And Objects](#deep-nesting-of-arrays-and-objects)
     * [Thread Safety](#thread-safety)
     * [Case Sensitivity](#case-sensitivity)
@@ -179,9 +180,10 @@ typedef struct cJSON
     struct cJSON *child;
     int type;
     char *valuestring;
-    /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
-    int valueint;
-    double valuedouble;
+    /* writing to valueint is DEPRECATED, use cJSON_SetIntValue instead */
+    cJSON_int valueint;
+    /* writing to valuedouble is DEPRECATED, use cJSON_SetNumberValue instead */
+    cJSON_float valuedouble;
     char *string;
 } cJSON;
 ```
@@ -196,7 +198,8 @@ The type can be one of the following:
 * `cJSON_False` (check with `cJSON_IsFalse`): Represents a `false` boolean value. You can also check for boolean values in general with `cJSON_IsBool`.
 * `cJSON_True` (check with `cJSON_IsTrue`): Represents a `true` boolean value. You can also check for boolean values in general with `cJSON_IsBool`.
 * `cJSON_NULL` (check with `cJSON_IsNull`): Represents a `null` value.
-* `cJSON_Number` (check with `cJSON_IsNumber`): Represents a number value. The value is stored as a double in `valuedouble` and also in `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`.
+* `cJSON_Number` (check with `cJSON_IsNumber`): Represents a number value, which may be integer. The value is stored in `valuedouble`, and also in `valueint` with possibly some loss of precision. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`.
+* `cJSON_Number` with `cJSON_PreferInt` flag (check with `cJSON_IsInt`): Represents an integer number value that is within the range representable by `valueint`. The value is stored in `valueint`, and also in `valuedouble` with possibly some loss of precision.
 * `cJSON_String` (check with `cJSON_IsString`): Represents a string value. It is stored in the form of a zero terminated string in `valuestring`.
 * `cJSON_Array` (check with `cJSON_IsArray`): Represent an array value. This is implemented by pointing `child` to a linked list of `cJSON` items that represent the values in the array. The elements are linked together using `next` and `prev`, where the first element has `prev.next == NULL` and the last element `next == NULL`.
 * `cJSON_Object` (check with `cJSON_IsObject`): Represents an object value. Objects are stored same way as an array, the only difference is that the items in the object store their keys in `string`.
@@ -219,7 +222,8 @@ it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `
 
 * **null** is created with `cJSON_CreateNull`
 * **booleans** are created with `cJSON_CreateTrue`, `cJSON_CreateFalse` or `cJSON_CreateBool`
-* **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` are used for `valueint`
+* (floating point) **numbers** are created with `cJSON_CreateNumber`. This will set both `valuedouble` and `valueint`. If the number is outside of the range of an integer, `INT_MAX` or `INT_MIN` will be used for `valueint`
+* **integer numbers** are created with `cJSON_CreateInt`. This will set both `valuedouble` and `valueint`, and will remember that the value represents an integer number.
 * **strings** are created with `cJSON_CreateString` (copies the string) or with `cJSON_CreateStringReference` (directly points to the string. This means that `valuestring` won't be deleted by `cJSON_Delete` and you are responsible for its lifetime, useful for constants)
 
 #### Arrays
@@ -542,6 +546,16 @@ NOTE: ANSI C is not C++ therefore it shouldn't be compiled with a C++ compiler. 
 cJSON does not officially support any `double` implementations other than IEEE754 double precision floating point numbers. It might still work with other implementations but bugs with these will be considered invalid.
 
 The maximum length of a floating point literal that cJSON supports is currently 63 characters.
+
+The floating point type defaults to `double`, and can be switched to `float` by defining `CJSON_FLOAT_USE_FLOAT` in `cJSON.h`.
+
+#### Integer numbers
+
+While the JSON standard only specifies floating point numbers, cJSON also supports really-integer numbers when explicitly created as such. Also during parsing, integer numbers are recognized when a value does not contain a decimal digit or exponential notation, and is exactly representable by the integer data type. In some cases, the integer data type may be able to exactly represent larger integer values, where the floating point data type would lose precision.
+
+cJSON number items can be accessed using either the floating point or the integer function calls. Especially **writing** to the `valuedouble` or `valueint` members is deprecated, since writing to either one will not update the other, and will not update the integer representation flag.
+
+The integer type defaults to `int`, and can be switched to `long long` by defining `CJSON_INT_USE_LONGLONG` in `cJSON.h`.
 
 #### Deep Nesting Of Arrays And Objects
 
