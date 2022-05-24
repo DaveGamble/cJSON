@@ -3007,6 +3007,16 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Number;
 }
 
+CJSON_PUBLIC(cJSON_bool) cJSON_IsInt(const cJSON * const item)
+{
+    if (item == NULL)
+    {
+        return false;
+    }
+
+    return ((item->type & 0xFF) == cJSON_Number) && (item->type & cJSON_PreferInt);
+}
+
 CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item)
 {
     if (item == NULL)

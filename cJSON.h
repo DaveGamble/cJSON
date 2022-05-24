@@ -214,6 +214,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsTrue(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsBool(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsInt(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsArray(const cJSON * const item);
 CJSON_PUBLIC(cJSON_bool) cJSON_IsObject(const cJSON * const item);

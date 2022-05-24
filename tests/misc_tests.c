@@ -188,6 +188,12 @@ static void typecheck_functions_should_check_type(void)
     TEST_ASSERT_FALSE(cJSON_IsNumber(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNumber(invalid));
     TEST_ASSERT_TRUE(cJSON_IsNumber(item));
+    TEST_ASSERT_FALSE(cJSON_IsInt(item));
+
+    item->type = cJSON_Number | cJSON_StringIsConst | cJSON_PreferInt;
+    TEST_ASSERT_FALSE(cJSON_IsInt(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsInt(invalid));
+    TEST_ASSERT_TRUE(cJSON_IsInt(item));
 
     item->type = cJSON_String | cJSON_StringIsConst;
     TEST_ASSERT_FALSE(cJSON_IsString(NULL));
@@ -381,6 +387,7 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     TEST_ASSERT_FALSE(cJSON_IsBool(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNull(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNumber(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsInt(NULL));
     TEST_ASSERT_FALSE(cJSON_IsString(NULL));
     TEST_ASSERT_FALSE(cJSON_IsArray(NULL));
     TEST_ASSERT_FALSE(cJSON_IsObject(NULL));
