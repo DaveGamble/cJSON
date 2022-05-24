@@ -555,7 +555,13 @@ While the JSON standard only specifies floating point numbers, cJSON also suppor
 
 cJSON number items can be accessed using either the floating point or the integer function calls. Especially **writing** to the `valuedouble` or `valueint` members is deprecated, since writing to either one will not update the other, and will not update the integer representation flag.
 
-The integer type defaults to `int`, and can be switched to `long long` by defining `CJSON_INT_USE_LONGLONG` in `cJSON.h`.
+The integer type defaults to `int`, and can be switched to `long long` by defining `CJSON_INT_USE_LONGLONG` in `cJSON.h`. Since `long long` is not a C89 data type, a default cmake compile will fail. Either remove `-std=c89` from `CMakeLists.txt`, or force compiler flags e.g.:
+
+```
+mkdir build
+cd build
+CFLAGS="-Wall -Werror" cmake -DENABLE_CUSTOM_COMPILER_FLAGS=Off ..
+```
 
 #### Deep Nesting Of Arrays And Objects
 
