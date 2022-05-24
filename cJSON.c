@@ -2202,6 +2202,18 @@ CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * 
     return NULL;
 }
 
+CJSON_PUBLIC(cJSON*) cJSON_AddIntToObject(cJSON * const object, const char * const name, const cJSON_int number)
+{
+    cJSON *number_item = cJSON_CreateInt(number);
+    if (add_item_to_object(object, name, number_item, &global_hooks, false))
+    {
+        return number_item;
+    }
+
+    cJSON_Delete(number_item);
+    return NULL;
+}
+
 CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string)
 {
     cJSON *string_item = cJSON_CreateString(string);
@@ -2492,18 +2504,6 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     return item;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_CreateInt(cJSON_int num)
-{
-    cJSON *item = cJSON_New_Item(&global_hooks);
-    if(item)
-    {
-        item->type = cJSON_Number;
-        cJSON_SetIntValue(item, num);
-    }
-
-    return item;
-}
-
 CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(cJSON_float num)
 {
     cJSON *item = cJSON_New_Item(&global_hooks);
@@ -2511,6 +2511,18 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(cJSON_float num)
     {
         item->type = cJSON_Number;
         cJSON_SetNumberValue(item, num);
+    }
+
+    return item;
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_CreateInt(cJSON_int num)
+{
+    cJSON *item = cJSON_New_Item(&global_hooks);
+    if(item)
+    {
+        item->type = cJSON_Number;
+        cJSON_SetIntValue(item, num);
     }
 
     return item;
