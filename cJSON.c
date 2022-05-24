@@ -2132,16 +2132,6 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const cha
     return add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, false);
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObjectCS(cJSON *object, const char *string, cJSON *item)
-{
-    if ((object == NULL) || (string == NULL))
-    {
-        return false;
-    }
-
-    return add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, true);
-}
-
 CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * const name)
 {
     cJSON *null = cJSON_CreateNull();
