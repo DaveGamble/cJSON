@@ -1033,6 +1033,55 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
 static cJSON_bool print_array(const cJSON * const item, printbuffer * const output_buffer);
 static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_buffer);
 static cJSON_bool print_object(const cJSON * const item, printbuffer * const output_buffer);
+static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer);
+
+/* Utility to skip comments */
+static parse_buffer *buffer_skip_comment(parse_buffer * const buffer)
+{
+    if ((buffer == NULL) || (buffer->content == NULL))
+    {
+        return NULL;
+    }
+
+    if (cannot_access_at_index(buffer, 0) || cannot_access_at_index(buffer, 1))
+    {
+        return buffer;
+    }
+
+    if (buffer_at_offset(buffer)[0] == '/' && buffer_at_offset(buffer)[1] == '/')
+    {
+        buffer->offset += 2; // skipping '/' '/'
+        while (can_access_at_index(buffer, 0) && !(buffer_at_offset(buffer)[0] == '\n'))
+        {
+            buffer->offset++;
+        }
+        buffer->offset++; // skipping '\n'
+        buffer_skip_whitespace(buffer); // continue to trim whitespaces afterwards
+    }
+
+    if ((buffer_at_offset(buffer)[0] == '/') && (buffer_at_offset(buffer)[1] == '*'))
+    {
+        /* skipping '/' '*' */
+        buffer->offset += 2;
+        while (can_access_at_index(buffer, 0) && can_access_at_index(buffer, 1) &&
+           !(buffer_at_offset(buffer)[0] == '*' && buffer_at_offset(buffer)[0] == '/'))
+        {
+            buffer->offset++;
+        }
+        /* skipping '*' '/' */
+        buffer->offset += 2;
+
+        /* continue to trim whitespaces afterwards */
+        buffer_skip_whitespace(buffer);
+    }
+
+    if (buffer->offset == buffer->length)
+    {
+        buffer->offset--;
+    }
+
+    return buffer;
+}
 
 /* Utility to jump whitespace and cr/lf */
 static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
@@ -1051,6 +1100,8 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
     {
        buffer->offset++;
     }
+
+    buffer_skip_comments(buffer);
 
     if (buffer->offset == buffer->length)
     {
