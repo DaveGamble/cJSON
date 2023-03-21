@@ -59,14 +59,16 @@ static void do_test(const char *test_name)
 
     /* allocate file paths */
 #define TEST_DIR_PATH "inputs/"
-    test_path = (char*)malloc(sizeof(TEST_DIR_PATH) + test_name_length);
+    size_t test_path_size = sizeof(TEST_DIR_PATH) + test_name_length;
+    test_path = (char*)malloc(test_path_size);
     TEST_ASSERT_NOT_NULL_MESSAGE(test_path, "Failed to allocate test_path buffer.");
-    expected_path = (char*)malloc(sizeof(TEST_DIR_PATH) + test_name_length + sizeof(".expected"));
+    size_t expected_path_size = sizeof(TEST_DIR_PATH) + test_name_length + sizeof(".expected");
+    expected_path = (char*)malloc(expected_path_size);
     TEST_ASSERT_NOT_NULL_MESSAGE(expected_path, "Failed to allocate expected_path buffer.");
 
     /* create file paths */
-    sprintf(test_path, TEST_DIR_PATH"%s", test_name);
-    sprintf(expected_path, TEST_DIR_PATH"%s.expected", test_name);
+    snprintf(test_path, test_path_size, TEST_DIR_PATH"%s", test_name);
+    snprintf(expected_path, expected_path_size, TEST_DIR_PATH"%s.expected", test_name);
 
     /* read expected output */
     expected = read_file(expected_path);

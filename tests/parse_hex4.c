@@ -36,8 +36,8 @@ static void parse_hex4_should_parse_all_combinations(void)
     /* test all combinations */
     for (number = 0; number <= 0xFFFF; number++)
     {
-        TEST_ASSERT_EQUAL_INT_MESSAGE(4, sprintf((char*)digits_lower, "%.4x", number), "sprintf failed.");
-        TEST_ASSERT_EQUAL_INT_MESSAGE(4, sprintf((char*)digits_upper, "%.4X", number), "sprintf failed.");
+        TEST_ASSERT_EQUAL_INT_MESSAGE(4, snprintf((char*)digits_lower, sizeof(digits_lower), "%.4x", number), "snprintf failed.");
+        TEST_ASSERT_EQUAL_INT_MESSAGE(4, snprintf((char*)digits_upper, sizeof(digits_upper), "%.4X", number), "snprintf failed.");
 
         TEST_ASSERT_EQUAL_INT_MESSAGE(number, parse_hex4(digits_lower), "Failed to parse lowercase digits.");
         TEST_ASSERT_EQUAL_INT_MESSAGE(number, parse_hex4(digits_upper), "Failed to parse uppercase digits.");
