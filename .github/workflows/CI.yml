@@ -31,7 +31,7 @@ jobs:
     - name: install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install clang-8 valgrind
+        sudo apt-get install clang-14 valgrind
     - name: build and test
       shell: bash
       run: |
