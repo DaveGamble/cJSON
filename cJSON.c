@@ -1317,13 +1317,6 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     }
 
     /* parse the different types of values */
-    /* null */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
-    {
-        item->type = cJSON_NULL;
-        input_buffer->offset += 4;
-        return true;
-    }
     /* false */
     if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
     {
@@ -1358,6 +1351,13 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '{'))
     {
         return parse_object(item, input_buffer);
+    }
+    /* null */
+    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+    {
+        item->type = cJSON_NULL;
+        input_buffer->offset += 4;
+        return true;
     }
 
     return false;
