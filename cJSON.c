@@ -787,18 +787,23 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 
     {
         /* calculate approximate size of the output (overestimate) */
-        while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
+
+        size_t remaining_length = input_buffer->length;
+        while (remaining_length > 0 && (*input_end != '\"'))
         {
+            remaining_length--;
+
             /* is escape sequence */
             if (input_end[0] == '\\')
             {
-                if ((size_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
+                if (remaining_length == 0)
                 {
                     /* prevent buffer overflow when last input character is a backslash */
                     goto fail;
                 }
                 skipped_bytes++;
                 input_end++;
+                remaining_length--;
             }
             input_end++;
         }
