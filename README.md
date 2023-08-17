@@ -10,6 +10,7 @@ Ultralightweight JSON parser in ANSI C.
     * [Copying the source](#copying-the-source)
     * [CMake](#cmake)
     * [Makefile](#makefile)
+    * [Meson](#meson)
     * [Vcpkg](#Vcpkg)
   * [Including cJSON](#including-cjson)
   * [Data Structure](#data-structure)
@@ -144,6 +145,23 @@ make all
 ```
 
 If you want, you can install the compiled library to your system using `make install`. By default it will install the headers in `/usr/local/include/cjson` and the libraries in `/usr/local/lib`. But you can change this behavior by setting the `PREFIX` and `DESTDIR` variables: `make PREFIX=/usr DESTDIR=temp install`. And uninstall them with: `make PREFIX=/usr DESTDIR=temp uninstall`.
+
+#### Meson
+
+To make cjson work in a project using meson, the libcjson dependency has to be included:
+
+```meson
+project('c-json-example', 'c')
+
+cjson = dependency('libcjson')
+
+example = executable(
+    'example',
+    'example.c',
+    dependencies: [cjson],
+)
+```
+
 
 #### Vcpkg
 
