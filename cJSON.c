@@ -1503,6 +1503,7 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
         {
             goto fail; /* failed to parse value */
         }
+        item->size++;
         buffer_skip_whitespace(input_buffer);
     }
     while (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == ','));
@@ -1679,6 +1680,7 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
         {
             goto fail; /* failed to parse value */
         }
+        item->size++;
         buffer_skip_whitespace(input_buffer);
     }
     while (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == ','));
@@ -1835,17 +1837,9 @@ CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)
         return 0;
     }
 
-    child = array->child;
-
-    while(child != NULL)
-    {
-        size++;
-        child = child->next;
-    }
-
     /* FIXME: Can overflow here. Cannot be fixed without breaking the API */
 
-    return (int)size;
+    return array->size;
 }
 
 static cJSON* get_array_item(const cJSON *array, size_t index)
@@ -1982,6 +1976,7 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
             array->child->prev = item;
         }
     }
+    array->size++;
 
     return true;
 }
@@ -2212,7 +2207,7 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const it
         /* last element */
         parent->child->prev = item->prev;
     }
-
+    parent->size--;
     /* make sure the detached item doesn't point anywhere anymore */
     item->prev = NULL;
     item->next = NULL;
