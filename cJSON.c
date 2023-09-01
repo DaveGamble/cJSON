@@ -792,7 +792,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
             /* is escape sequence */
             if (input_end[0] == '\\')
             {
-                if ((size_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
+                if ((size_t)(input_end + 1 - input_buffer->content) >= input_buffer->length - 1)
                 {
                     /* prevent buffer overflow when last input character is a backslash */
                     goto fail;
