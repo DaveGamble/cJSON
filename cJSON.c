@@ -898,7 +898,7 @@ fail:
     return false;
 }
 
-/* Render the cstring provided to an escaped version that can be printed. */
+/* Render the string provided to an escaped version that (in most cases) fits the standard RFC 8259. */
 static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffer * const output_buffer)
 {
     const unsigned char *input_pointer = NULL;
@@ -926,28 +926,50 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
         return true;
     }
 
-    /* set "flag" to 1 if something needs to be escaped */
-    for (input_pointer = input; *input_pointer; input_pointer++)
+    /* count how many extra buffer should be allocated for escape characters,
+    both \r,\n,... and character that is not in the Basic Multilingual Plane
+    (will be escaped to \uxxxx) are included;
+    "/" will not be rendered as "\/",in order to follow usual practice
+    */
+    for (input_pointer = input; (*input_pointer) != '\0'; input_pointer++)
     {
-        switch (*input_pointer)
+        if ((*input_pointer) < 0x20)
         {
-            case '\"':
-            case '\\':
-            case '\b':
-            case '\f':
-            case '\n':
-            case '\r':
-            case '\t':
-                /* one character escape sequence */
-                escape_characters++;
-                break;
-            default:
-                if (*input_pointer < 32)
-                {
-                    /* UTF-16 escape sequence uXXXX */
+            switch (*input_pointer)
+            {
+                case '\b':
+                case '\f':
+                case '\n':
+                case '\r':
+                case '\t':
+                    /* one character escape sequence */
+                    escape_characters++;
+                    break;
+                default:
+                    /* \uxxxx, e.g. \u000b vretical tab */
                     escape_characters += 5;
-                }
-                break;
+                    break;
+            }
+        }
+        else if ((*input_pointer) >= 0x80)
+        {
+            unsigned char utf8_length = 1;
+            while (((*input_pointer) >> (7 - utf8_length)) & 1)
+            {
+                utf8_length++;
+            }
+            if (utf8_length > 3)
+            {
+                // only triggers when the first byte of 4-bytes utf-8 chacters is visited
+                escape_characters += 8; // 12-4=8
+            }
+        }
+        else // Deal with \\ and \"
+        {
+            if (*input_pointer == '\\' || *input_pointer == '\"')
+            {
+                escape_characters++;
+            }
         }
     }
     output_length = (size_t)(input_pointer - input) + escape_characters;
@@ -971,46 +993,193 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
 
     output[0] = '\"';
     output_pointer = output + 1;
-    /* copy the string */
+    /* "copy" the string */
+    /* At the end of the loop, the pointer should points to the last processed character */
     for (input_pointer = input; *input_pointer != '\0'; (void)input_pointer++, output_pointer++)
     {
-        if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\'))
+        // ASCII
+        if (*input_pointer < 0x80)
         {
-            /* normal character, copy */
-            *output_pointer = *input_pointer;
+            // ASCII TEXT
+            if (*input_pointer >= 0x20)
+            {
+                if (*input_pointer == '\\')
+                {
+                    *output_pointer = '\\';
+                    output_pointer++;
+                    *output_pointer = '\\';
+                }
+                else if (*input_pointer == '\"')
+                {
+                    *output_pointer = '\\';
+                    output_pointer++;
+                    *output_pointer = '\"';
+                }
+                else
+                {
+                    *output_pointer = *input_pointer;
+                }
+            }
+            // ASCII Control char, escape in the length of 2 or 6
+            else
+            {
+                unsigned char hex_digit = 0, hex_text = 0;
+                switch (*input_pointer)
+                {
+                    case '\b':
+                        *output_pointer++ = '\\';
+                        *output_pointer = 'b';
+                        break;
+                    case '\f':
+                        *output_pointer++ = '\\';
+                        *output_pointer = 'f';
+                        break;
+                    case '\n':
+                        *output_pointer++ = '\\';
+                        *output_pointer = 'n';
+                        break;
+                    case '\r':
+                        *output_pointer++ = '\\';
+                        *output_pointer = 'r';
+                        break;
+                    case '\t':
+                        *output_pointer++ = '\\';
+                        *output_pointer = 't';
+                        break;
+                    default:
+                        *output_pointer++ = '\\';
+                        *output_pointer++ = 'u';
+                        *output_pointer++ = '0';
+                        *output_pointer++ = '0';
+                        // Third hex
+                        hex_digit = ((*input_pointer) & (0xF << 4)) >> 4;
+                        if (hex_digit < 10)
+                        {
+                            hex_text = '0' + hex_digit;
+                        }
+                        else
+                        {
+                            hex_text = 'a' + (hex_digit - 10);
+                        }
+                        *output_pointer++ = hex_text;
+                        // Fourth hex
+                        hex_digit = (*input_pointer) & 0xF;
+                        // hex_digit = ((*input_pointer) & (0xF << 0)) >> 0;
+                        if (hex_digit < 10)
+                        {
+                            hex_text = '0' + hex_digit;
+                        }
+                        else
+                        {
+                            hex_text = 'a' + (hex_digit - 10);
+                        }
+                        *output_pointer = hex_text;
+                        // no ++ now, the for loop will do that.
+                        break;
+                }
+            }
+
         }
+        // Otherwise, treat the string as UTF-8
         else
         {
-            /* character needs to be escaped */
-            *output_pointer++ = '\\';
-            switch (*input_pointer)
+            unsigned char utf8_length = 1;
+            while (((*input_pointer) >> (7 - utf8_length)) & 1)
             {
-                case '\\':
-                    *output_pointer = '\\';
-                    break;
-                case '\"':
-                    *output_pointer = '\"';
-                    break;
-                case '\b':
-                    *output_pointer = 'b';
-                    break;
-                case '\f':
-                    *output_pointer = 'f';
-                    break;
-                case '\n':
-                    *output_pointer = 'n';
-                    break;
-                case '\r':
-                    *output_pointer = 'r';
-                    break;
-                case '\t':
-                    *output_pointer = 't';
-                    break;
-                default:
-                    /* escape and print as unicode codepoint */
-                    sprintf((char*)output_pointer, "u%04x", *input_pointer);
-                    output_pointer += 4;
-                    break;
+                utf8_length++;
+            }
+
+            if (utf8_length == 2)
+            {
+                *output_pointer = *input_pointer;
+                (void)output_pointer++;
+                (void)input_pointer++;
+                *output_pointer = *input_pointer;
+            }
+            else if (utf8_length == 3)
+            {
+                unsigned long int codepoint = 0; //! it must have at least 16 bits
+                codepoint = (*input_pointer) - 0xE0;
+                codepoint <<= 6;
+                input_pointer++;
+                codepoint += ((*input_pointer) - 0x80);
+                codepoint <<= 6;
+                input_pointer++;
+                codepoint += ((*input_pointer) - 0x80);
+                // Raise error if the 16-bit codepoint is in surrogate pair area
+                if ((codepoint >= 0xDC00) && (codepoint <= 0xDFFF))
+                {
+                    goto fail;
+                }
+                input_pointer -= 2;
+                *output_pointer = *input_pointer;
+                (void)output_pointer++;
+                (void)input_pointer++;
+                *output_pointer = *input_pointer;
+                (void)output_pointer++;
+                (void)input_pointer++;
+                *output_pointer = *input_pointer;
+            }
+            else if (utf8_length == 4)
+            {
+                unsigned long int codepoint = 0; //! it must have at least 24 bits
+                unsigned int pair1 = 0, pair2 = 0; //! it must have at least 16 bits
+                unsigned char hex_digit = 0, hex_text = 0;
+                signed char shift = 0;
+                codepoint = (*input_pointer) - 0xF0;
+                codepoint <<= 6;
+                input_pointer++;
+                codepoint += ((*input_pointer) - 0x80);
+                codepoint <<= 6;
+                input_pointer++;
+                codepoint += ((*input_pointer) - 0x80);
+                codepoint <<= 6;
+                input_pointer++;
+                codepoint += ((*input_pointer) - 0x80);
+
+                pair1 = ((codepoint - 0x10000) >> 10) + 0xD800;
+                pair2 = (codepoint & 0x3ff) + 0xDC00;
+                //printf("div into pair: %X %X\n", pair1, pair2);
+
+                *output_pointer = '\\';
+                output_pointer++;
+                *output_pointer = 'u';
+                output_pointer++;
+                for (shift = 12; shift >= 0; shift -= 4)
+                {
+                    hex_digit = (pair1 & (0xF << shift)) >> shift;
+                    if (hex_digit < 10)
+                    {
+                        hex_text = '0' + hex_digit;
+                    }
+                    else
+                    {
+                        hex_text = 'a' + (hex_digit - 10);
+                    }
+                    *output_pointer++ = hex_text;
+                }
+                *output_pointer = '\\';
+                output_pointer++;
+                *output_pointer = 'u';
+                output_pointer++;
+                for (shift = 12; shift >= 0; shift -= 4)
+                {
+                    hex_digit = (pair2 & (0xF << shift)) >> shift;
+                    if (hex_digit < 10)
+                    {
+                        hex_text = '0' + hex_digit;
+                    }
+                    else
+                    {
+                        hex_text = 'a' + (hex_digit - 10);
+                    }
+                    *output_pointer++ = hex_text;
+                }
+                output_pointer--;
+            }
+            else
+            {
+                goto fail;
             }
         }
     }
@@ -1018,6 +1187,10 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
     output[output_length + 2] = '\0';
 
     return true;
+
+fail:
+    return false;
+
 }
 
 /* Invoke print_string_ptr (which is useful) on an item. */
