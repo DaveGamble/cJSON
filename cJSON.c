@@ -651,7 +651,7 @@ static unsigned parse_hex4(const unsigned char * const input)
  * A literal can be one or two sequences of the form \uXXXX */
 static unsigned char utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer)
 {
-    long unsigned int codepoint = 0;
+    long unsigned int codepoint = 0; // ! it must have at least 24 bits
     unsigned int first_code = 0;
     const unsigned char *first_sequence = input_pointer;
     unsigned char utf8_length = 0;
@@ -734,7 +734,7 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     }
     else if (codepoint <= 0x10FFFF)
     {
-        /* four bytes, encoding 1110xxxx 10xxxxxx 10xxxxxx 10xxxxxx */
+        /* four bytes, encoding 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
         utf8_length = 4;
         first_byte_mark = 0xF0; /* 11110000 */
     }
