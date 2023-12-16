@@ -401,7 +401,12 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 {
     char *copy = NULL;
     /* if object's type is not cJSON_String or is cJSON_IsReference, it should not set valuestring */
-    if (!(object->type & cJSON_String) || (object->type & cJSON_IsReference))
+    if ((object == NULL) || !(object->type & cJSON_String) || (object->type & cJSON_IsReference))
+    {
+        return NULL;
+    }
+    /* return NULL if the object is corrupted */
+    if (object->valuestring == NULL)
     {
         return NULL;
     }
