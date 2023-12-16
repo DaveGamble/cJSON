@@ -352,6 +352,19 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
 {
     char buffer[10];
     cJSON *item = cJSON_CreateString("item");
+    cJSON *array = cJSON_CreateArray();
+    cJSON *item1 = cJSON_CreateString("item1");
+    cJSON *item2 = cJSON_CreateString("corrupted array item3");
+    cJSON *corruptedString = cJSON_CreateString("corrupted");
+    struct cJSON *originalPrev;
+
+    add_item_to_array(array, item1);
+    add_item_to_array(array, item2);
+
+    originalPrev = item2->prev;
+    item2->prev = NULL;
+    free(corruptedString->valuestring);
+    corruptedString->valuestring = NULL;
 
     cJSON_InitHooks(NULL);
     TEST_ASSERT_NULL(cJSON_Parse(NULL));
@@ -411,6 +424,8 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     cJSON_DeleteItemFromObject(item, NULL);
     cJSON_DeleteItemFromObjectCaseSensitive(NULL, "item");
     cJSON_DeleteItemFromObjectCaseSensitive(item, NULL);
+    TEST_ASSERT_FALSE(cJSON_InsertItemInArray(array, 0, NULL));
+    TEST_ASSERT_FALSE(cJSON_InsertItemInArray(array, 1, item));
     TEST_ASSERT_FALSE(cJSON_InsertItemInArray(NULL, 0, item));
     TEST_ASSERT_FALSE(cJSON_InsertItemInArray(item, 0, NULL));
     TEST_ASSERT_FALSE(cJSON_ReplaceItemViaPointer(NULL, item, item));
@@ -427,10 +442,16 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     TEST_ASSERT_NULL(cJSON_Duplicate(NULL, true));
     TEST_ASSERT_FALSE(cJSON_Compare(item, NULL, false));
     TEST_ASSERT_FALSE(cJSON_Compare(NULL, item, false));
+    TEST_ASSERT_NULL(cJSON_SetValuestring(NULL, "test"));
+    TEST_ASSERT_NULL(cJSON_SetValuestring(corruptedString, "test"));
     cJSON_Minify(NULL);
     /* skipped because it is only used via a macro that checks for NULL */
     /* cJSON_SetNumberHelper(NULL, 0); */
 
+    /* restore corrupted item2 to delete it */
+    item2->prev = originalPrev;
+    cJSON_Delete(corruptedString);
+    cJSON_Delete(array);
     cJSON_Delete(item);
 }
 
