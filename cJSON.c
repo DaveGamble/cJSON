@@ -401,7 +401,12 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 {
     char *copy = NULL;
     /* if object's type is not cJSON_String or is cJSON_IsReference, it should not set valuestring */
-    if (!(object->type & cJSON_String) || (object->type & cJSON_IsReference))
+    if ((object == NULL) || !(object->type & cJSON_String) || (object->type & cJSON_IsReference))
+    {
+        return NULL;
+    }
+    /* return NULL if the object is corrupted */
+    if (object->valuestring == NULL)
     {
         return NULL;
     }
@@ -2264,7 +2269,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_InsertItemInArray(cJSON *array, int which, cJSON 
 {
     cJSON *after_inserted = NULL;
 
-    if (which < 0)
+    if (which < 0 || newitem == NULL)
     {
         return false;
     }
@@ -2273,6 +2278,11 @@ CJSON_PUBLIC(cJSON_bool) cJSON_InsertItemInArray(cJSON *array, int which, cJSON 
     if (after_inserted == NULL)
     {
         return add_item_to_array(array, newitem);
+    }
+
+    if (after_inserted != array->child && newitem->prev == NULL) {
+        /* return false if after_inserted is a corrupted array item */
+        return false;
     }
 
     newitem->next = after_inserted;
