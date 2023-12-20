@@ -2280,7 +2280,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_InsertItemInArray(cJSON *array, int which, cJSON 
         return add_item_to_array(array, newitem);
     }
 
-    if (after_inserted != array->child && newitem->prev == NULL) {
+    if (after_inserted != array->child && after_inserted->prev == NULL) {
         /* return false if after_inserted is a corrupted array item */
         return false;
     }
