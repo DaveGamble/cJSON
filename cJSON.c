@@ -950,7 +950,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
                 if (*input_pointer < 32)
                 {
                     /* UTF-16 escape sequence uXXXX */
-                    escape_characters += 5;
+                    escape_characters += 4;
                 }
                 break;
         }
