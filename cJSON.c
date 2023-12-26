@@ -58,6 +58,10 @@
 
 #include "cJSON.h"
 
+#ifndef __DBL_EPSILON__
+  #define __DBL_EPSILON__ 2.2204460492503131e-16
+#endif
+
 /* define our own boolean type */
 #ifdef true
 #undef true
@@ -1099,7 +1103,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
 /* Parse an object - create a new root, and populate. */
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer_length, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    parse_buffer buffer = { NULL, 0, 0, 0, { NULL, NULL, NULL } };
     cJSON *item = NULL;
 
     /* reset error position */
@@ -1179,12 +1183,12 @@ fail:
 /* Default options for cJSON_Parse */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value)
 {
-    return cJSON_ParseWithOpts(value, 0, 0);
+    return cJSON_ParseWithOpts(value, NULL, 0);
 }
 
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithLength(const char *value, size_t buffer_length)
 {
-    return cJSON_ParseWithLengthOpts(value, buffer_length, 0, 0);
+    return cJSON_ParseWithLengthOpts(value, buffer_length, NULL, 0);
 }
 
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
@@ -1266,7 +1270,7 @@ CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
 
 CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer p = { NULL, 0, 0, 0, 0, 0, { NULL, NULL, NULL } };
 
     if (prebuffer < 0)
     {
@@ -1296,7 +1300,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
 
 CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer p = { NULL, 0, 0, 0, 0, 0, { NULL, NULL, NULL } };
 
     if ((length < 0) || (buffer == NULL))
     {
