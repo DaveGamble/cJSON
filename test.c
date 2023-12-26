@@ -48,14 +48,15 @@ static int print_preallocated(cJSON *root)
     char *buf_fail = NULL;
     size_t len = 0;
     size_t len_fail = 0;
+    size_t len_ret = 0;
 
     /* formatted print */
     out = cJSON_Print(root);
 
     /* create buffer to succeed */
     /* the extra 5 bytes are because of inaccuracies when reserving memory */
-    len = strlen(out) + 5;
-    buf = (char*)malloc(len);
+    len = strlen(out);
+    buf = (char*)malloc(len + 5);
     if (buf == NULL)
     {
         printf("Failed to allocate memory.\n");
@@ -71,8 +72,16 @@ static int print_preallocated(cJSON *root)
         exit(1);
     }
 
+    len_ret = cJSON_PrintPreallocated(root, NULL, 0, 1);
+    if (len_ret != len) {
+        printf("cJSON_PrintPreallocated length calculation failed!\n");
+        printf("cJSON_Print result length:%d\n", (int)(len));
+        printf("cJSON_PrintPreallocated length:%d\n", (int)(len_ret));
+        return -1;
+    }
+
     /* Print to buffer */
-    if (!cJSON_PrintPreallocated(root, buf, (int)len, 1)) {
+    if (!cJSON_PrintPreallocated(root, buf, (int)(len + 5), 1)) {
         printf("cJSON_PrintPreallocated failed!\n");
         if (strcmp(out, buf) != 0) {
             printf("cJSON_PrintPreallocated not the same as cJSON_Print!\n");
