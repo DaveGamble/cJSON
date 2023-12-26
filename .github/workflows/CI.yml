@@ -26,6 +26,9 @@ jobs:
         compiler:
           - GCC
           - CLANG
+        features:
+          - ENABLE_INT64
+          - NONE_FEATURES
     steps:
     - uses: actions/checkout@v2
     - name: install build dependencies
@@ -47,14 +50,19 @@ jobs:
           else
             export CC=clang
           fi
+          if [ "${{ matrix.features }}" == "ENABLE_INT64" ]; then
+            FEATURE_CMAKE_OPTIONS="-DENABLE_INT64=ON"
+          else
+            FEATURE_CMAKE_OPTIONS="-DENABLE_INT64=OFF"
+          fi
           #run build and test
           JOBS=20
           export CTEST_PARALLEL_LEVEL=$JOBS
           export CTEST_OUTPUT_ON_FAILURE=1
           mkdir -p build
           cd build
-          echo [cmake]: cmake .. $EVENT_CMAKE_OPTIONS
-          cmake .. $EVENT_CMAKE_OPTIONS || (rm -rf * && cmake .. $EVENT_CMAKE_OPTIONS)
+          echo [cmake]: cmake .. $EVENT_CMAKE_OPTIONS $FEATURE_CMAKE_OPTIONS
+          cmake .. $EVENT_CMAKE_OPTIONS $FEATURE_CMAKE_OPTIONS || (rm -rf * && cmake .. $EVENT_CMAKE_OPTIONS $FEATURE_CMAKE_OPTIONS)
           cmake --build .
           make
           make test
@@ -72,6 +80,9 @@ jobs:
         compiler:
           - GCC
           - CLANG
+        features:
+          - ENABLE_INT64
+          - NONE_FEATURES
     steps:
     - uses: actions/checkout@v2
     - name: build and test
@@ -89,14 +100,19 @@ jobs:
           else
             export CC=clang
           fi
+          if [ "${{ matrix.features }}" == "ENABLE_INT64" ]; then
+            FEATURE_CMAKE_OPTIONS="-DENABLE_INT64=ON"
+          else
+            FEATURE_CMAKE_OPTIONS="-DENABLE_INT64=OFF"
+          fi
           #run build and test
           JOBS=20
           export CTEST_PARALLEL_LEVEL=$JOBS
           export CTEST_OUTPUT_ON_FAILURE=1
           mkdir -p build
           cd build
-          echo [cmake]: cmake .. $EVENT_CMAKE_OPTIONS
-          cmake .. $EVENT_CMAKE_OPTIONS || (rm -rf * && cmake .. $EVENT_CMAKE_OPTIONS)
+          echo [cmake]: cmake .. $EVENT_CMAKE_OPTIONS $FEATURE_CMAKE_OPTIONS
+          cmake .. $EVENT_CMAKE_OPTIONS $FEATURE_CMAKE_OPTIONS || (rm -rf * && cmake .. $EVENT_CMAKE_OPTIONS $FEATURE_CMAKE_OPTIONS)
           cmake --build .
           make
           make test
