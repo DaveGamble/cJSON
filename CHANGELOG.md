@@ -1,3 +1,10 @@
+1.7.17 (Dec 26, 2023)
+======
+Fixes:
+------
+* Fix null reference in cJSON_SetValuestring(CVE-2023-50472), see #809
+* Fix null reference in cJSON_InsertItemInArray(CVE-2023-50471), see #809 and #810
+
 1.7.16 (Jul 5, 2023)
 ======
 Features:
