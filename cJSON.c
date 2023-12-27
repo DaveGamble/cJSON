@@ -308,6 +308,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
     unsigned char decimal_point = get_decimal_point();
+    int is_double_formatted = false;
     size_t i = 0;
 
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
@@ -322,6 +323,9 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     {
         switch (buffer_at_offset(input_buffer)[i])
         {
+            case 'e':
+            case 'E':
+                is_double_formatted = true;
             case '0':
             case '1':
             case '2':
@@ -334,8 +338,6 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
             case '9':
             case '+':
             case '-':
-            case 'e':
-            case 'E':
                 number_c_string[i] = buffer_at_offset(input_buffer)[i];
                 break;
 
@@ -357,7 +359,8 @@ loop_end:
     }
 
     item->valuedouble = number;
-    item->valueint = _strtoi64((const char*)number_c_string, (char**)&after_end, 10);
+    item->valueint =  (fabs(item->valuedouble) < 1.0) ? 0 : (is_double_formatted ? ((int64_t)item->valuedouble) : _strtoi64((const char*)number_c_string, 0, 10));
+    item->valueuint = (fabs(item->valuedouble) < 1.0) ? 0 : (is_double_formatted ? ((uint64_t)item->valuedouble) : _strtoui64((const char*)number_c_string, 0, 10));
 
     item->type = cJSON_Number;
 
@@ -366,9 +369,24 @@ loop_end:
 }
 
 
+CJSON_PUBLIC(double) cJSON_SetNumberHelperAll(cJSON* object, double number, int64_t number2, uint64_t number3)
+{
+    object->valueint = number2;
+    object->valueuint = number3;
+    return object->valuedouble = number;
+}
+
+CJSON_PUBLIC(uint64_t) cJSON_SetNumberHelperui64(cJSON* object, uint64_t number)
+{
+    object->valuedouble = (double)number;
+    object->valueint = (int64_t)number;
+    return object->valueuint = number;
+}
+
 CJSON_PUBLIC(int64_t) cJSON_SetNumberHelperi64(cJSON* object, int64_t number)
 {
     object->valuedouble = (double)number;
+    object->valueuint = (uint64_t)number;
     return object->valueint = number;
 }
 
@@ -376,6 +394,7 @@ CJSON_PUBLIC(int64_t) cJSON_SetNumberHelperi64(cJSON* object, int64_t number)
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 {
     object->valueint = (int64_t)number;
+    object->valueuint = (uint64_t)number;
     return object->valuedouble = number;
 }
 
@@ -549,11 +568,16 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-	else if(d == (double)item->valueint)
-	{
-		length = sprintf((char*)number_buffer, "%lld", item->valueint);
-	}
-    else
+    else if (d - floor(d) == 0.0 && (d < UINT64_MAX && d > INT64_MIN)) // integral and in range
+    {
+        if (item->valueint < 0 && d < 0.0) { // ensure number is negative for this one, else work with full 64 bit unsigned
+            length = sprintf((char*)number_buffer, "%lld", item->valueint);
+        }
+        else {
+            length = sprintf((char*)number_buffer, "%llu", item->valueuint);
+        }
+    }
+    else // not integral or too big
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
         length = sprintf((char*)number_buffer, "%1.15g", d);
@@ -1323,6 +1347,7 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     {
         item->type = cJSON_True;
         item->valueint = 1;
+        item->valueuint = 1;
         input_buffer->offset += 4;
         return true;
     }
@@ -2111,6 +2136,18 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
     return NULL;
 }
 
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberui64ToObject(cJSON * const object, const char * const name, const uint64_t number)
+{
+    cJSON *number_item = cJSON_CreateNumberui64(number);
+    if (add_item_to_object(object, name, number_item, &global_hooks, false))
+    {
+        return number_item;
+    }
+
+    cJSON_Delete(number_item);
+    return NULL;
+}
+
 CJSON_PUBLIC(cJSON*) cJSON_AddNumberi64ToObject(cJSON * const object, const char * const name, const int64_t number)
 {
     cJSON *number_item = cJSON_CreateNumberi64(number);
@@ -2430,6 +2467,20 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     return item;
 }
 
+CJSON_PUBLIC(cJSON*) cJSON_CreateNumberui64(uint64_t num)
+{
+    cJSON* item = cJSON_New_Item(&global_hooks);
+    if (item)
+    {
+        item->type = cJSON_Number;
+        item->valuedouble = (double)num;
+        item->valueint = (int64_t)num;
+        item->valueuint = num;
+    }
+
+    return item;
+}
+
 CJSON_PUBLIC(cJSON*) cJSON_CreateNumberi64(int64_t num)
 {
     cJSON* item = cJSON_New_Item(&global_hooks);
@@ -2438,6 +2489,7 @@ CJSON_PUBLIC(cJSON*) cJSON_CreateNumberi64(int64_t num)
         item->type = cJSON_Number;
         item->valuedouble = (double)num;
         item->valueint = num;
+        item->valueuint = (uint64_t)num;
     }
 
     return item;
@@ -2451,6 +2503,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         item->type = cJSON_Number;
         item->valuedouble = num;
         item->valueint = (int64_t)num;
+        item->valueuint = (uint64_t)num;
     }
 
     return item;
@@ -2545,6 +2598,46 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void)
     return item;
 }
 
+/* Create Arrays: */
+CJSON_PUBLIC(cJSON *) cJSON_CreateUInt64Array(const uint64_t *numbers, int count)
+{
+    size_t i = 0;
+    cJSON *n = NULL;
+    cJSON *p = NULL;
+    cJSON *a = NULL;
+
+    if ((count < 0) || (numbers == NULL))
+    {
+        return NULL;
+    }
+
+    a = cJSON_CreateArray();
+
+    for(i = 0; a && (i < (size_t)count); i++)
+    {
+        n = cJSON_CreateNumberui64(numbers[i]);
+        if (!n)
+        {
+            cJSON_Delete(a);
+            return NULL;
+        }
+        if(!i)
+        {
+            a->child = n;
+        }
+        else
+        {
+            suffix_object(p, n);
+        }
+        p = n;
+    }
+
+    if (a && a->child) {
+        a->child->prev = n;
+    }
+
+    return a;
+}
 /* Create Arrays: */
 CJSON_PUBLIC(cJSON *) cJSON_CreateInt64Array(const int64_t *numbers, int count)
 {
@@ -2769,6 +2862,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
     /* Copy over all vars */
     newitem->type = item->type & (~cJSON_IsReference);
     newitem->valueint = item->valueint;
+    newitem->valueuint = item->valueuint;
     newitem->valuedouble = item->valuedouble;
     if (item->valuestring)
     {

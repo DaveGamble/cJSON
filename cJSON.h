@@ -116,6 +116,7 @@ typedef struct cJSON
     char *valuestring;
     /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
     int64_t valueint;
+    uint64_t valueuint;
     /* The item's number, if type==cJSON_Number */
     double valuedouble;
 
@@ -197,6 +198,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNull(void);
 CJSON_PUBLIC(cJSON *) cJSON_CreateTrue(void);
 CJSON_PUBLIC(cJSON *) cJSON_CreateFalse(void);
 CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean);
+CJSON_PUBLIC(cJSON *) cJSON_CreateNumberui64(uint64_t num);
 CJSON_PUBLIC(cJSON *) cJSON_CreateNumberi64(int64_t num);
 CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num);
 CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string);
@@ -216,6 +218,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateArrayReference(const cJSON *child);
 /* These utilities create an Array of count items.
  * The parameter count cannot be greater than the number of elements in the number array, otherwise array access will be out of bounds.*/
 CJSON_PUBLIC(cJSON *) cJSON_CreateInt64Array(const int64_t *numbers, int count);
+CJSON_PUBLIC(cJSON *) cJSON_CreateUInt64Array(const uint64_t *numbers, int count);
 CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count);
 CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count);
 CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count);
@@ -274,13 +277,16 @@ CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * con
 CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * const name);
 CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * const name);
 
-/* When assigning an integer value, it needs to be propagated to valuedouble too. */
-#define cJSON_SetIntValue(object, number) ((object) ? (object)->valueint = (object)->valuedouble = (number) : (number))
 /* helper for the cJSON_SetNumberValue macro */
+CJSON_PUBLIC(double) cJSON_SetNumberHelperAll(cJSON *object, double number, int64_t number2, uint64_t number3);
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number);
+CJSON_PUBLIC(uint64_t) cJSON_SetNumberHelperui64(cJSON *object, uint64_t number);
 CJSON_PUBLIC(int64_t) cJSON_SetNumberHelperi64(cJSON *object, int64_t number);
+/* When assigning an integer value, it needs to be propagated to valuedouble too. */
+#define cJSON_SetIntValue(object, number) object ? cJSON_SetNumberHelperAll(object, (double)number, (int64_t)number, (uint64_t)number) : number //((object) ? (object)->valueint = (object)->valuedouble = (number) : (number))
 #define cJSON_SetNumberValue(object, number) ((object != NULL) ? cJSON_SetNumberHelper(object, (double)number) : (number))
 #define cJSON_SetNumberValuei64(object, number) ((object != NULL) ? cJSON_SetNumberHelperi64(object, number) : (number))
+#define cJSON_SetNumberValueui64(object, number) ((object != NULL) ? cJSON_SetNumberHelperui64(object, number) : (number))
 /* Change the valuestring of a cJSON_String object, only takes effect when type of object is cJSON_String */
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring);
 
