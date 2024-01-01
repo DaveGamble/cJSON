@@ -76,16 +76,16 @@ static void print_object_should_print_empty_objects(void)
 static void print_object_should_print_objects_with_one_element(void)
 {
 
-    assert_print_object("{\n\t\"one\":\t1\n}", "{\"one\":1}");
-    assert_print_object("{\n\t\"hello\":\t\"world!\"\n}", "{\"hello\":\"world!\"}");
-    assert_print_object("{\n\t\"array\":\t[]\n}", "{\"array\":[]}");
-    assert_print_object("{\n\t\"null\":\tnull\n}", "{\"null\":null}");
+    assert_print_object("{\n\t\"one\": 1\n}", "{\"one\":1}");
+    assert_print_object("{\n\t\"hello\": \"world!\"\n}", "{\"hello\":\"world!\"}");
+    assert_print_object("{\n\t\"array\": []\n}", "{\"array\":[]}");
+    assert_print_object("{\n\t\"null\": null\n}", "{\"null\":null}");
 }
 
 static void print_object_should_print_objects_with_multiple_elements(void)
 {
-    assert_print_object("{\n\t\"one\":\t1,\n\t\"two\":\t2,\n\t\"three\":\t3\n}", "{\"one\":1,\"two\":2,\"three\":3}");
-    assert_print_object("{\n\t\"one\":\t1,\n\t\"NULL\":\tnull,\n\t\"TRUE\":\ttrue,\n\t\"FALSE\":\tfalse,\n\t\"array\":\t[],\n\t\"world\":\t\"hello\",\n\t\"object\":\t{\n\t}\n}", "{\"one\":1,\"NULL\":null,\"TRUE\":true,\"FALSE\":false,\"array\":[],\"world\":\"hello\",\"object\":{}}");
+    assert_print_object("{\n\t\"one\": 1,\n\t\"two\": 2,\n\t\"three\": 3\n}", "{\"one\":1,\"two\":2,\"three\":3}");
+    assert_print_object("{\n\t\"one\": 1,\n\t\"NULL\": null,\n\t\"TRUE\": true,\n\t\"FALSE\": false,\n\t\"array\": [],\n\t\"world\": \"hello\",\n\t\"object\": {\n\t}\n}", "{\"one\":1,\"NULL\":null,\"TRUE\":true,\"FALSE\":false,\"array\":[],\"world\":\"hello\",\"object\":{}}");
 }
 
 int CJSON_CDECL main(void)
