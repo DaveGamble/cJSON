@@ -28,6 +28,11 @@
 #include "unity/src/unity.h"
 #include "common.h"
 
+#ifdef CJSON_FLOAT_USE_FLOAT
+#undef TEST_ASSERT_EQUAL_DOUBLE
+#define TEST_ASSERT_EQUAL_DOUBLE TEST_ASSERT_EQUAL_FLOAT
+#endif
+
 static void cjson_array_foreach_should_loop_over_arrays(void)
 {
     cJSON array[1];
@@ -183,6 +188,12 @@ static void typecheck_functions_should_check_type(void)
     TEST_ASSERT_FALSE(cJSON_IsNumber(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNumber(invalid));
     TEST_ASSERT_TRUE(cJSON_IsNumber(item));
+    TEST_ASSERT_FALSE(cJSON_IsInt(item));
+
+    item->type = cJSON_Number | cJSON_StringIsConst | cJSON_PreferInt;
+    TEST_ASSERT_FALSE(cJSON_IsInt(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsInt(invalid));
+    TEST_ASSERT_TRUE(cJSON_IsInt(item));
 
     item->type = cJSON_String | cJSON_StringIsConst;
     TEST_ASSERT_FALSE(cJSON_IsString(NULL));
@@ -231,13 +242,13 @@ static void cjson_set_number_value_should_set_numbers(void)
     TEST_ASSERT_EQUAL(-1, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
 
-    cJSON_SetNumberValue(number, 1 + (double)INT_MAX);
-    TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
-    TEST_ASSERT_EQUAL_DOUBLE(1 + (double)INT_MAX, number->valuedouble);
+    cJSON_SetNumberValue(number, 1.0 + (double)CJSON_INT_MAX);
+    TEST_ASSERT_EQUAL(CJSON_INT_MAX, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(1.0 + (double)CJSON_INT_MAX, number->valuedouble);
 
-    cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
-    TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
-    TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+    cJSON_SetNumberValue(number, -1.0 + (double)CJSON_INT_MIN);
+    TEST_ASSERT_EQUAL(CJSON_INT_MIN, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(-1.0 + (double)CJSON_INT_MIN, number->valuedouble);
 }
 
 static void cjson_detach_item_via_pointer_should_detach_items(void)
@@ -389,6 +400,7 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     TEST_ASSERT_FALSE(cJSON_IsBool(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNull(NULL));
     TEST_ASSERT_FALSE(cJSON_IsNumber(NULL));
+    TEST_ASSERT_FALSE(cJSON_IsInt(NULL));
     TEST_ASSERT_FALSE(cJSON_IsString(NULL));
     TEST_ASSERT_FALSE(cJSON_IsArray(NULL));
     TEST_ASSERT_FALSE(cJSON_IsObject(NULL));

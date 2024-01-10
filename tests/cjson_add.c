@@ -278,6 +278,45 @@ static void cjson_add_number_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
+static void cjson_add_int_should_add_integer(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *number = NULL;
+
+    cJSON_AddIntToObject(root, "number", 42);
+
+    TEST_ASSERT_NOT_NULL(number = cJSON_GetObjectItemCaseSensitive(root, "number"));
+
+    TEST_ASSERT_EQUAL_INT(number->type, cJSON_Number | cJSON_PreferInt);
+    TEST_ASSERT_EQUAL_DOUBLE(number->valuedouble, 42);
+    TEST_ASSERT_EQUAL_INT(number->valueint, 42);
+
+    cJSON_Delete(root);
+}
+
+static void cjson_add_int_should_fail_with_null_pointers(void)
+{
+    cJSON *root = cJSON_CreateObject();
+
+    TEST_ASSERT_NULL(cJSON_AddIntToObject(NULL, "number", 42));
+    TEST_ASSERT_NULL(cJSON_AddIntToObject(root, NULL, 42));
+
+    cJSON_Delete(root);
+}
+
+static void cjson_add_int_should_fail_on_allocation_failure(void)
+{
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSON_AddIntToObject(root, "number", 42));
+
+    cJSON_InitHooks(NULL);
+
+    cJSON_Delete(root);
+}
+
 static void cjson_add_string_should_add_string(void)
 {
     cJSON *root = cJSON_CreateObject();
@@ -450,6 +489,10 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_add_number_should_add_number);
     RUN_TEST(cjson_add_number_should_fail_with_null_pointers);
     RUN_TEST(cjson_add_number_should_fail_on_allocation_failure);
+
+    RUN_TEST(cjson_add_int_should_add_integer);
+    RUN_TEST(cjson_add_int_should_fail_with_null_pointers);
+    RUN_TEST(cjson_add_int_should_fail_on_allocation_failure);
 
     RUN_TEST(cjson_add_string_should_add_string);
     RUN_TEST(cjson_add_string_should_fail_with_null_pointers);

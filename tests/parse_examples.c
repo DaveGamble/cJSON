@@ -156,7 +156,11 @@ static void file_test6_should_not_be_parsed(void)
 
 static void file_test7_should_be_parsed_and_printed(void)
 {
+#ifdef CJSON_FLOAT_USE_FLOAT
+    do_test("test7float");
+#else
     do_test("test7");
+#endif
 }
 
 static void file_test8_should_be_parsed_and_printed(void)
