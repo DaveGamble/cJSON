@@ -78,6 +78,10 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #endif
 #endif
 
+#ifdef __KERNEL__
+#define NO_FLOATING_POINT
+#endif
+
 #ifndef NO_FLOATING_POINT
 typedef double			Numeric;
 #define strtonum(s, num)	sscanf((s), "%lf", (num))
@@ -93,7 +97,13 @@ typedef long			Numeric;
 #define CJSON_VERSION_MINOR 7
 #define CJSON_VERSION_PATCH 17
 
+#ifdef __KERNEL__
+#include <linux/types.h>
+
+#else
+
 #include <stddef.h>
+#endif
 
 /* cJSON Types: */
 #define cJSON_Invalid (0)

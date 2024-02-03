@@ -37,11 +37,20 @@
 #pragma warning (disable : 4001)
 #endif
 
+#include "cJSON.h"
+
+#ifdef __KERNEL__
+#include <linux/slab.h>
+#include <linux/ctype.h>
+
+#else
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
+#endif
 
 #ifndef NO_FLOATING_POINT
 #include <math.h>
@@ -58,8 +67,6 @@
 #ifdef __GNUC__
 #pragma GCC visibility pop
 #endif
-
-#include "cJSON.h"
 
 /* define our own boolean type */
 #ifdef true
@@ -185,7 +192,24 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 {
     return realloc(pointer, size);
 }
+
+#elif defined(__KERNEL__)
+/* Linux kernel */
+static void * CJSON_CDECL internal_malloc(size_t size)
+{
+    return kmalloc(size, GFP_KERNEL);
+}
+static void CJSON_CDECL internal_free(void *pointer)
+{
+    kfree(pointer);
+}
+static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
+{
+    return krealloc(pointer, size, GFP_KERNEL);
+}
+
 #else
+
 #define internal_malloc malloc
 #define internal_free free
 #define internal_realloc realloc
@@ -222,19 +246,19 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
     if (hooks == NULL)
     {
         /* Reset hooks */
-        global_hooks.allocate = malloc;
-        global_hooks.deallocate = free;
-        global_hooks.reallocate = realloc;
+        global_hooks.allocate = internal_malloc;
+        global_hooks.deallocate = internal_free;
+        global_hooks.reallocate = internal_realloc;
         return;
     }
 
-    global_hooks.allocate = malloc;
+    global_hooks.allocate = internal_malloc;
     if (hooks->malloc_fn != NULL)
     {
         global_hooks.allocate = hooks->malloc_fn;
     }
 
-    global_hooks.deallocate = free;
+    global_hooks.deallocate = internal_free;
     if (hooks->free_fn != NULL)
     {
         global_hooks.deallocate = hooks->free_fn;
@@ -242,9 +266,9 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 
     /* use realloc only if both free and malloc are used */
     global_hooks.reallocate = NULL;
-    if ((global_hooks.allocate == malloc) && (global_hooks.deallocate == free))
+    if ((global_hooks.allocate == internal_malloc) && (global_hooks.deallocate == internal_free))
     {
-        global_hooks.reallocate = realloc;
+        global_hooks.reallocate = internal_realloc;
     }
 }
 
