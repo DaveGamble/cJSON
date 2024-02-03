@@ -95,6 +95,11 @@ if (ENABLE_HIDDEN_SYMBOLS)
     add_definitions(-DCJSON_HIDE_SYMBOLS -UCJSON_API_VISIBILITY)
 endif()
 
+option(NO_FLOATING_POINT "Build without Floating Foint support" OFF)
+if (NO_FLOATING_POINT)
+    add_definitions(-DNO_FLOATING_POINT)
+endif()
+
 # apply custom compiler flags
 foreach(compiler_flag ${custom_compiler_flags})
     #remove problematic characters
@@ -242,7 +247,7 @@ if(ENABLE_TARGET_EXPORT)
 endif()
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
-if(ENABLE_CJSON_TEST)
+if (ENABLE_CJSON_TEST AND (NOT NO_FLOATING_POINT))
     enable_testing()
 
     set(TEST_CJSON cJSON_test)
@@ -264,6 +269,8 @@ if(ENABLE_CJSON_TEST)
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
         DEPENDS ${TEST_CJSON})
+
+    add_subdirectory(tests)
 endif()
 
 #Create the uninstall target
@@ -279,5 +286,4 @@ if(ENABLE_LOCALES)
 	add_definitions(-DENABLE_LOCALES)
 endif()
 
-add_subdirectory(tests)
 add_subdirectory(fuzzing)

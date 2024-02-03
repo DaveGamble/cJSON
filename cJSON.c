@@ -39,11 +39,14 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
+
+#ifndef NO_FLOATING_POINT
+#include <math.h>
 #include <float.h>
+#endif
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -69,6 +72,7 @@
 #endif
 #define false ((cJSON_bool)0)
 
+#ifndef NO_FLOATING_POINT
 /* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
 #ifndef isinf
 #define isinf(d) (isnan((d - d)) && !isnan(d))
@@ -83,6 +87,13 @@
 #else
 #define NAN 0.0/0.0
 #endif
+#endif
+
+#define cJSON_NaN (double)NAN
+
+#else
+
+#define cJSON_NaN 0L
 #endif
 
 typedef struct {
@@ -106,11 +117,11 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
     return item->valuestring;
 }
 
-CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
+CJSON_PUBLIC(Numeric) cJSON_GetNumberValue(const cJSON * const item)
 {
     if (!cJSON_IsNumber(item))
     {
-        return (double) NAN;
+        return cJSON_NaN;
     }
 
     return item->valuedouble;
@@ -395,7 +406,7 @@ loop_end:
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
-    double number = 0;
+    Numeric number = 0;
     unsigned char number_c_string[64];
     size_t len;
 
@@ -409,7 +420,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     if (len == 0)
         return false; /* parse_error */
 
-    sscanf((const char*)number_c_string, "%lf", &number);
+    strtonum((const char*)number_c_string, &number);
 
     item->valuedouble = number;
 
@@ -418,7 +429,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     {
         item->valueint = INT_MAX;
     }
-    else if (number <= (double)INT_MIN)
+    else if (number <= (Numeric)INT_MIN)
     {
         item->valueint = INT_MIN;
     }
@@ -434,13 +445,13 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
-CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
+CJSON_PUBLIC(Numeric) cJSON_SetNumberHelper(cJSON *object, Numeric number)
 {
     if (number >= INT_MAX)
     {
         object->valueint = INT_MAX;
     }
-    else if (number <= (double)INT_MIN)
+    else if (number <= (Numeric)INT_MIN)
     {
         object->valueint = INT_MIN;
     }
@@ -594,40 +605,48 @@ static void update_offset(printbuffer * const buffer)
     buffer->offset += strlen((const char*)buffer_pointer);
 }
 
-/* securely comparison of floating-point variables */
+/* securely compare floating-point variables, return `true` if (a == b) */
+#ifndef NO_FLOATING_POINT
 static cJSON_bool compare_double(double a, double b)
 {
     double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
+#else
+
+#define compare_double(a, b)	((a) == (b))
+#endif
+
 /* Render the number nicely from the given item into a string. */
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
 {
     unsigned char *output_pointer = NULL;
-    double d = item->valuedouble;
+    Numeric d = item->valuedouble;
     int length = 0;
     size_t i = 0;
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
-    double test = 0.0;
 
     if (output_buffer == NULL)
     {
         return false;
     }
 
+#ifndef NO_FLOATING_POINT
     /* This checks for NaN and Infinity */
     if (isnan(d) || isinf(d))
     {
         length = snprintf((char*)number_buffer, sizeof(number_buffer), "null");
     }
-	else if(d == (double)item->valueint)
-	{
-		length = snprintf((char*)number_buffer, sizeof(number_buffer), "%d", item->valueint);
-	}
+    else if(d == (Numeric)item->valueint)
+    {
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%d", item->valueint);
+    }
     else
     {
+        double test = 0.0;
+
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
         length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.15g", d);
 
@@ -638,6 +657,11 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
             length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.17g", d);
         }
     }
+
+#else
+
+    length = snprintf((char*)number_buffer, sizeof(number_buffer), "%ld", d);
+#endif
 
     /* snprintf failed or buffer overrun occurred */
     if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
@@ -2183,7 +2207,7 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
     return NULL;
 }
 
-CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number)
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const Numeric number)
 {
     cJSON *number_item = cJSON_CreateNumber(number);
     if (add_item_to_object(object, name, number_item, &global_hooks, false))
@@ -2490,7 +2514,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     return item;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
+CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(Numeric num)
 {
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
@@ -2503,7 +2527,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         {
             item->valueint = INT_MAX;
         }
-        else if (num <= (double)INT_MIN)
+        else if (num <= (Numeric)INT_MIN)
         {
             item->valueint = INT_MIN;
         }
@@ -2646,6 +2670,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
     return a;
 }
 
+#ifndef NO_FLOATING_POINT
 CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
 {
     size_t i = 0;
@@ -2725,6 +2750,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
 
     return a;
 }
+#endif
 
 CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int count)
 {
