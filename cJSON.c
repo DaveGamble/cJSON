@@ -301,60 +301,115 @@ typedef struct
 /* get a pointer to the buffer at the position */
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
+/*
+ * Copy the number into a temporary buffer and replace '.' with the decimal point of the current locale.
+ * Return the length of the numeric value, i.e. the num. of bytes that can be skipped in the input,
+ *   0 stands for invalid (non-numeric) input.
+ */
+static size_t parse_numeric(const unsigned char *input, size_t insize, unsigned char *output, size_t outsize)
+{
+    size_t i;
+    int phase = 1;
+    unsigned char decimal_point = get_decimal_point();
+
+    for (i = 0; (i < outsize - 1) && (i < insize); ++i)
+    {
+        unsigned char c = input[i];
+
+        /* identify 5 stages in FP values parsing: -1.2 / 12e-3 / .5 ... */
+        switch (phase)
+        {
+            case 1: {
+                if (isdigit(c) || (c == '+') || (c == '-')) {
+                    phase = 2;
+                } else if (c == '.') {
+                    c = decimal_point;
+                    phase = 3;
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 2: {
+                if (c == '.') {
+                    c = decimal_point;
+                    phase = 3;
+                } else if ((c == 'E') || (c == 'e')) {
+                    phase = 4;
+                } else if (isdigit(c)) {
+                    /* stay here */
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 3: {
+                if ((c == 'E') || (c == 'e')) {
+                    phase = 4;
+                } else if (isdigit(c)) {
+                    /* stay here */
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 4: {
+                if (isdigit(c) || (c == '+') || (c == '-')) {
+                    phase = 5;
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 5: {
+                if (isdigit(c)) {
+                    /* stay here */
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            default:
+                goto loop_end;
+        }
+    }
+
+loop_end:
+    for (; (i > 0) && !isdigit(output[i - 1]) && (output[i - 1] != '.'); --i)
+        output[i] = '\0';
+    output[i] = '\0';
+
+    return i;
+}
+
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
-    unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
-    unsigned char decimal_point = get_decimal_point();
-    size_t i = 0;
+    size_t len;
 
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
         return false;
     }
 
-    /* copy the number into a temporary buffer and replace '.' with the decimal point
-     * of the current locale (for strtod)
-     * This also takes care of '\0' not necessarily being available for marking the end of the input */
-    for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
-    {
-        switch (buffer_at_offset(input_buffer)[i])
-        {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            case '+':
-            case '-':
-            case 'e':
-            case 'E':
-                number_c_string[i] = buffer_at_offset(input_buffer)[i];
-                break;
-
-            case '.':
-                number_c_string[i] = decimal_point;
-                break;
-
-            default:
-                goto loop_end;
-        }
-    }
-loop_end:
-    number_c_string[i] = '\0';
-
-    number = strtod((const char*)number_c_string, (char**)&after_end);
-    if (number_c_string == after_end)
-    {
+    len = parse_numeric(&buffer_at_offset(input_buffer)[0], (input_buffer->length - input_buffer->offset),
+                        number_c_string, sizeof(number_c_string));
+    if (len == 0)
         return false; /* parse_error */
-    }
+
+    sscanf((const char*)number_c_string, "%lf", &number);
 
     item->valuedouble = number;
 
@@ -374,7 +429,7 @@ loop_end:
 
     item->type = cJSON_Number;
 
-    input_buffer->offset += (size_t)(after_end - number_c_string);
+    input_buffer->offset += len;
     return true;
 }
 
