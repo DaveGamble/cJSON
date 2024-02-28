@@ -1245,11 +1245,6 @@ fail:
         hooks->deallocate(buffer->buffer);
     }
 
-    if (printed != NULL)
-    {
-        hooks->deallocate(printed);
-    }
-
     return NULL;
 }
 
