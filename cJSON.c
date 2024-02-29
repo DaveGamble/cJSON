@@ -1052,9 +1052,34 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
         return buffer;
     }
 
-    while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= 32))
+
+    while (true)
     {
-       buffer->offset++;
+        while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= 32))
+        {
+            buffer->offset++;
+        }
+
+        /* exit loop if no comment found */
+        if (cannot_access_at_index(buffer, 1) || buffer_at_offset(buffer)[0] != '/' || (buffer_at_offset(buffer)[1] != '*' && buffer_at_offset(buffer)[1] != '/')) break;
+
+        /* remove comment */
+        buffer->offset+=2;
+        if (buffer_at_offset(buffer)[-1] == '/')
+        { /* '/' '/' single-line comment */
+            while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] != '\r' && buffer_at_offset(buffer)[0] != '\n'))
+            {
+                buffer->offset++;
+            }
+        }
+        else
+        { /* '/' '*' multi-line comment */
+            while (can_access_at_index(buffer, 1) && buffer_at_offset(buffer)[0] != '*' && buffer_at_offset(buffer)[1] != '/')
+            {
+                buffer->offset++;
+            }
+        }
+        buffer->offset++;
     }
 
     if (buffer->offset == buffer->length)
