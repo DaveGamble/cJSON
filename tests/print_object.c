@@ -63,7 +63,7 @@ static void assert_print_object(const char * const expected, const char * const 
 
     formatted_buffer.format = true;
     TEST_ASSERT_TRUE_MESSAGE(print_object(item, &formatted_buffer), "Failed to print formatted string.");
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed_formatted, "Formatted ojbect is not correct.");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed_formatted, "Formatted object is not correct.");
 
     reset(item);
 }

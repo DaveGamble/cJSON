@@ -26,7 +26,7 @@ task :prepare_for_tests => TEMP_DIRS
 
 include RakefileHelpers
 
-# Load proper GCC as defult configuration
+# Load proper GCC as default configuration
 DEFAULT_CONFIG_FILE = 'gcc_auto_stdint.yml'
 configure_toolchain(DEFAULT_CONFIG_FILE)
 
