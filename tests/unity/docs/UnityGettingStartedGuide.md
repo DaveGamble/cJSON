@@ -72,7 +72,7 @@ header files. These three files _are_ Unity.
 into this folder already. This is where all the handy documentation can be
 found.
 - `examples` - This contains a few examples of using Unity.
-- `extras` - These are optional add ons to Unity that are not part of the core
+- `extras` - These are optional addons to Unity that are not part of the core
 project. If you've reached us through James Grenning's book, you're going to
 want to look here.
 - `test` - This is how Unity and its scripts are all tested. If you're just using

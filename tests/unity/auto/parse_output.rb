@@ -78,7 +78,7 @@ class ParseOutput
     @array_list.push '     <testcase classname="' + test_suite + '" name="' + test_name + '"/>'
   end
 
-  # Test was flagged as being ingored so format the output
+  # Test was flagged as being ignored so format the output
   def test_ignored(array)
     last_item = array.length - 1
     test_name = array[last_item - 2]
