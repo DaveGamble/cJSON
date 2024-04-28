@@ -406,8 +406,15 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
         return NULL;
     }
     /* return NULL if the object is corrupted */
-    if (object->valuestring == NULL || valuestring == NULL)
+    if (object->valuestring == NULL)
     {
+        return NULL;
+    }
+    /* NULL valuestring causes error with strlen and should be treated separately */
+    if (valuestring == NULL)
+    {
+        cJSON_free(object->valuestring);
+        object->valuestring = NULL;
         return NULL;
     }
     if (strlen(valuestring) <= strlen(object->valuestring))
