@@ -444,6 +444,7 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     TEST_ASSERT_FALSE(cJSON_Compare(NULL, item, false));
     TEST_ASSERT_NULL(cJSON_SetValuestring(NULL, "test"));
     TEST_ASSERT_NULL(cJSON_SetValuestring(corruptedString, "test"));
+    TEST_ASSERT_NULL(cJSON_SetValuestring(item, NULL));
     cJSON_Minify(NULL);
     /* skipped because it is only used via a macro that checks for NULL */
     /* cJSON_SetNumberHelper(NULL, 0); */

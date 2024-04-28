@@ -397,6 +397,7 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
     return object->valuedouble = number;
 }
 
+/* Note: when passing a NULL valuestring, cJSON_SetValuestring treats this as an error and return NULL */
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 {
     char *copy = NULL;
@@ -405,7 +406,7 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     {
         return NULL;
     }
-    /* return NULL if the object is corrupted */
+    /* return NULL if the object is corrupted or valuestring is NULL */
     if (object->valuestring == NULL || valuestring == NULL)
     {
         return NULL;
