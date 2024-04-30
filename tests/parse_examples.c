@@ -250,6 +250,33 @@ static void test14_should_not_be_parsed(void)
     }
 }
 
+/* Address Sanitizer */
+static void test15_should_not_heap_buffer_overflow(void)
+{
+    const char *strings[] = {
+        "{\"1\":1,",
+        "{\"1\":1, ",
+    };
+
+    size_t i;
+
+    for (i = 0; i < sizeof(strings) / sizeof(strings[0]); i+=1)
+    {
+        const char *json_string = strings[i];
+        size_t len = strlen(json_string);
+        cJSON *json = NULL;
+
+        char *exact_size_heap = (char*)malloc(len);
+        TEST_ASSERT_NOT_NULL(exact_size_heap);
+
+        memcpy(exact_size_heap, json_string, len);
+        json = cJSON_ParseWithLength(exact_size_heap, len);
+
+        cJSON_Delete(json);
+        free(exact_size_heap);
+    }
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -267,5 +294,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(test12_should_not_be_parsed);
     RUN_TEST(test13_should_be_parsed_without_null_termination);
     RUN_TEST(test14_should_not_be_parsed);
+    RUN_TEST(test15_should_not_heap_buffer_overflow);
     return UNITY_END();
 }
