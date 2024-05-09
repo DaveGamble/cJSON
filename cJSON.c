@@ -2996,3 +2996,156 @@ CJSON_PUBLIC(void) cJSON_free(void *object)
     global_hooks.deallocate(object);
     object = NULL;
 }
+
+/* This will write out a json object to the specified file name
+
+ Args:
+   filename - the name of the file to load
+   **item - a ptr to the cJSON structure to store the parsed root item in
+   **errorMessage - an optional field to return an error message
+
+ Returns:
+   1 - on success
+   0 - The provided object was NULL
+  -1 - on failure to open the file to write
+  -2 - on failure to stringify the cJSON object
+*/
+CJSON_PUBLIC(int) cJSON_saveJSONfile(const char *filename, cJSON *item, char *errorMessage) {
+    FILE *fptr = NULL;
+    char *json_str = NULL;
+
+    /* Null check the incoming object */
+    if (item == NULL) { return 0; }
+
+    /* Open the target file for writting */
+    fptr = fopen(filename, "w");
+    if (fptr == NULL) {
+        if (errorMessage != NULL)
+        {
+            sprintf(errorMessage, "Cannot open the file '%.420s' to write.", filename);
+        }
+        return -1;
+    }
+
+    /* Print out the json string to the file */
+    json_str = cJSON_Print(item);
+    if (json_str != NULL)
+    {
+        fprintf(fptr, "%s", json_str);
+        fprintf(fptr, "\n");
+        free(json_str);
+    }
+    else
+    {
+        if (errorMessage != NULL)
+        {
+            sprintf(errorMessage, "Failed to print json object to a string.");
+        }
+        fclose(fptr);
+        return -2;
+    }
+    fclose(fptr);
+
+    /* Success */
+    return 1;
+}
+
+/* This will load and parse a json file.
+
+ Args:
+   filename - the name of the file to load
+   **item - a ptr to the cJSON structure to store the parsed root item in
+   **errorMessage - an optional field to return an error message
+
+ Returns:
+   1 - on success
+   0 - file not found
+  -1 - on intial memory allocation failure
+  -2 - on failure to reallocate more memory
+  -3 - bad filename arg
+  -4 - bad item arg
+*/
+#define cJSON_LOAD_BUFFER_INCREMENT 2048
+CJSON_PUBLIC(int) cJSON_loadJSONfile(const char *filename, cJSON **item, char *errorMessage) {
+
+    FILE *fptr = NULL;
+    char *buffer = NULL;
+    char *oldBuffer = NULL;
+    size_t bufferSize = cJSON_LOAD_BUFFER_INCREMENT;
+    size_t bytesRead = 0;
+    int i = 0;
+
+    /* Sanity check the item arg*/
+    if (item == NULL) {
+        return -4;
+    }
+
+    /* Sanity check the filename arg */
+    if (filename == NULL) {
+        if (errorMessage != NULL)
+        {
+            sprintf(errorMessage, "The filename was NULL");
+        }
+        return -3;
+    }
+
+    /* Open the file */
+    fptr = fopen(filename, "r");
+    if (fptr == NULL) {
+        if (errorMessage != NULL)
+        {
+            sprintf(errorMessage, "Cannot open the file '%.420s' to read.", filename);
+        }
+        return 0;
+    }
+
+    /* Allocate the buffer to it's initial size */
+    buffer = (char *)malloc(bufferSize + cJSON_LOAD_BUFFER_INCREMENT);
+    if (buffer == NULL) {
+        if (errorMessage != NULL)
+        {
+            sprintf(errorMessage, "Memory allocation error while reading '%s.420'.", filename);
+        }
+        fclose(fptr);
+        return -1;
+    }
+
+    /* Read in the file until there's nothing left to read
+    Keep reading in the file, expanding our buffer if needed */
+    while ((bytesRead = fread(buffer + (cJSON_LOAD_BUFFER_INCREMENT * i), 1, cJSON_LOAD_BUFFER_INCREMENT, fptr)) > 0) {
+        if (bytesRead == sizeof(buffer))
+        {
+            /* We filled the buffer, realloc the final buffer so it's larger */
+            oldBuffer = buffer;
+            buffer = (char *)realloc(buffer, bufferSize + cJSON_LOAD_BUFFER_INCREMENT);
+            if (buffer == NULL)
+            {
+                if (errorMessage != NULL)
+                {
+                    sprintf(errorMessage, "Memory allocation error while reading '%.420s'.", filename);
+                }
+                free(oldBuffer);
+                fclose(fptr);
+                return -2;
+            }
+            /* Keep track of where we are in our enlarged buffer */
+            i++;
+        }
+    }
+
+    /* We're done with the file */
+    fclose(fptr);
+
+    /* Clear any existing structure in memory */
+    if (*item != NULL)
+    {
+        cJSON_Delete(*item);
+    }
+
+    /* Parse the final buffer */
+    *item = cJSON_Parse(buffer);
+
+    /* We're done with the buffer */
+    free(buffer);
+    return 1;
+}
