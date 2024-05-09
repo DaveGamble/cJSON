@@ -85,6 +85,15 @@
 #endif
 #endif
 
+/* define MALLOC_CAP_FROMWHERE to let ESP32 choose from where to allocate memory from in all related malloc, realloc and calloc cJSON functions */
+#ifdef ESP32
+#ifndef MALLOC_CAP_FROMWHERE
+#define MALLOC_CAP_FROMWHERE  MALLOC_CAP_DEFAULT
+// replace MALLOC_CAP_DEFAULT to use the best option to ESP32 allocation based on your use
+// MALLOC_CAP_SPIRAM is to use external ran
+#endif
+#endif
+
 typedef struct {
     const unsigned char *json;
     size_t position;
@@ -160,11 +169,15 @@ typedef struct internal_hooks
     void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER)||defined(ESP32)
 /* work around MSVC error C2322: '...' address of dllimport '...' is not static */
 static void * CJSON_CDECL internal_malloc(size_t size)
 {
-    return malloc(size);
+    #ifdef ESP32
+      return heap_caps_malloc(size,MALLOC_CAP_FROMWHERE  );  //external spiram
+    #else
+      return malloc(size);
+    #endif
 }
 static void CJSON_CDECL internal_free(void *pointer)
 {
@@ -172,7 +185,12 @@ static void CJSON_CDECL internal_free(void *pointer)
 }
 static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 {
-    return realloc(pointer, size);
+    //
+    #ifdef ESP32
+      return heap_caps_realloc(pointer, size,MALLOC_CAP_FROMWHERE  );  //external spiram
+    #else
+      return realloc(pointer, size);
+    #endif
 }
 #else
 #define internal_malloc malloc
@@ -568,10 +586,10 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-	else if(d == (double)item->valueint)
-	{
-		length = sprintf((char*)number_buffer, "%d", item->valueint);
-	}
+    else if(d == (double)item->valueint)
+  	{
+  		  length = sprintf((char*)number_buffer, "%d", item->valueint);
+  	}
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
@@ -2377,11 +2395,6 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
         cJSON_free(replacement->string);
     }
     replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
-    if (replacement->string == NULL)
-    {
-        return false;
-    }
-
     replacement->type &= ~cJSON_StringIsConst;
 
     return cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
