@@ -62,6 +62,7 @@ if(ENABLE_CJSON_TEST)
 
     option(ENABLE_VALGRIND OFF "Enable the valgrind memory checker for the tests.")
     if (ENABLE_VALGRIND)
+        add_compile_definitions(ENABLE_VALGRIND)
         find_program(MEMORYCHECK_COMMAND valgrind)
         if ("${MEMORYCHECK_COMMAND}" MATCHES "MEMORYCHECK_COMMAND-NOTFOUND")
             message(WARNING "Valgrind couldn't be found.")
