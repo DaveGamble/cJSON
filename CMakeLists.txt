@@ -70,7 +70,6 @@ if (ENABLE_SANITIZERS)
         -fsanitize=float-cast-overflow
         -fsanitize-address-use-after-scope
         -fsanitize=integer
-        -01
         -fno-sanitize-recover
         )
 endif()
