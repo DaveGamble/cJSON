@@ -43,7 +43,7 @@ static void assert_is_number(cJSON *number_item)
     assert_has_no_string(number_item);
 }
 
-static void assert_parse_number(const char *string, int integer, double real)
+static void assert_parse_number(const char *string, cJSON_int integer, cJSON_float real)
 {
     parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.content = (const unsigned char*)string;
@@ -51,8 +51,16 @@ static void assert_parse_number(const char *string, int integer, double real)
 
     TEST_ASSERT_TRUE(parse_number(item, &buffer));
     assert_is_number(item);
+#ifdef CJSON_INT_USE_LONGLONG
+    TEST_ASSERT_EQUAL_INT64(integer, item->valueint);
+#else
     TEST_ASSERT_EQUAL_INT(integer, item->valueint);
+#endif
+#ifdef CJSON_FLOAT_USE_FLOAT
+    TEST_ASSERT_EQUAL_FLOAT(real, item->valuedouble);
+#else
     TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
+#endif
 }
 
 static void parse_number_should_parse_zero(void)
@@ -65,15 +73,33 @@ static void parse_number_should_parse_zero(void)
 static void parse_number_should_parse_negative_integers(void)
 {
     assert_parse_number("-1", -1, -1);
-    assert_parse_number("-32768", -32768, -32768.0);
-    assert_parse_number("-2147483648", (int)-2147483648.0, -2147483648.0);
+
+    /* not -32768: C allows int as 15bit + signbit, or one's complement */
+    assert_parse_number("-32767", -32767, -32767.0);
+
+    if (sizeof(cJSON_int) >= 4)
+        assert_parse_number("-2147483648", -2147483648, -2147483648.0);
+
+#ifdef CJSON_INT_USE_LONGLONG
+    assert_parse_number("-8765432101234567", -8765432101234567LL, -8765432101234567.0);
+#else
+    assert_parse_number("-8765432101234567", CJSON_INT_MIN, -8765432101234567.0);
+#endif
 }
 
 static void parse_number_should_parse_positive_integers(void)
 {
     assert_parse_number("1", 1, 1);
     assert_parse_number("32767", 32767, 32767.0);
-    assert_parse_number("2147483647", (int)2147483647.0, 2147483647.0);
+
+    if (sizeof(cJSON_int) >= 4)
+        assert_parse_number("2147483647", 2147483647, 2147483647.0);
+
+#ifdef CJSON_INT_USE_LONGLONG
+    assert_parse_number("8765432101234567", 8765432101234567LL, 8765432101234567.0);
+#else
+    assert_parse_number("8765432101234567", CJSON_INT_MAX, 8765432101234567.0);
+#endif
 }
 
 static void parse_number_should_parse_positive_reals(void)
@@ -81,9 +107,16 @@ static void parse_number_should_parse_positive_reals(void)
     assert_parse_number("0.001", 0, 0.001);
     assert_parse_number("10e-10", 0, 10e-10);
     assert_parse_number("10E-10", 0, 10e-10);
-    assert_parse_number("10e10", INT_MAX, 10e10);
-    assert_parse_number("123e+127", INT_MAX, 123e127);
+#ifdef CJSON_INT_USE_LONGLONG
+#ifndef CJSON_FLOAT_USE_FLOAT
+    assert_parse_number("10e10", 100000000000LL, 10e10);
+#endif
+#endif
+    assert_parse_number("10e20", CJSON_INT_MAX, 10e20);
+#ifndef CJSON_FLOAT_USE_FLOAT
+    assert_parse_number("123e+127", CJSON_INT_MAX, 123e127);
     assert_parse_number("123e-128", 0, 123e-128);
+#endif
 }
 
 static void parse_number_should_parse_negative_reals(void)
@@ -91,9 +124,16 @@ static void parse_number_should_parse_negative_reals(void)
     assert_parse_number("-0.001", 0, -0.001);
     assert_parse_number("-10e-10", 0, -10e-10);
     assert_parse_number("-10E-10", 0, -10e-10);
-    assert_parse_number("-10e20", INT_MIN, -10e20);
-    assert_parse_number("-123e+127", INT_MIN, -123e127);
+#ifdef CJSON_INT_USE_LONGLONG
+#ifndef CJSON_FLOAT_USE_FLOAT
+    assert_parse_number("-10e10", -100000000000LL, -10e10);
+#endif
+#endif
+    assert_parse_number("-10e20", CJSON_INT_MIN, -10e20);
+#ifndef CJSON_FLOAT_USE_FLOAT
+    assert_parse_number("-123e+127", CJSON_INT_MIN, -123e127);
     assert_parse_number("-123e-128", 0, -123e-128);
+#endif
 }
 
 int CJSON_CDECL main(void)
