@@ -19,7 +19,7 @@ option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
     if (("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
         list(APPEND custom_compiler_flags
-            -std=c89
+            -std=c99
             -pedantic
             -Wall
             -Wextra
@@ -92,6 +92,11 @@ endif()
 option(ENABLE_HIDDEN_SYMBOLS "Hide library symbols." Off)
 if (ENABLE_HIDDEN_SYMBOLS)
     add_definitions(-DCJSON_HIDE_SYMBOLS -UCJSON_API_VISIBILITY)
+endif()
+
+option(NO_FLOATING_POINT "Build without Floating Foint support" OFF)
+if (NO_FLOATING_POINT)
+    add_definitions(-DNO_FLOATING_POINT)
 endif()
 
 # apply custom compiler flags
@@ -238,7 +243,7 @@ if(ENABLE_TARGET_EXPORT)
 endif()
 
 option(ENABLE_CJSON_TEST "Enable building cJSON test" ON)
-if(ENABLE_CJSON_TEST)
+if (ENABLE_CJSON_TEST AND (NOT NO_FLOATING_POINT))
     enable_testing()
 
     set(TEST_CJSON cJSON_test)
@@ -260,6 +265,8 @@ if(ENABLE_CJSON_TEST)
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
         DEPENDS ${TEST_CJSON})
+
+    add_subdirectory(tests)
 endif()
 
 #Create the uninstall target
@@ -275,5 +282,4 @@ if(ENABLE_LOCALES)
 	add_definitions(-DENABLE_LOCALES)
 endif()
 
-add_subdirectory(tests)
 add_subdirectory(fuzzing)

@@ -37,13 +37,25 @@
 #pragma warning (disable : 4001)
 #endif
 
+#include "cJSON.h"
+
+#ifdef __KERNEL__
+#include <linux/slab.h>
+#include <linux/ctype.h>
+
+#else
+
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
+#endif
+
+#ifndef NO_FLOATING_POINT
+#include <math.h>
 #include <float.h>
+#endif
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -56,8 +68,6 @@
 #pragma GCC visibility pop
 #endif
 
-#include "cJSON.h"
-
 /* define our own boolean type */
 #ifdef true
 #undef true
@@ -69,6 +79,7 @@
 #endif
 #define false ((cJSON_bool)0)
 
+#ifndef NO_FLOATING_POINT
 /* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
 #ifndef isinf
 #define isinf(d) (isnan((d - d)) && !isnan(d))
@@ -83,6 +94,13 @@
 #else
 #define NAN 0.0/0.0
 #endif
+#endif
+
+#define cJSON_NaN (double)NAN
+
+#else
+
+#define cJSON_NaN 0L
 #endif
 
 typedef struct {
@@ -106,11 +124,11 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
     return item->valuestring;
 }
 
-CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
+CJSON_PUBLIC(Numeric) cJSON_GetNumberValue(const cJSON * const item)
 {
     if (!cJSON_IsNumber(item))
     {
-        return (double) NAN;
+        return cJSON_NaN;
     }
 
     return item->valuedouble;
@@ -124,7 +142,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
     static char version[15];
-    sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
+    snprintf(version, sizeof(version), "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
 
     return version;
 }
@@ -174,7 +192,24 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 {
     return realloc(pointer, size);
 }
+
+#elif defined(__KERNEL__)
+/* Linux kernel */
+static void * CJSON_CDECL internal_malloc(size_t size)
+{
+    return kmalloc(size, GFP_KERNEL);
+}
+static void CJSON_CDECL internal_free(void *pointer)
+{
+    kfree(pointer);
+}
+static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
+{
+    return krealloc(pointer, size, GFP_KERNEL);
+}
+
 #else
+
 #define internal_malloc malloc
 #define internal_free free
 #define internal_realloc realloc
@@ -211,19 +246,19 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
     if (hooks == NULL)
     {
         /* Reset hooks */
-        global_hooks.allocate = malloc;
-        global_hooks.deallocate = free;
-        global_hooks.reallocate = realloc;
+        global_hooks.allocate = internal_malloc;
+        global_hooks.deallocate = internal_free;
+        global_hooks.reallocate = internal_realloc;
         return;
     }
 
-    global_hooks.allocate = malloc;
+    global_hooks.allocate = internal_malloc;
     if (hooks->malloc_fn != NULL)
     {
         global_hooks.allocate = hooks->malloc_fn;
     }
 
-    global_hooks.deallocate = free;
+    global_hooks.deallocate = internal_free;
     if (hooks->free_fn != NULL)
     {
         global_hooks.deallocate = hooks->free_fn;
@@ -231,9 +266,9 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 
     /* use realloc only if both free and malloc are used */
     global_hooks.reallocate = NULL;
-    if ((global_hooks.allocate == malloc) && (global_hooks.deallocate == free))
+    if ((global_hooks.allocate == internal_malloc) && (global_hooks.deallocate == internal_free))
     {
-        global_hooks.reallocate = realloc;
+        global_hooks.reallocate = internal_realloc;
     }
 }
 
@@ -303,60 +338,115 @@ typedef struct
 /* get a pointer to the buffer at the position */
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
+/*
+ * Copy the number into a temporary buffer and replace '.' with the decimal point of the current locale.
+ * Return the length of the numeric value, i.e. the num. of bytes that can be skipped in the input,
+ *   0 stands for invalid (non-numeric) input.
+ */
+static size_t parse_numeric(const unsigned char *input, size_t insize, unsigned char *output, size_t outsize)
+{
+    size_t i;
+    int phase = 1;
+    unsigned char decimal_point = get_decimal_point();
+
+    for (i = 0; (i < outsize - 1) && (i < insize); ++i)
+    {
+        unsigned char c = input[i];
+
+        /* identify 5 stages in FP values parsing: -1.2 / 12e-3 / .5 ... */
+        switch (phase)
+        {
+            case 1: {
+                if (isdigit(c) || (c == '+') || (c == '-')) {
+                    phase = 2;
+                } else if (c == '.') {
+                    c = decimal_point;
+                    phase = 3;
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 2: {
+                if (c == '.') {
+                    c = decimal_point;
+                    phase = 3;
+                } else if ((c == 'E') || (c == 'e')) {
+                    phase = 4;
+                } else if (isdigit(c)) {
+                    /* stay here */
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 3: {
+                if ((c == 'E') || (c == 'e')) {
+                    phase = 4;
+                } else if (isdigit(c)) {
+                    /* stay here */
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 4: {
+                if (isdigit(c) || (c == '+') || (c == '-')) {
+                    phase = 5;
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            case 5: {
+                if (isdigit(c)) {
+                    /* stay here */
+                } else {
+                    goto loop_end;
+                }
+
+                output[i] = c;
+                break;
+            }
+            default:
+                goto loop_end;
+        }
+    }
+
+loop_end:
+    for (; (i > 0) && !isdigit(output[i - 1]) && (output[i - 1] != '.'); --i)
+        output[i] = '\0';
+    output[i] = '\0';
+
+    return i;
+}
+
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
-    double number = 0;
-    unsigned char *after_end = NULL;
+    Numeric number = 0;
     unsigned char number_c_string[64];
-    unsigned char decimal_point = get_decimal_point();
-    size_t i = 0;
+    size_t len;
 
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
         return false;
     }
 
-    /* copy the number into a temporary buffer and replace '.' with the decimal point
-     * of the current locale (for strtod)
-     * This also takes care of '\0' not necessarily being available for marking the end of the input */
-    for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
-    {
-        switch (buffer_at_offset(input_buffer)[i])
-        {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            case '+':
-            case '-':
-            case 'e':
-            case 'E':
-                number_c_string[i] = buffer_at_offset(input_buffer)[i];
-                break;
-
-            case '.':
-                number_c_string[i] = decimal_point;
-                break;
-
-            default:
-                goto loop_end;
-        }
-    }
-loop_end:
-    number_c_string[i] = '\0';
-
-    number = strtod((const char*)number_c_string, (char**)&after_end);
-    if (number_c_string == after_end)
-    {
+    len = parse_numeric(&buffer_at_offset(input_buffer)[0], (input_buffer->length - input_buffer->offset),
+                        number_c_string, sizeof(number_c_string));
+    if (len == 0)
         return false; /* parse_error */
-    }
+
+    strtonum((const char*)number_c_string, &number);
 
     item->valuedouble = number;
 
@@ -365,7 +455,7 @@ loop_end:
     {
         item->valueint = INT_MAX;
     }
-    else if (number <= (double)INT_MIN)
+    else if (number <= (Numeric)INT_MIN)
     {
         item->valueint = INT_MIN;
     }
@@ -376,18 +466,18 @@ loop_end:
 
     item->type = cJSON_Number;
 
-    input_buffer->offset += (size_t)(after_end - number_c_string);
+    input_buffer->offset += len;
     return true;
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
-CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
+CJSON_PUBLIC(Numeric) cJSON_SetNumberHelper(cJSON *object, Numeric number)
 {
     if (number >= INT_MAX)
     {
         object->valueint = INT_MAX;
     }
-    else if (number <= (double)INT_MIN)
+    else if (number <= (Numeric)INT_MIN)
     {
         object->valueint = INT_MIN;
     }
@@ -542,52 +632,65 @@ static void update_offset(printbuffer * const buffer)
     buffer->offset += strlen((const char*)buffer_pointer);
 }
 
-/* securely comparison of floating-point variables */
+/* securely compare floating-point variables, return `true` if (a == b) */
+#ifndef NO_FLOATING_POINT
 static cJSON_bool compare_double(double a, double b)
 {
     double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
+#else
+
+#define compare_double(a, b)	((a) == (b))
+#endif
+
 /* Render the number nicely from the given item into a string. */
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
 {
     unsigned char *output_pointer = NULL;
-    double d = item->valuedouble;
+    Numeric d = item->valuedouble;
     int length = 0;
     size_t i = 0;
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
-    double test = 0.0;
 
     if (output_buffer == NULL)
     {
         return false;
     }
 
+#ifndef NO_FLOATING_POINT
     /* This checks for NaN and Infinity */
     if (isnan(d) || isinf(d))
     {
-        length = sprintf((char*)number_buffer, "null");
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "null");
     }
-	else if(d == (double)item->valueint)
-	{
-		length = sprintf((char*)number_buffer, "%d", item->valueint);
-	}
+    else if(d == (Numeric)item->valueint)
+    {
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%d", item->valueint);
+    }
     else
     {
+        double test = 0.0;
+
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = sprintf((char*)number_buffer, "%1.15g", d);
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.15g", d);
 
         /* Check whether the original double can be recovered */
         if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
         {
             /* If not, print with 17 decimal places of precision */
-            length = sprintf((char*)number_buffer, "%1.17g", d);
+            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.17g", d);
         }
     }
 
-    /* sprintf failed or buffer overrun occurred */
+#else
+
+    length = snprintf((char*)number_buffer, sizeof(number_buffer), "%ld", d);
+#endif
+
+    /* snprintf failed or buffer overrun occurred */
     if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
     {
         return false;
@@ -1017,8 +1120,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
                     break;
                 default:
                     /* escape and print as unicode codepoint */
-                    sprintf((char*)output_pointer, "u%04x", *input_pointer);
-                    output_pointer += 4;
+                    output_pointer += snprintf((char*)output_pointer, 6, "u%04x", *input_pointer);
                     break;
             }
         }
@@ -2142,7 +2244,7 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
     return NULL;
 }
 
-CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number)
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const Numeric number)
 {
     cJSON *number_item = cJSON_CreateNumber(number);
     if (add_item_to_object(object, name, number_item, &global_hooks, false))
@@ -2449,7 +2551,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     return item;
 }
 
-CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
+CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(Numeric num)
 {
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
@@ -2462,7 +2564,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         {
             item->valueint = INT_MAX;
         }
-        else if (num <= (double)INT_MIN)
+        else if (num <= (Numeric)INT_MIN)
         {
             item->valueint = INT_MIN;
         }
@@ -2605,6 +2707,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
     return a;
 }
 
+#ifndef NO_FLOATING_POINT
 CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
 {
     size_t i = 0;
@@ -2684,6 +2787,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
 
     return a;
 }
+#endif
 
 CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int count)
 {
