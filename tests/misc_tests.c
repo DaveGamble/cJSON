@@ -345,7 +345,7 @@ static void cjson_replace_item_in_object_should_preserve_name(void)
     TEST_ASSERT_TRUE(root->child == replacement);
     TEST_ASSERT_EQUAL_STRING("child", replacement->string);
 
-    // now test the same, but with replaceitemviapointer
+    /* now test the same, but with replaceitemviapointer */
     child = cJSON_GetObjectItemCaseSensitive(root, "child");
     TEST_ASSERT_NOT_NULL(child);
     replacement = cJSON_CreateNumber(3);
