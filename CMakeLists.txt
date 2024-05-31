@@ -58,6 +58,11 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
     endif()
 endif()
 
+option(MACOS_VERSION_MIN "Set the minimum macOS SDK version" OFF)
+if (APPLE AND MACOS_VERSION_MIN)
+    add_compile_options(-mmacos-version-min=${MACOS_VERSION_MIN})
+endif()
+
 option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
 if (ENABLE_SANITIZERS)
     list(APPEND custom_compiler_flags
