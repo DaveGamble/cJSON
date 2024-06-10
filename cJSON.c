@@ -117,7 +117,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
-#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 17)
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 18)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
@@ -263,10 +263,12 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
         if (!(item->type & cJSON_IsReference) && (item->valuestring != NULL))
         {
             global_hooks.deallocate(item->valuestring);
+            item->valuestring = NULL;
         }
         if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
         {
             global_hooks.deallocate(item->string);
+            item->string = NULL;
         }
         global_hooks.deallocate(item);
         item = next;
@@ -397,6 +399,7 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
     return object->valuedouble = number;
 }
 
+/* Note: when passing a NULL valuestring, cJSON_SetValuestring treats this as an error and return NULL */
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 {
     char *copy = NULL;
@@ -405,8 +408,8 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     {
         return NULL;
     }
-    /* return NULL if the object is corrupted */
-    if (object->valuestring == NULL)
+    /* return NULL if the object is corrupted or valuestring is NULL */
+    if (object->valuestring == NULL || valuestring == NULL)
     {
         return NULL;
     }
@@ -547,7 +550,7 @@ static cJSON_bool compare_double(double a, double b)
 }
 
 /* check if the double value is in the range [-(2^53-1), 2^53-1] and has no fractional part */
-#define Number_MAX_SAFE_INTEGER (9007199254740991.0)   /* 2^53-1 (double constant) */
+#define Number_MAX_SAFE_INTEGER ((double)9007199254740991.0)   /* 2^53-1 */
 static cJSON_bool is_safe_integer(double d)
 {
     double abs_d = fabs(d);
@@ -576,7 +579,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-    else if (d == (double)item->valueint)
+    else if(d == (double)item->valueint)
     {
         length = sprintf((char*)number_buffer, "%d", item->valueint);
     }
@@ -909,6 +912,7 @@ fail:
     if (output != NULL)
     {
         input_buffer->hooks.deallocate(output);
+        output = NULL;
     }
 
     if (input_pointer != NULL)
@@ -1251,6 +1255,7 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
 
         /* free the buffer */
         hooks->deallocate(buffer->buffer);
+        buffer->buffer = NULL;
     }
 
     return printed;
@@ -1259,11 +1264,13 @@ fail:
     if (buffer->buffer != NULL)
     {
         hooks->deallocate(buffer->buffer);
+        buffer->buffer = NULL;
     }
 
     if (printed != NULL)
     {
         hooks->deallocate(printed);
+        printed = NULL;
     }
 
     return NULL;
@@ -1304,6 +1311,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
     if (!print_value(item, &p))
     {
         global_hooks.deallocate(p.buffer);
+        p.buffer = NULL;
         return NULL;
     }
 
@@ -1673,6 +1681,11 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
             current_item->next = new_item;
             new_item->prev = current_item;
             current_item = new_item;
+        }
+
+        if (cannot_access_at_index(input_buffer, 1))
+        {
+            goto fail; /* nothing comes after the comma */
         }
 
         /* parse the name of the child */
@@ -3142,4 +3155,5 @@ CJSON_PUBLIC(void *) cJSON_malloc(size_t size)
 CJSON_PUBLIC(void) cJSON_free(void *object)
 {
     global_hooks.deallocate(object);
+    object = NULL;
 }

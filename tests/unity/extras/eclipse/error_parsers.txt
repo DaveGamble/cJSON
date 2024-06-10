@@ -2,7 +2,7 @@ Eclipse error parsers
 =====================
 
 These are a godsend for extracting  & quickly navigating to
-warnings & error messages from console output. Unforunately
+warnings & error messages from console output. Unfortunately
 I don't know how to write an Eclipse plugin so you'll have
 to add them manually.
 

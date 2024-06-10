@@ -2,7 +2,7 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 3.0)
 
 project(cJSON
-    VERSION 1.7.17
+    VERSION 1.7.18
     LANGUAGES C)
 
 cmake_policy(SET CMP0054 NEW)  # set CMP0054 policy
@@ -71,7 +71,6 @@ if (ENABLE_SANITIZERS)
         -fsanitize=float-cast-overflow
         -fsanitize-address-use-after-scope
         -fsanitize=integer
-        -01
         -fno-sanitize-recover
         )
 endif()
@@ -103,12 +102,9 @@ foreach(compiler_flag ${custom_compiler_flags})
 
     CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED_${current_variable}")
     if (FLAG_SUPPORTED_${current_variable})
-        list(APPEND supported_compiler_flags)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${compiler_flag}")
     endif()
 endforeach()
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${supported_compiler_flags}")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(ENABLE_TARGET_EXPORT "Enable exporting of CMake targets. Disable when it causes problems!" ON)

@@ -45,6 +45,8 @@ Contributors:
 * [Kevin Sapper](https://github.com/sappo)
 * [Kyle Chisholm](https://github.com/ChisholmKyle)
 * [Linus Wallgren](https://github.com/ecksun)
+* [Luo Jin](https://github.com/Up-wind)
+* [Max](https://github.com/maebex)
 * [MaxBrandtner](https://github.com/MaxBrandtner)
 * [Mateusz Szafoni](https://github.com/raiden00pl)
 * Mike Pontillo
@@ -55,6 +57,7 @@ Contributors:
 * [Moorthy](https://github.com/moorthy-bs)
 * [myd7349](https://github.com/myd7349)
 * [NancyLi1013](https://github.com/NancyLi1013)
+* [Orri](https://github.com/sbvoxel)
 * Paulo Antonio Alvarez
 * [Paweł Malowany](https://github.com/PawelMalowany)
 * [Pawel Winogrodzki](https://github.com/PawelWMS)
