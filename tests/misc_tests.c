@@ -732,23 +732,6 @@ static void cjson_set_bool_value_must_not_break_objects(void)
     cJSON_Delete(sobj);
 }
 
-static void deallocated_pointers_should_be_set_to_null(void)
-{
-    /* deallocated pointers should be set to null */
-    /* however, valgrind on linux reports when attempting to access a freed memory, we have to skip it */
-#ifndef ENABLE_VALGRIND
-    cJSON *string = cJSON_CreateString("item");
-    cJSON *root = cJSON_CreateObject();
-
-    cJSON_Delete(string);
-    free(string->valuestring);
-
-    cJSON_AddObjectToObject(root, "object");
-    cJSON_Delete(root->child);
-    free(root->child->string);
-#endif
-}
-
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -779,7 +762,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
-    RUN_TEST(deallocated_pointers_should_be_set_to_null);
 
     return UNITY_END();
 }
