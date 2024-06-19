@@ -1,0 +1,26 @@
+{
+    "name": "cJSON",
+    "version": "1.7.16",
+    "description": "JSON parsing and serialization in ANSI C",
+    "keywords": "json, c",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DaveGamble/cJSON"
+    },
+    "authors": [
+        {
+            "name": "Dave Gamble",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "frameworks": "*",
+    "platforms": "*",
+    "headers": ["cJSON.h", "cJSON_Utils.h"],
+    "build": {
+      "includeDir": ".",
+      "srcDir": ".",
+      "srcFilter": ["+<cJSON.c>", "+<cJSON_Utils.c"],
+      "libLDFMode": "off"
+    }
+  }
