@@ -413,7 +413,7 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     {
         return NULL;
     }
-    if (strlen(valuestring) <= strlen(object->valuestring))
+    if (object->valuestring && (strlen(valuestring) <= strlen(object->valuestring)))
     {
         strcpy(object->valuestring, valuestring);
         return object->valuestring;
