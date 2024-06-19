@@ -73,6 +73,8 @@ static void parse_value_should_parse_false(void)
 static void parse_value_should_parse_number(void)
 {
     assert_parse_value("1.5", cJSON_Number);
+    assert_parse_value("+1.5", cJSON_Number);
+    assert_parse_value("-1.5", cJSON_Number);
     reset(item);
 }
 
