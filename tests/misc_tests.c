@@ -456,6 +456,19 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
+{       
+    cJSON *obj, *obj_dup;
+    char* str;
+
+    obj =  cJSON_Parse("\"fooz\"");
+    obj_dup =  cJSON_Duplicate(obj, 1);
+    
+    str =  cJSON_SetValuestring(obj_dup, "beeez");
+    cJSON_SetValuestring(obj_dup, str);
+    cJSON_SetValuestring(obj_dup, ++str);
+}
+
 static void *CJSON_CDECL failing_realloc(void *pointer, size_t size)
 {
     (void)size;
@@ -749,6 +762,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
     RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
+    RUN_TEST(cjson_set_valuestring_should_return_null_if_strings_overlap);
     RUN_TEST(ensure_should_fail_on_failed_realloc);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
