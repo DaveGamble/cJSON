@@ -486,6 +486,7 @@ static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
     /* If it overlaps, the string will be messed up.*/
     TEST_ASSERT_TRUE(strcmp(str, "bcde") == 0);
     TEST_ASSERT_NULL(str2);
+    cJSON_Delete(obj);
 }
 
 static void *CJSON_CDECL failing_realloc(void *pointer, size_t size)
