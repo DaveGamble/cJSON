@@ -2783,7 +2783,7 @@ cJSON * cJSON_Duplicate_rec(const cJSON *item, size_t depth, cJSON_bool recurse)
         if(depth >= CJSON_CIRCULAR_LIMIT) {
             goto fail;
         }
-        newchild = cJSON_Duplicate_rec(child, ++depth, true); /* Duplicate (with recurse) each item in the ->next chain */
+        newchild = cJSON_Duplicate_rec(child, depth + 1, true); /* Duplicate (with recurse) each item in the ->next chain */
         if (!newchild)
         {
             goto fail;
