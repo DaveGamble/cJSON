@@ -137,6 +137,12 @@ typedef int cJSON_bool;
 #define CJSON_NESTING_LIMIT 1000
 #endif
 
+/* Limits the length of circular references can be before cJSON rejects to parse them.
+ * This is to prevent stack overflows. */
+#ifndef CJSON_CIRCULAR_LIMIT
+#define CJSON_CIRCULAR_LIMIT 10000
+#endif
+
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 

@@ -219,6 +219,23 @@ static void cjson_should_not_parse_to_deeply_nested_jsons(void)
     TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(deep_json), "To deep JSONs should not be parsed.");
 }
 
+static void cjson_should_not_follow_too_deep_circular_references(void)
+{
+    cJSON *o = cJSON_CreateArray();
+    cJSON *a = cJSON_CreateArray();
+    cJSON *b = cJSON_CreateArray();
+    cJSON *x;
+
+    cJSON_AddItemToArray(o, a);
+    cJSON_AddItemToArray(a, b);
+    cJSON_AddItemToArray(b, o);
+
+    x = cJSON_Duplicate(o, 1);
+    TEST_ASSERT_NULL(x);
+    cJSON_DetachItemFromArray(b, 0);
+    cJSON_Delete(o);
+}
+
 static void cjson_set_number_value_should_set_numbers(void)
 {
     cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
@@ -744,6 +761,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_get_object_item_case_sensitive_should_not_crash_with_array);
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
+    RUN_TEST(cjson_should_not_follow_too_deep_circular_references);
     RUN_TEST(cjson_set_number_value_should_set_numbers);
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
