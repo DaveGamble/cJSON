@@ -185,26 +185,42 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 
 static internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };
 
-static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hooks)
+static char* cJSON_strndup(const char* string, const size_t length, const internal_hooks * const hooks)
 {
-    size_t length = 0;
-    unsigned char *copy = NULL;
+    char *copy = NULL;
+
+    if (length == 0)
+    {
+        string = "";
+    }
 
     if (string == NULL)
     {
         return NULL;
     }
 
-    length = strlen((const char*)string) + sizeof("");
-    copy = (unsigned char*)hooks->allocate(length);
+    /* allocate an extra byte for the null terminator */
+    copy = (char *) hooks->allocate(length + 1);
     if (copy == NULL)
     {
         return NULL;
     }
     memcpy(copy, string, length);
+    copy[length] = '\0';
 
     return copy;
 }
+
+static char* cJSON_strdup(const char *string, const internal_hooks * const hooks)
+{
+    if (string == NULL)
+    {
+        return NULL;
+    }
+
+    return cJSON_strndup(string, strlen(string), hooks);
+}
+
 
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 {
@@ -429,7 +445,7 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
         strcpy(object->valuestring, valuestring);
         return object->valuestring;
     }
-    copy = (char*) cJSON_strdup((const unsigned char*)valuestring, &global_hooks);
+    copy = cJSON_strndup(valuestring, v1_len, &global_hooks);
     if (copy == NULL)
     {
         return NULL;
@@ -2054,7 +2070,7 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
     }
     else
     {
-        new_key = (char*)cJSON_strdup((const unsigned char*)string, hooks);
+        new_key = cJSON_strdup(string, hooks);
         if (new_key == NULL)
         {
             return false;
@@ -2394,7 +2410,7 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
     {
         cJSON_free(replacement->string);
     }
-    replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
+    replacement->string = cJSON_strdup(string, &global_hooks);
     if (replacement->string == NULL)
     {
         return false;
@@ -2488,18 +2504,27 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
 
 CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string)
 {
+    if (string == NULL)
+    {
+        return NULL;
+    }
+
+    return cJSON_CreateStringWithLength(string, strlen(string));
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_CreateStringWithLength(const char *string, const size_t length)
+{
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
     {
         item->type = cJSON_String;
-        item->valuestring = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
+        item->valuestring = cJSON_strndup(string, length, &global_hooks);
         if(!item->valuestring)
         {
             cJSON_Delete(item);
             return NULL;
         }
     }
-
     return item;
 }
 
@@ -2538,11 +2563,21 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateArrayReference(const cJSON *child) {
 
 CJSON_PUBLIC(cJSON *) cJSON_CreateRaw(const char *raw)
 {
+    if (raw == NULL)
+    {
+        return NULL;
+    }
+
+    return cJSON_CreateRawWithLength(raw, strlen(raw));
+}
+
+CJSON_PUBLIC(cJSON *) cJSON_CreateRawWithLength(const char *raw, const size_t length)
+{
     cJSON *item = cJSON_New_Item(&global_hooks);
     if(item)
     {
         item->type = cJSON_Raw;
-        item->valuestring = (char*)cJSON_strdup((const unsigned char*)raw, &global_hooks);
+        item->valuestring = cJSON_strndup(raw, length, &global_hooks);
         if(!item->valuestring)
         {
             cJSON_Delete(item);
@@ -2761,7 +2796,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
     newitem->valuedouble = item->valuedouble;
     if (item->valuestring)
     {
-        newitem->valuestring = (char*)cJSON_strdup((unsigned char*)item->valuestring, &global_hooks);
+        newitem->valuestring = cJSON_strdup(item->valuestring, &global_hooks);
         if (!newitem->valuestring)
         {
             goto fail;
@@ -2769,7 +2804,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
     }
     if (item->string)
     {
-        newitem->string = (item->type&cJSON_StringIsConst) ? item->string : (char*)cJSON_strdup((unsigned char*)item->string, &global_hooks);
+        newitem->string = (item->type&cJSON_StringIsConst) ? item->string : cJSON_strdup(item->string, &global_hooks);
         if (!newitem->string)
         {
             goto fail;
