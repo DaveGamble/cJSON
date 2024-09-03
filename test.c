@@ -25,6 +25,10 @@
 #include <string.h>
 #include "cJSON.h"
 
+#ifdef __QNX__
+#error test
+#endif
+
 /* Used by some code below as an example datatype. */
 struct record
 {
