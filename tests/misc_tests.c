@@ -219,6 +219,23 @@ static void cjson_should_not_parse_to_deeply_nested_jsons(void)
     TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(deep_json), "To deep JSONs should not be parsed.");
 }
 
+static void cjson_should_not_follow_too_deep_circular_references(void)
+{
+    cJSON *o = cJSON_CreateArray();
+    cJSON *a = cJSON_CreateArray();
+    cJSON *b = cJSON_CreateArray();
+    cJSON *x;
+
+    cJSON_AddItemToArray(o, a);
+    cJSON_AddItemToArray(a, b);
+    cJSON_AddItemToArray(b, o);
+
+    x = cJSON_Duplicate(o, 1);
+    TEST_ASSERT_NULL(x);
+    cJSON_DetachItemFromArray(b, 0);
+    cJSON_Delete(o);
+}
+
 static void cjson_set_number_value_should_set_numbers(void)
 {
     cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
@@ -278,6 +295,21 @@ static void cjson_detach_item_via_pointer_should_detach_items(void)
     TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &list[2]) == &list[2], "Failed to detach single item.");
     TEST_ASSERT_TRUE_MESSAGE((list[2].prev == NULL) && (list[2].next == NULL), "Didn't set pointers of detached item to NULL.");
     TEST_ASSERT_NULL_MESSAGE(parent->child, "Child of the parent wasn't set to NULL.");
+}
+
+static void cjson_detach_item_via_pointer_should_return_null_if_item_prev_is_null(void)
+{
+    cJSON list[2];
+    cJSON parent[1];
+
+    memset(list, '\0', sizeof(list));
+
+    /* link the list */
+    list[0].next = &(list[1]);
+
+    parent->child = &list[0];
+    TEST_ASSERT_NULL_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[1])), "Failed to detach in the middle.");
+    TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[0])) == &(list[0]), "Failed to detach in the middle.");
 }
 
 static void cjson_replace_item_via_pointer_should_replace_items(void)
@@ -454,6 +486,24 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     cJSON_Delete(corruptedString);
     cJSON_Delete(array);
     cJSON_Delete(item);
+}
+
+static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
+{       
+    cJSON *obj;
+    char* str;
+    char* str2;
+
+    obj =  cJSON_Parse("\"foo0z\"");
+    
+    str =  cJSON_SetValuestring(obj, "abcde");
+    str += 1;
+    /* The string passed to strcpy overlap which is not allowed.*/
+    str2 = cJSON_SetValuestring(obj, str);
+    /* If it overlaps, the string will be messed up.*/
+    TEST_ASSERT_TRUE(strcmp(str, "bcde") == 0);
+    TEST_ASSERT_NULL(str2);
+    cJSON_Delete(obj);
 }
 
 static void *CJSON_CDECL failing_realloc(void *pointer, size_t size)
@@ -744,11 +794,14 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_get_object_item_case_sensitive_should_not_crash_with_array);
     RUN_TEST(typecheck_functions_should_check_type);
     RUN_TEST(cjson_should_not_parse_to_deeply_nested_jsons);
+    RUN_TEST(cjson_should_not_follow_too_deep_circular_references);
     RUN_TEST(cjson_set_number_value_should_set_numbers);
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
+    RUN_TEST(cjson_detach_item_via_pointer_should_return_null_if_item_prev_is_null);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
     RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
+    RUN_TEST(cjson_set_valuestring_should_return_null_if_strings_overlap);
     RUN_TEST(ensure_should_fail_on_failed_realloc);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
