@@ -19,10 +19,49 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 */
-
+/* clang-format off */
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
 #include "common.h"
+
+static void assert_print_number_with_precision(const char *expected, double input, cJSON_bool g_format, int precision)
+{
+    unsigned char printed[1024];
+    unsigned char new_buffer[26];
+    unsigned int i = 0;
+    cJSON item[1];
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.buffer = printed;
+    buffer.length = sizeof(printed);
+    buffer.offset = 0;
+    buffer.noalloc = true;
+    buffer.hooks = global_hooks;
+    buffer.buffer = new_buffer;
+
+    memset(item, 0, sizeof(item));
+    memset(new_buffer, 0, sizeof(new_buffer));
+    cJSON_SetNumberValue(item, input);
+    cJSON_SetNumberFormat(item, g_format, precision);
+    TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
+
+    /* In MinGW or visual studio(before 2015),the exponten is represented using three digits,like:"1e-009","1e+017"
+     * remove extra "0" to output "1e-09" or "1e+17",which makes testcase PASS */
+    for(i = 0;i <sizeof(new_buffer);i++)
+    {
+        if(i >3 && new_buffer[i] =='0')
+        {
+            if((new_buffer[i-3] =='e' && new_buffer[i-2] == '-' && new_buffer[i] =='0') ||(new_buffer[i-2] =='e' && new_buffer[i-1] =='+'))
+            {
+                while(new_buffer[i] !='\0')
+                {
+                    new_buffer[i] = new_buffer[i+1];
+                    i++;
+                }
+            }
+        }
+    }
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
+}
 
 static void assert_print_number(const char *expected, double input)
 {
@@ -42,7 +81,7 @@ static void assert_print_number(const char *expected, double input)
     memset(new_buffer, 0, sizeof(new_buffer));
     cJSON_SetNumberValue(item, input);
     TEST_ASSERT_TRUE_MESSAGE(print_number(item, &buffer), "Failed to print number.");
-    
+
     /* In MinGW or visual studio(before 2015),the exponten is represented using three digits,like:"1e-009","1e+017"
      * remove extra "0" to output "1e-09" or "1e+17",which makes testcase PASS */
     for(i = 0;i <sizeof(new_buffer);i++)
@@ -56,9 +95,9 @@ static void assert_print_number(const char *expected, double input)
                     new_buffer[i] = new_buffer[i+1];
                     i++;
                 }
-            }        
-        }  
-    }    
+            }
+        }
+    }
     TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, buffer.buffer, "Printed number is not as expected.");
 }
 
@@ -100,6 +139,34 @@ static void print_number_should_print_negative_reals(void)
     assert_print_number("-1.23e-126", -123e-128);
 }
 
+static void print_number_fixed_point(void)
+{
+    assert_print_number_with_precision("100", 100, false, 1);
+    assert_print_number_with_precision("100.5", 100.5, false, 3);
+    assert_print_number_with_precision("100", 100.5, false, 0);     /* Bankers rounding, to the nearest even */
+    /* assert_print_number_with_precision("102", 101.5, false, 0);     /1* Bankers rounding, to the nearest even *1/ */
+    /* assert_print_number_with_precision("100.2", 100.15, false, 1);  /1* Bankers rounding, to the nearest even *1/ */
+    /* assert_print_number_with_precision("100.2", 100.25, false, 1);  /1* Bankers rounding, to the nearest even *1/ */
+    /* assert_print_number_with_precision("0", -0.0123, false, 1); */
+    /* assert_print_number_with_precision("0", 0.0249, false, 1); */
+    /* assert_print_number_with_precision("-0.02", -0.0153454, false, 2); */
+    /* assert_print_number_with_precision("-0.05", -0.0453454, false, 2); */
+    /* assert_print_number_with_precision("0", -10e-10, false, 5); */
+}
+
+static void print_number_general_format(void)
+{
+  /* In general format, the precision specifies the number of significant digits. */
+  assert_print_number_with_precision("1.23e+129", 123e+127, true, 3);
+  assert_print_number_with_precision("1.23e-126", 123e-128, true, 3);
+  assert_print_number_with_precision("1e+02", 100.5, true, 1);
+  assert_print_number_with_precision("100", 100.5, true, 3);
+  assert_print_number_with_precision("100.5", 100.5, true, 4);
+  assert_print_number_with_precision("100.5", 100.5, true, 5); /* JSON cuts off trailing zeros */
+  assert_print_number_with_precision("-1e-09", -10e-10, true, 5);
+
+}
+
 static void print_number_should_print_non_number(void)
 {
     TEST_IGNORE();
@@ -120,6 +187,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(print_number_should_print_positive_reals);
     RUN_TEST(print_number_should_print_negative_reals);
     RUN_TEST(print_number_should_print_non_number);
+    RUN_TEST(print_number_fixed_point);
+    RUN_TEST(print_number_general_format);
 
     return UNITY_END();
 }
