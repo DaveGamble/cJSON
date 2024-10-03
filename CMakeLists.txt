@@ -17,7 +17,7 @@ set(custom_compiler_flags)
 include(CheckCCompilerFlag)
 option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
-    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
+    if (("${CMAKE_C_COMPILER_ID}" MATCHES "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
         list(APPEND custom_compiler_flags
             -std=c89
             -pedantic
