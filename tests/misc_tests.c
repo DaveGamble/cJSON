@@ -238,7 +238,7 @@ static void cjson_should_not_follow_too_deep_circular_references(void)
 
 static void cjson_set_number_value_should_set_numbers(void)
 {
-    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
+    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, 0, NULL}};
 
     cJSON_SetNumberValue(number, 1.5);
     TEST_ASSERT_EQUAL(1, number->valueint);
@@ -360,7 +360,7 @@ static void cjson_replace_item_via_pointer_should_replace_items(void)
 
 static void cjson_replace_item_in_object_should_preserve_name(void)
 {
-    cJSON root[1] = {{NULL, NULL, NULL, 0, NULL, 0, 0, NULL}};
+    cJSON root[1] = {{NULL, NULL, NULL, 0, NULL, 0, 0, 0, NULL}};
     cJSON *child = NULL;
     cJSON *replacement = NULL;
     cJSON_bool flag = false;
