@@ -248,6 +248,15 @@ static void cjson_set_number_value_should_set_numbers(void)
     TEST_ASSERT_EQUAL(-1, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1.5, number->valuedouble);
 
+#ifdef __CJSON_USE_INT64
+    cJSON_SetNumberValue(number, 1 + (double)LLONG_MAX);
+    TEST_ASSERT_EQUAL(LLONG_MAX, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(1 + (double)LLONG_MAX, number->valuedouble);
+
+    cJSON_SetNumberValue(number, -1 + (double)LLONG_MIN);
+    TEST_ASSERT_EQUAL(LLONG_MIN, number->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)LLONG_MIN, number->valuedouble);
+#else
     cJSON_SetNumberValue(number, 1 + (double)INT_MAX);
     TEST_ASSERT_EQUAL(INT_MAX, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(1 + (double)INT_MAX, number->valuedouble);
@@ -255,6 +264,7 @@ static void cjson_set_number_value_should_set_numbers(void)
     cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
     TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+#endif /* __CJSON_USE_INT64 */
 }
 
 static void cjson_detach_item_via_pointer_should_detach_items(void)

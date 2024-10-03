@@ -14,12 +14,23 @@ set(CJSON_UTILS_VERSION_SO 1)
 
 set(custom_compiler_flags)
 
+option(ENABLE_INT64 "Enable the use of int64(long long), please note this will use c99 instead of c89" OFF)
+if (ENABLE_INT64)
+    add_definitions(-DENABLE_INT64)
+    list(APPEND custom_compiler_flags
+        -std=c99
+    )
+else()
+    list(APPEND custom_compiler_flags
+        -std=c89
+    )
+endif ()
+
 include(CheckCCompilerFlag)
 option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
     if (("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
         list(APPEND custom_compiler_flags
-            -std=c89
             -pedantic
             -Wall
             -Wextra

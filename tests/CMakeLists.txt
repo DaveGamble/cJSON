@@ -60,6 +60,12 @@ if(ENABLE_CJSON_TEST)
         minify_tests
     )
 
+    if (ENABLE_INT64)
+        add_definitions(-DUNITY_SUPPORT_64)
+        list(APPEND unity_tests
+            misc_int64_tests
+        )
+    endif()
     option(ENABLE_VALGRIND OFF "Enable the valgrind memory checker for the tests.")
     if (ENABLE_VALGRIND)
         find_program(MEMORYCHECK_COMMAND valgrind)

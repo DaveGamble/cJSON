@@ -55,6 +55,31 @@ static void assert_parse_number(const char *string, int integer, double real)
     TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
 }
 
+#ifdef __CJSON_USE_INT64
+static void assert_is_int64(cJSON *int64_number_item)
+{
+    assert_is_number(int64_number_item);
+    TEST_ASSERT_BITS_MESSAGE(cJSON_IsInt64, cJSON_IsInt64, int64_number_item->type, "Item should be a int64 integer");
+}
+
+static void assert_parse_int64_number(const char *string, long long integer, double real)
+{
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = (const unsigned char*)string;
+    buffer.length = strlen(string) + sizeof("");
+
+    TEST_ASSERT_TRUE(parse_number(item, &buffer));
+    TEST_ASSERT_EQUAL_INT64(integer, item->valueint);
+    TEST_ASSERT_EQUAL_DOUBLE(real, item->valuedouble);
+}
+
+static void assert_parse_int64_number_with_type(const char *string, long long integer, double real)
+{
+    assert_parse_int64_number(string, integer, real);
+    assert_is_int64(item);
+}
+#endif /* __CJSON_USE_INT64 */
+
 static void parse_number_should_parse_zero(void)
 {
     assert_parse_number("0", 0, 0);
@@ -81,8 +106,13 @@ static void parse_number_should_parse_positive_reals(void)
     assert_parse_number("0.001", 0, 0.001);
     assert_parse_number("10e-10", 0, 10e-10);
     assert_parse_number("10E-10", 0, 10e-10);
+#ifdef __CJSON_USE_INT64
+    assert_parse_int64_number("10e10", 100000000000LL, 10e10);
+    assert_parse_int64_number("123e+127", LLONG_MAX, 123e127);
+#else
     assert_parse_number("10e10", INT_MAX, 10e10);
     assert_parse_number("123e+127", INT_MAX, 123e127);
+#endif /* __CJSON_USE_INT64 */
     assert_parse_number("123e-128", 0, 123e-128);
 }
 
@@ -91,10 +121,29 @@ static void parse_number_should_parse_negative_reals(void)
     assert_parse_number("-0.001", 0, -0.001);
     assert_parse_number("-10e-10", 0, -10e-10);
     assert_parse_number("-10E-10", 0, -10e-10);
+#ifdef __CJSON_USE_INT64
+    assert_parse_int64_number("-10e20", LLONG_MIN, -10e20);
+    assert_parse_int64_number("-123e+127", LLONG_MIN, -123e127);
+#else
     assert_parse_number("-10e20", INT_MIN, -10e20);
     assert_parse_number("-123e+127", INT_MIN, -123e127);
+#endif /* __CJSON_USE_INT64 */
     assert_parse_number("-123e-128", 0, -123e-128);
 }
+
+#ifdef __CJSON_USE_INT64
+static void parse_number_should_parse_int64_numbers(void)
+{
+    assert_parse_int64_number_with_type("0", 0LL, 0);
+    assert_parse_int64_number_with_type("-1", -1LL, -1);
+    assert_parse_int64_number_with_type("-32768", -32768LL, -32768.0);
+    assert_parse_int64_number_with_type("-2147483648", -2147483648LL, -2147483648.0);
+    assert_parse_int64_number_with_type("2147483648", (long long)INT_MAX + 1, 2147483648.0);
+    assert_parse_int64_number_with_type("-2147483649", -2147483649LL, -2147483649.0);
+    assert_parse_int64_number_with_type("9223372036854775807", LLONG_MAX, 9223372036854775807.0);
+    assert_parse_int64_number_with_type("-9223372036854775808", LLONG_MIN, -9223372036854775808.0);
+}
+#endif /* __CJSON_USE_INT64 */
 
 int CJSON_CDECL main(void)
 {
@@ -106,5 +155,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_number_should_parse_positive_integers);
     RUN_TEST(parse_number_should_parse_positive_reals);
     RUN_TEST(parse_number_should_parse_negative_reals);
+#ifdef __CJSON_USE_INT64
+    RUN_TEST(parse_number_should_parse_int64_numbers);
+#endif
     return UNITY_END();
 }
