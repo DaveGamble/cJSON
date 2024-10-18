@@ -19,7 +19,6 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 */
-/* clang-format off */
 /* cJSON */
 /* JSON parser in C. */
 
@@ -599,7 +598,6 @@ static void remove_trailing_zeros(char *str) {
     }
     /* Check if zero */
     start = str + is_neg;
-    printf("start: %s\n", start);
     while (start != end && *str == '0') {
         start++;
     }
@@ -648,8 +646,6 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
     else if (item->type & cJSON_NumberIsFormatted) {
         precision = _get_precision_from_item(item, sizeof(number_buffer));
-        printf("precision: %d\n", precision);
-        printf("Style: %d\n", (item->type & cJSON_NumberFormatStyleFixedPoint));
         if (item->type & cJSON_NumberFormatStyleFixedPoint) {
             length = sprintf((char*)number_buffer, "%.*f", (int)precision, d);
             remove_trailing_zeros((char*)number_buffer);
