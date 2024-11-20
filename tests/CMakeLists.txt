@@ -88,6 +88,17 @@ if(ENABLE_CJSON_TEST)
 
     add_dependencies(check ${unity_tests})
 
+    if(QNX)
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/tests/
+            DESTINATION bin/cJSON_tests
+            PATTERN "CMakeFiles" EXCLUDE
+            PATTERN "*.cmake" EXCLUDE
+            PATTERN "Makefile" EXCLUDE
+            PATTERN "*.a" EXCLUDE
+            PATTERN "*.so" EXCLUDE
+        )
+    endif()
+
     if (ENABLE_CJSON_UTILS)
         #copy test files
         file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/json-patch-tests")
