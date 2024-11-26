@@ -508,22 +508,41 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
 
     /* reset pointer to the beginning */
     current_item = list;
+
+    /*Used to store the last item in list, before current_item becomes null*/
+    cJSON *last_valid_current_item = list;
     while (current_item != NULL)
     {
         /* Walk two pointers to find the middle. */
         second = second->next;
         current_item = current_item->next;
+
+        /*store current_item as long as its not null*/
+        if(current_item != NULL)
+        {
+            last_valid_current_item = current_item;
+        }
+
         /* advances current_item two steps at a time */
         if (current_item != NULL)
         {
             current_item = current_item->next;
+
+            /*store current_item as long as its not null*/
+            if(current_item != NULL)
+            {
+                last_valid_current_item = current_item;
+            }
         }
     }
     if ((second != NULL) && (second->prev != NULL))
     {
         /* Split the lists */
         second->prev->next = NULL;
-        second->prev = NULL;
+
+        /*maintain prev data for split lists*/
+        first->prev = second->prev;
+        second->prev = last_valid_current_item;
     }
 
     /* Recursively sort the sub-lists. */
@@ -535,6 +554,10 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
     while ((first != NULL) && (second != NULL))
     {
         cJSON *smaller = NULL;
+
+        /*used to store smaller->prev*/
+        cJSON *smaller_prev_storage = NULL;
+
         if (compare_strings((unsigned char*)first->string, (unsigned char*)second->string, case_sensitive) < 0)
         {
             smaller = first;
@@ -549,22 +572,43 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
             /* start merged list with the smaller element */
             result_tail = smaller;
             result = smaller;
+
+            /*save smaller->prev to storage for later use*/
+            smaller_prev_storage = smaller->prev;
         }
         else
-        {
+        {   
+            /*save smaller->prev to storage before its changed*/
+            smaller_prev_storage = smaller->prev;
+
             /* add smaller element to the list */
             result_tail->next = smaller;
             smaller->prev = result_tail;
             result_tail = smaller;
+
+            /*maintain prev data for result*/
+            result->prev = result_tail;
         }
 
         if (first == smaller)
         {
             first = first->next;
+
+            /*maintain first->prev, if first exists*/
+            if(first != NULL)
+            {
+                first->prev = smaller_prev_storage;
+            }
         }
         else
         {
             second = second->next;
+
+            /*maintain second->prev, if second exists*/
+            if(second!=NULL)
+            {
+                second->prev = smaller_prev_storage;
+            }
         }
     }
 
@@ -576,6 +620,10 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
             return first;
         }
         result_tail->next = first;
+
+        /*end of result list now equals end of first list*/
+        result->prev = first->prev;
+
         first->prev = result_tail;
     }
     if (second != NULL)
@@ -586,6 +634,10 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
             return second;
         }
         result_tail->next = second;
+
+        /*end of result list now equals end of second list*/
+        result->prev = second->prev;
+
         second->prev = result_tail;
     }
 
