@@ -89,7 +89,7 @@ typedef struct {
     const unsigned char *json;
     size_t position;
 } error;
-static error global_error = { NULL, 0 };
+static error global_error = { NULL, 0 };        // 用来记录json错误位置的
 
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 {
