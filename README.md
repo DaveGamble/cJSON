@@ -409,6 +409,8 @@ char *create_monitor_with_helpers(void)
     {
         cJSON *resolution = cJSON_CreateObject();
 
+        cJSON_AddItemToArray(resolutions, resolution);
+
         if (cJSON_AddNumberToObject(resolution, "width", resolution_numbers[index][0]) == NULL)
         {
             goto end;
@@ -418,8 +420,6 @@ char *create_monitor_with_helpers(void)
         {
             goto end;
         }
-
-        cJSON_AddItemToArray(resolutions, resolution);
     }
 
     string = cJSON_Print(monitor);
