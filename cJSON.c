@@ -1100,7 +1100,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return
 {
     size_t buffer_length;
 
-    if (NULL == value)
+    if (NULL == value || (*value != '[' && *value != '{'))
     {
         return NULL;
     }
