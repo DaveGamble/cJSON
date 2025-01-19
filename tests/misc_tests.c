@@ -490,19 +490,15 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
 
 static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
 {       
-    cJSON *obj;
+    cJSON *obj, *obj_dup;
     char* str;
-    char* str2;
 
-    obj =  cJSON_Parse("\"foo0z\"");
+    obj =  cJSON_Parse("\"fooz\"");
+    obj_dup =  cJSON_Duplicate(obj, 1);
     
-    str =  cJSON_SetValuestring(obj, "abcde");
-    str += 1;
-    /* The string passed to strcpy overlap which is not allowed.*/
-    str2 = cJSON_SetValuestring(obj, str);
-    /* If it overlaps, the string will be messed up.*/
-    TEST_ASSERT_TRUE(strcmp(str, "bcde") == 0);
-    TEST_ASSERT_NULL(str2);
+    str =  cJSON_SetValuestring(obj_dup, "beeez");
+    cJSON_SetValuestring(obj_dup, str);
+    cJSON_SetValuestring(obj_dup, ++str);
 }
 
 static void *CJSON_CDECL failing_realloc(void *pointer, size_t size)
