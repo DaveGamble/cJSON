@@ -1120,7 +1120,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithLength(const char *value, size_t buffer_len
 
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
 
-static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
+static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks, size_t *len_out)
 {
     static const size_t default_buffer_size = 256;
     printbuffer buffer[1];
@@ -1144,6 +1144,11 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
         goto fail;
     }
     update_offset(buffer);
+
+    if (len_out != NULL)
+    {
+        *len_out = buffer->offset + 1;
+    }
 
     /* Reallocate the buffer so that it only uses as much as it needs.
         This can save up to 50% because ensure increases the buffer size by a factor of 2 */
@@ -1192,12 +1197,22 @@ fail:
 /* Render a cJSON item/entity/structure to text. */
 CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)
 {
-    return (char*)print(item, true, &global_hooks);
+    return (char*)print(item, true, &global_hooks, NULL);
+}
+
+CJSON_PUBLIC(char *) cJSON_PrintWithLength(const cJSON *item, size_t *len_out)
+{
+    return (char*)print(item, true, &global_hooks, len_out);
 }
 
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
 {
-    return (char*)print(item, false, &global_hooks);
+    return (char*)print(item, false, &global_hooks, NULL);
+}
+
+CJSON_PUBLIC(char *) cJSON_PrintUnformattedWithLength(const cJSON *item, size_t *len_out)
+{
+    return (char*)print(item, false, &global_hooks, len_out);
 }
 
 CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)
