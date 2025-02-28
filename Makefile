@@ -24,7 +24,8 @@ INSTALL_LIBRARY_PATH = $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 
 INSTALL ?= cp -a
 
-CC = gcc -std=c89
+#CC = gcc -std=c89
+CC = arm-none-eabi-gcc -std=c89 -mcpu=cortex-m33 -gdwarf-2 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
 
 # validate gcc version for use fstack-protector-strong
 MIN_GCC_VERSION = "4.9"
