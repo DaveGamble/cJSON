@@ -782,6 +782,36 @@ static void cjson_set_bool_value_must_not_break_objects(void)
     cJSON_Delete(sobj);
 }
 
+static void cjson_duplicate_keys_should_return_last_when_mode_is_set(void)
+{
+    cJSON *obj;
+    cJSON *item;
+    cJSON_SetDuplicateKeyMode(1);
+
+    obj = cJSON_Parse("{\"key\":\"first\",\"key\":\"second\"}");
+    TEST_ASSERT_NOT_NULL_MESSAGE(obj, "Failed to parse JSON with duplicate keys.");
+
+    item = cJSON_GetObjectItem(obj, "key");
+    TEST_ASSERT_NOT_NULL_MESSAGE(item, "Failed to get object item for duplicate key.");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("second", item->valuestring, "Duplicate key mode did not return last item.");
+    cJSON_Delete(obj);
+}
+
+static void cjson_duplicate_keys_case_insensitive_should_return_last(void)
+{
+    cJSON *obj;
+    cJSON *item;
+    cJSON_SetDuplicateKeyMode(1);
+
+    obj = cJSON_Parse("{\"Key\":\"first\",\"key\":\"second\"}");
+    TEST_ASSERT_NOT_NULL_MESSAGE(obj, "Failed to parse JSON with duplicate keys (case insensitive).");
+
+    item = cJSON_GetObjectItem(obj, "key");
+    TEST_ASSERT_NOT_NULL_MESSAGE(item, "Failed to get object item for duplicate key (case insensitive).");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("second", item->valuestring, "Duplicate key mode (case insensitive) did not return last item.");
+    cJSON_Delete(obj);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -815,6 +845,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
-
+    RUN_TEST(cjson_duplicate_keys_should_return_last_when_mode_is_set);
+    RUN_TEST(cjson_duplicate_keys_case_insensitive_should_return_last);
     return UNITY_END();
 }
