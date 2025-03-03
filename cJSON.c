@@ -1906,9 +1906,17 @@ CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index)
     return get_array_item(array, (size_t)index);
 }
 
+static int cJSON_DuplicateKeyMode = 0;
+
+CJSON_PUBLIC(void) cJSON_SetDuplicateKeyMode(int mode)
+{
+    cJSON_DuplicateKeyMode = mode;
+}
+
 static cJSON *get_object_item(const cJSON * const object, const char * const name, const cJSON_bool case_sensitive)
 {
     cJSON *current_element = NULL;
+    cJSON *last_match = NULL;
 
     if ((object == NULL) || (name == NULL))
     {
@@ -1916,26 +1924,40 @@ static cJSON *get_object_item(const cJSON * const object, const char * const nam
     }
 
     current_element = object->child;
-    if (case_sensitive)
+    while (current_element != NULL)
     {
-        while ((current_element != NULL) && (current_element->string != NULL) && (strcmp(name, current_element->string) != 0))
+        if (case_sensitive)
         {
-            current_element = current_element->next;
+            if ((current_element->string != NULL) && (strcmp(name, current_element->string) == 0))
+            {
+                if (cJSON_DuplicateKeyMode == 0)
+                {
+                    return current_element;
+                }
+                else
+                {
+                    last_match = current_element;
+                }
+            }
         }
-    }
-    else
-    {
-        while ((current_element != NULL) && (case_insensitive_strcmp((const unsigned char*)name, (const unsigned char*)(current_element->string)) != 0))
+        else
         {
-            current_element = current_element->next;
+            if ((current_element->string != NULL) && (case_insensitive_strcmp((const unsigned char*)name, (const unsigned char*)(current_element->string)) == 0))
+            {
+                if (cJSON_DuplicateKeyMode == 0)
+                {
+                    return current_element;
+                }
+                else
+                {
+                    last_match = current_element;
+                }
+            }
         }
+        current_element = current_element->next;
     }
 
-    if ((current_element == NULL) || (current_element->string == NULL)) {
-        return NULL;
-    }
-
-    return current_element;
+    return last_match;
 }
 
 CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON * const object, const char * const string)
