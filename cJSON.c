@@ -649,6 +649,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
         if (item->type & cJSON_NumberFormatStyleFixedPoint) {
             length = sprintf((char*)number_buffer, "%.*f", (int)precision, d);
             remove_trailing_zeros((char*)number_buffer);
+            length = strlen((char*)number_buffer);
         } else {
             length = sprintf((char*)number_buffer, "%.*g", (int)precision, d);
         }
