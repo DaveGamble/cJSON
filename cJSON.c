@@ -796,24 +796,31 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
     unsigned char *output_pointer = NULL;
     unsigned char *output = NULL;
 
-    /* not a string */
+    /* Not a string */
     if (buffer_at_offset(input_buffer)[0] != '\"')
     {
         goto fail;
     }
 
     {
-        /* calculate approximate size of the output (overestimate) */
+        /* Calculate approximate size of the output (overestimate) and validate control characters */
         size_t allocation_length = 0;
         size_t skipped_bytes = 0;
         while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
         {
-            /* is escape sequence */
+            /* Check for unescaped control characters (U+0000 to U+001F) */
+            if (*input_end < 0x20) /* Control characters must be escaped */
+            {
+                input_buffer->offset = (size_t)(input_end - input_buffer->content);
+                goto fail; /* Error: unescaped control character */
+            }
+
+            /* Is escape sequence */
             if (input_end[0] == '\\')
             {
                 if ((size_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
                 {
-                    /* prevent buffer overflow when last input character is a backslash */
+                    /* Prevent buffer overflow when last input character is a backslash */
                     goto fail;
                 }
                 skipped_bytes++;
@@ -823,27 +830,27 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
         }
         if (((size_t)(input_end - input_buffer->content) >= input_buffer->length) || (*input_end != '\"'))
         {
-            goto fail; /* string ended unexpectedly */
+            goto fail; /* String ended unexpectedly */
         }
 
         /* This is at most how much we need for the output */
-        allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
+        allocation_length = (size_t)(input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
         output = (unsigned char*)input_buffer->hooks.allocate(allocation_length + sizeof(""));
         if (output == NULL)
         {
-            goto fail; /* allocation failure */
+            goto fail; /* Allocation failure */
         }
     }
 
     output_pointer = output;
-    /* loop through the string literal */
+    /* Loop through the string literal */
     while (input_pointer < input_end)
     {
         if (*input_pointer != '\\')
         {
             *output_pointer++ = *input_pointer++;
         }
-        /* escape sequence */
+        /* Escape sequence */
         else
         {
             unsigned char sequence_length = 2;
@@ -880,25 +887,25 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
                     sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
                     if (sequence_length == 0)
                     {
-                        /* failed to convert UTF16-literal to UTF-8 */
+                        /* Failed to convert UTF16-literal to UTF-8 */
                         goto fail;
                     }
                     break;
 
                 default:
-                    goto fail;
+                    goto fail; /* Invalid escape sequence */
             }
             input_pointer += sequence_length;
         }
     }
 
-    /* zero terminate the output */
+    /* Zero terminate the output */
     *output_pointer = '\0';
 
     item->type = cJSON_String;
     item->valuestring = (char*)output;
 
-    input_buffer->offset = (size_t) (input_end - input_buffer->content);
+    input_buffer->offset = (size_t)(input_end - input_buffer->content);
     input_buffer->offset++;
 
     return true;
@@ -907,16 +914,16 @@ fail:
     if (output != NULL)
     {
         input_buffer->hooks.deallocate(output);
-        output = NULL;
     }
 
-    if (input_pointer != NULL)
+    if (input_pointer != NULL && (size_t)(input_pointer - input_buffer->content) < input_buffer->length)
     {
         input_buffer->offset = (size_t)(input_pointer - input_buffer->content);
     }
 
     return false;
 }
+
 
 /* Render the cstring provided to an escaped version that can be printed. */
 static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffer * const output_buffer)
