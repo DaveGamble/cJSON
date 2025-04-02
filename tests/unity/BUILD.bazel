@@ -4,12 +4,17 @@ cc_library(
     name = "unity",
     srcs = glob(["src/*.c"]),
     hdrs = glob(["src/*.h"]),
-    copts = [
-        "-Wno-error",  # Disable -Werror
-        "-fvisibility=default",  # Disable -fvisibility=hidden
-        "-fno-sanitize=float-divide-by-zero",  # GCC bug workaround
-        "-Wno-switch-enum",  # Disable -Wswitch-enum
-    ],
+    copts = select({
+        "@platforms//os:windows": [
+            "/wd4100",  # Disable warning C4100: unreferenced formal parameter (similar to -Wno-error)
+            "/wd4065",  # Disable warning C4065: switch statement contains default but no case (similar to -Wno-switch-enum)
+        ],
+        "//conditions:default": [
+            "-fvisibility=default",
+            "-fno-sanitize=float-divide-by-zero",
+            "-Wno-switch-enum",
+        ],
+    }),
     includes = ["src"],
     visibility = ["//tests:__pkg__"],
     deps = [":unity-examples"],

@@ -9,7 +9,7 @@ CJSON_COPTS = select({
     "@bazel_tools//src/conditions:linux": [
         "-std=c89",  # Standards compliance
         "-Wc++-compat",  # C++ compatibility
-        "-fstack-protect-strong",  # Security (GCC/Clang on Linux supports this)
+        "-fstack-protector-strong",  # Security (GCC/Clang on Linux supports this)
         "-fvisibility=hidden",  # Symbol visibility
     ],
     "@bazel_tools//src/conditions:windows": [
@@ -53,7 +53,12 @@ cc_test(
     name = "cjson_test",
     size = "small",
     srcs = ["test.c"],
-    copts = CJSON_COPTS + ["-fno-sanitize=float-divide-by-zero"],
+    copts = CJSON_COPTS + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [
+            "-fno-sanitize=float-divide-by-zero",
+        ],
+    }),
     deps = [":cjson"],
 )
 
