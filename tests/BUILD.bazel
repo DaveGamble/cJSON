@@ -54,8 +54,7 @@ test_suite(
 cc_test(
     name = "parse_examples",
     srcs = HDRS + ["parse_examples.c"],
-    copts = ['-DTEST_DIR_PATH=\\"tests/inputs/\\"'],
-    copts = COPTS,
+    copts = COPTS + ['-DTEST_DIR_PATH=\\"tests/inputs/\\"'],
     data = DATA,
     deps = DEPS,
 )
@@ -63,8 +62,7 @@ cc_test(
 cc_test(
     name = "json_patch_tests",
     srcs = HDRS + ["json_patch_tests.c"],
-    copts = ['-DTEST_DIR_PATH=\\"tests/json-patch-tests/\\"'],
-    copts = COPTS,
+    copts = COPTS + ['-DTEST_DIR_PATH=\\"tests/json-patch-tests/\\"'],
     data = DATA,
     deps = DEPS,
 )
