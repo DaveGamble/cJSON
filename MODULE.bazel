@@ -1,0 +1,14 @@
+"""
+Module: cjson
+Purpose: Provides the cjson library compileable as a Bazel target. Includes general and unity tests through Bazel
+Note: cjson_utils target is also available
+"""
+
+module(
+    name = "cjson",
+    version = "1.7.19-0.20240923110858-12c4bf1986c2",
+    compatibility_level = 1,
+)
+
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "platforms", version = "0.0.11")

@@ -1,0 +1,22 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "unity",
+    srcs = glob(["src/*.c"]),
+    hdrs = glob(["src/*.h"]),
+    copts = [
+        "-Wno-error",  # Disable -Werror
+        "-fvisibility=default",  # Disable -fvisibility=hidden
+        "-fno-sanitize=float-divide-by-zero",  # GCC bug workaround
+        "-Wno-switch-enum",  # Disable -Wswitch-enum
+    ],
+    includes = ["src"],
+    visibility = ["//tests:__pkg__"],
+    deps = [":unity-examples"],
+)
+
+cc_library(
+    name = "unity-examples",
+    hdrs = ["examples/unity_config.h"],
+    visibility = ["//tests:__pkg__"],
+)

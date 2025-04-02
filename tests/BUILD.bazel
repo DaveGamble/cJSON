@@ -1,0 +1,62 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load(":tools.bzl", "test_set")
+
+DEPS = [
+    "//:cjson",
+    "//:cjson_tests",
+    "//:cjson_utils",
+    "//tests/unity",
+    "//tests/unity:unity-examples",
+]
+
+DATA = [
+    ":patch-test_inputs",
+    ":test_inputs",
+]
+
+HDRS = glob(["*.h"])
+
+filegroup(
+    name = "test_inputs",
+    srcs = glob(["inputs/*"]),
+    visibility = ["//tests:__pkg__"],
+)
+
+filegroup(
+    name = "patch-test_inputs",
+    srcs = glob(["json-patch-tests/*.json"]),
+    visibility = ["//tests:__pkg__"],
+)
+
+test_suite(
+    name = "unity_tests",
+    tests = test_set(
+        srcs = HDRS,
+        data = DATA,
+        test_files = glob(
+            ["*.c"],
+            exclude = [
+                "unity_setup.c",
+                "parse_examples.c",
+                "json_patch_tests.c",
+            ],
+        ),
+        deps = DEPS,
+    ),
+)
+
+cc_test(
+    name = "parse_examples",
+    srcs = HDRS + ["parse_examples.c"],
+    copts = ['-DTEST_DIR_PATH=\\"tests/inputs/\\"'],
+    data = DATA,
+    deps = DEPS,
+)
+
+cc_test(
+    name = "json_patch_tests",
+    srcs = HDRS + ["json_patch_tests.c"],
+    copts = ['-DTEST_DIR_PATH=\\"tests/json-patch-tests/\\"'],
+    data = DATA,
+    deps = DEPS,
+)
