@@ -38,7 +38,10 @@ cc_library(
     name = "cjson_utils",
     srcs = ["cJSON_Utils.c"],
     hdrs = ["cJSON_Utils.h"],
-    copts = CJSON_COPTS,
+    copts = CJSON_COPTS + [
+        "-DCJSON_EXPORT_SYMBOLS",
+        "-DCJSON_API_VISIBILITY",
+    ],
     visibility = ["//visibility:public"],
     deps = [":cjson"],
 )
