@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load(":tools.bzl", "test_set")
 
 DEPS = [
@@ -7,7 +7,10 @@ DEPS = [
     "//:cjson_utils",
     "//tests/unity",
     "//tests/unity:unity-examples",
-]
+] + select({
+    "@platforms//os:windows": [":unity-win"],
+    "//conditions:default": [],
+})
 
 DATA = [
     ":patch-test_inputs",
@@ -15,6 +18,11 @@ DATA = [
 ]
 
 HDRS = glob(["*.h"])
+
+cc_library(
+    name = "unity-win",
+    srcs = ["unity_setup.c"],
+)
 
 filegroup(
     name = "test_inputs",
