@@ -14,6 +14,11 @@ DATA = [
     ":test_inputs",
 ]
 
+COPTS = select({
+    "@bazel_tools//src/conditions:windows": ["/std:c++17"],
+    "//conditions:default": ["-std=c++17"],
+})
+
 HDRS = glob(["*.h"])
 
 filegroup(
@@ -32,10 +37,7 @@ test_suite(
     name = "unity_tests",
     tests = test_set(
         srcs = HDRS,
-        copts = select({
-            "@bazel_tools//src/conditions:windows": ["/std:c++17"],
-            "//conditions:default": ["-std=c++17"],
-        }),
+        copts = COPTS,
         data = DATA,
         test_files = glob(
             ["*.c"],
@@ -53,6 +55,7 @@ cc_test(
     name = "parse_examples",
     srcs = HDRS + ["parse_examples.c"],
     copts = ['-DTEST_DIR_PATH=\\"tests/inputs/\\"'],
+    copts = COPTS,
     data = DATA,
     deps = DEPS,
 )
@@ -61,6 +64,7 @@ cc_test(
     name = "json_patch_tests",
     srcs = HDRS + ["json_patch_tests.c"],
     copts = ['-DTEST_DIR_PATH=\\"tests/json-patch-tests/\\"'],
+    copts = COPTS,
     data = DATA,
     deps = DEPS,
 )
