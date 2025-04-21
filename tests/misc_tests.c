@@ -782,6 +782,22 @@ static void cjson_set_bool_value_must_not_break_objects(void)
     cJSON_Delete(sobj);
 }
 
+static void cjson_parse_big_numbers_should_not_report_error(void)
+{
+    cJSON *valid_big_number_json_object1 = cJSON_Parse("{\"a\": true, \"b\": [ null,9999999999999999999999999999999999999999999999912345678901234567]}");
+    cJSON *valid_big_number_json_object2 = cJSON_Parse("{\"a\": true, \"b\": [ null,999999999999999999999999999999999999999999999991234567890.1234567E3]}");
+    const char *invalid_big_number_json1 = "{\"a\": true, \"b\": [ null,99999999999999999999999999999999999999999999999.1234567890.1234567]}";
+    const char *invalid_big_number_json2 = "{\"a\": true, \"b\": [ null,99999999999999999999999999999999999999999999999E1234567890e1234567]}";
+
+    TEST_ASSERT_NOT_NULL(valid_big_number_json_object1);
+    TEST_ASSERT_NOT_NULL(valid_big_number_json_object2);
+    TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(invalid_big_number_json1), "Invalid big number JSONs should not be parsed.");
+    TEST_ASSERT_NULL_MESSAGE(cJSON_Parse(invalid_big_number_json2), "Invalid big number JSONs should not be parsed.");
+
+    cJSON_Delete(valid_big_number_json_object1);
+    cJSON_Delete(valid_big_number_json_object2);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -815,6 +831,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
+    RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
 
     return UNITY_END();
 }
