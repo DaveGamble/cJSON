@@ -144,14 +144,16 @@ static void print_number_fixed_point(void)
     assert_print_number_with_precision("100", 100, false, 1);
     assert_print_number_with_precision("100.5", 100.5, false, 3);
     assert_print_number_with_precision("100", 100.5, false, 0);     /* Bankers rounding, to the nearest even */
-    /* assert_print_number_with_precision("102", 101.5, false, 0);     /1* Bankers rounding, to the nearest even *1/ */
-    /* assert_print_number_with_precision("100.2", 100.15, false, 1);  /1* Bankers rounding, to the nearest even *1/ */
-    /* assert_print_number_with_precision("100.2", 100.25, false, 1);  /1* Bankers rounding, to the nearest even *1/ */
-    /* assert_print_number_with_precision("0", -0.0123, false, 1); */
-    /* assert_print_number_with_precision("0", 0.0249, false, 1); */
-    /* assert_print_number_with_precision("-0.02", -0.0153454, false, 2); */
-    /* assert_print_number_with_precision("-0.05", -0.0453454, false, 2); */
-    /* assert_print_number_with_precision("0", -10e-10, false, 5); */
+    assert_print_number_with_precision("102", 101.5, false, 0);     /* Bankers rounding, to the nearest even */
+    assert_print_number_with_precision("100.2", 100.15, false, 1);  /* Bankers rounding, to the nearest even */
+    assert_print_number_with_precision("100.2", 100.25, false, 1);  /* Bankers rounding, to the nearest even */
+    assert_print_number_with_precision("0", -0.0123, false, 1);
+    assert_print_number_with_precision("0", 0.0249, false, 1);
+    assert_print_number_with_precision("-0.02", -0.0153454, false, 2);
+    assert_print_number_with_precision("-0.05", -0.0453454, false, 2);
+    assert_print_number_with_precision("0", -10e-10, false, 5);
+    assert_print_number_with_precision("-0.03", -0.029999999999999999, false, 2);
+    assert_print_number_with_precision("0.03", 0.029999999999999999, false, 2);
 }
 
 static void print_number_general_format(void)
