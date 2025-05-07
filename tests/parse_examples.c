@@ -58,7 +58,9 @@ static void do_test(const char *test_name)
     test_name_length = strlen(test_name);
 
     /* allocate file paths */
+#ifndef TEST_DIR_PATH
 #define TEST_DIR_PATH "inputs/"
+#endif
     test_path = (char*)malloc(sizeof(TEST_DIR_PATH) + test_name_length);
     TEST_ASSERT_NOT_NULL_MESSAGE(test_path, "Failed to allocate test_path buffer.");
     expected_path = (char*)malloc(sizeof(TEST_DIR_PATH) + test_name_length + sizeof(".expected"));
@@ -136,7 +138,12 @@ static void file_test6_should_not_be_parsed(void)
     char *test6 = NULL;
     cJSON *tree = NULL;
 
-    test6 = read_file("inputs/test6");
+    char *test_path = NULL;
+    const char * test_name = "test6";
+    test_path = (char*)malloc(sizeof(TEST_DIR_PATH) + strlen(test_name));
+    TEST_ASSERT_NOT_NULL_MESSAGE(test_path, "Failed to allocate test_path buffer.");
+    sprintf(test_path, TEST_DIR_PATH"%s", test_name);
+    test6 = read_file(test_path);
     TEST_ASSERT_NOT_NULL_MESSAGE(test6, "Failed to read test6 data.");
 
     tree = cJSON_Parse(test6);
