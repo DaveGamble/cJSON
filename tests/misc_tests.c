@@ -426,7 +426,9 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     TEST_ASSERT_FALSE(cJSON_IsObject(NULL));
     TEST_ASSERT_FALSE(cJSON_IsRaw(NULL));
     TEST_ASSERT_NULL(cJSON_CreateString(NULL));
+    TEST_ASSERT_NULL(cJSON_CreateStringWithLength(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateRaw(NULL));
+    TEST_ASSERT_NULL(cJSON_CreateRawWithLength(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateIntArray(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateFloatArray(NULL, 10));
     TEST_ASSERT_NULL(cJSON_CreateDoubleArray(NULL, 10));
@@ -572,6 +574,32 @@ static void cjson_get_number_value_should_get_a_number(void)
     cJSON_Delete(string);
 }
 
+static void cjson_create_string_with_length_should_create_a_string(void)
+{
+    cJSON *string = cJSON_CreateStringWithLength("testtest", 4);
+    cJSON *stringNull = cJSON_CreateStringWithLength(NULL, 0);
+    TEST_ASSERT_EQUAL_INT(cJSON_String, string->type);
+    TEST_ASSERT_TRUE(strcmp(string->valuestring, "test") == 0);
+    TEST_ASSERT_NOT_NULL(stringNull);
+    TEST_ASSERT_EQUAL_INT(cJSON_String, stringNull->type);
+    TEST_ASSERT_TRUE(strcmp(stringNull->valuestring, "") == 0);
+    cJSON_Delete(string);
+    cJSON_Delete(stringNull);
+}
+
+static void cjson_create_raw_with_length_should_create_a_string(void)
+{
+    cJSON *raw = cJSON_CreateRawWithLength("testtest", 4);
+    cJSON *rawNull = cJSON_CreateRawWithLength(NULL, 0);
+    TEST_ASSERT_EQUAL_INT(cJSON_Raw, raw->type);
+    TEST_ASSERT_TRUE(strcmp(raw->valuestring, "test") == 0);
+    TEST_ASSERT_NOT_NULL(rawNull);
+    TEST_ASSERT_EQUAL_INT(cJSON_Raw, rawNull->type);
+    TEST_ASSERT_TRUE(strcmp(rawNull->valuestring, "") == 0);
+    cJSON_Delete(raw);
+    cJSON_Delete(rawNull);
+}
+
 static void cjson_create_string_reference_should_create_a_string_reference(void)
 {
     const char *string = "I am a string!";
@@ -640,7 +668,7 @@ static void cjson_add_item_to_object_should_not_use_after_free_when_string_is_al
 {
     cJSON *object = cJSON_CreateObject();
     cJSON *number = cJSON_CreateNumber(42);
-    char *name = (char *)cJSON_strdup((const unsigned char *)"number", &global_hooks);
+    char *name = cJSON_strdup("number", &global_hooks);
 
     TEST_ASSERT_NOT_NULL(object);
     TEST_ASSERT_NOT_NULL(number);
@@ -823,6 +851,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
     RUN_TEST(cjson_get_string_value_should_get_a_string);
     RUN_TEST(cjson_get_number_value_should_get_a_number);
+    RUN_TEST(cjson_create_string_with_length_should_create_a_string);
+    RUN_TEST(cjson_create_raw_with_length_should_create_a_string);
     RUN_TEST(cjson_create_string_reference_should_create_a_string_reference);
     RUN_TEST(cjson_create_object_reference_should_create_an_object_reference);
     RUN_TEST(cjson_create_array_reference_should_create_an_array_reference);
