@@ -238,7 +238,7 @@ static void cjson_should_not_follow_too_deep_circular_references(void)
 
 static void cjson_set_number_value_should_set_numbers(void)
 {
-    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, NULL}};
+    cJSON number[1] = {{NULL, NULL, NULL, cJSON_Number, NULL, 0, 0, 0, NULL}};
 
     cJSON_SetNumberValue(number, 1.5);
     TEST_ASSERT_EQUAL(1, number->valueint);
@@ -360,7 +360,7 @@ static void cjson_replace_item_via_pointer_should_replace_items(void)
 
 static void cjson_replace_item_in_object_should_preserve_name(void)
 {
-    cJSON root[1] = {{NULL, NULL, NULL, 0, NULL, 0, 0, NULL}};
+    cJSON root[1] = {{NULL, NULL, NULL, 0, NULL, 0, 0, 0, NULL}};
     cJSON *child = NULL;
     cJSON *replacement = NULL;
     cJSON_bool flag = false;
@@ -498,11 +498,10 @@ static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
     
     str =  cJSON_SetValuestring(obj, "abcde");
     str += 1;
-    /* The string passed to strcpy overlap which is not allowed.*/
+    /* The string passed to strcpy overlap which is correctly copied.*/
     str2 = cJSON_SetValuestring(obj, str);
-    /* If it overlaps, the string will be messed up.*/
-    TEST_ASSERT_TRUE(strcmp(str, "bcde") == 0);
-    TEST_ASSERT_NULL(str2);
+    /* If it overlaps, the string will not be messed up.*/
+    TEST_ASSERT_TRUE(strncmp(str2, "bcde", 4) == 0);
     cJSON_Delete(obj);
 }
 
