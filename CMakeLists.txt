@@ -47,6 +47,9 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
             -Wused-but-marked-unused
             -Wswitch-enum
         )
+        if(QNX)
+            list(REMOVE_ITEM custom_compiler_flags -std=c89)
+        endif()
     elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
         # Disable warning c4001 - nonstandard extension 'single line comment' was used
         # Define _CRT_SECURE_NO_WARNINGS to disable deprecation warnings for "insecure" C library functions
@@ -153,7 +156,7 @@ install(TARGETS "${CJSON_LIB}"
 )
 if (BUILD_SHARED_AND_STATIC_LIBS)
     install(TARGETS "${CJSON_LIB}-static"
-    EXPORT "${CJSON_LIB}" 
+    EXPORT "${CJSON_LIB}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
     INCLUDES DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}"
 )
@@ -201,8 +204,8 @@ if(ENABLE_CJSON_UTILS)
         INCLUDES DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}"
     )
     if (BUILD_SHARED_AND_STATIC_LIBS)
-        install(TARGETS "${CJSON_UTILS_LIB}-static" 
-        EXPORT "${CJSON_UTILS_LIB}" 
+        install(TARGETS "${CJSON_UTILS_LIB}-static"
+        EXPORT "${CJSON_UTILS_LIB}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
         INCLUDES DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}"
         )
@@ -254,6 +257,10 @@ if(ENABLE_CJSON_TEST)
         else()
             target_compile_options(${TEST_CJSON} PRIVATE "-fno-sanitize=float-divide-by-zero")
         endif()
+    endif()
+
+    if(QNX)
+        install(TARGETS "${TEST_CJSON}" DESTINATION bin/cJSON_tests)
     endif()
 
     #"check" target that automatically builds everything and runs the tests
