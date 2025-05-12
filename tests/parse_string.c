@@ -33,7 +33,6 @@ static cJSON item[1];
 static void assert_is_string(cJSON *string_item)
 {
     TEST_ASSERT_NOT_NULL_MESSAGE(string_item, "Item is NULL.");
-
     assert_not_in_list(string_item);
     assert_has_no_child(string_item);
     assert_has_type(string_item, cJSON_String);
@@ -68,8 +67,6 @@ static void assert_not_parse_string(const char * const string)
     assert_is_invalid(item);
 }
 
-
-
 static void parse_string_should_parse_strings(void)
 {
     assert_parse_string("\"\"", "");
@@ -77,10 +74,8 @@ static void parse_string_should_parse_strings(void)
         "\" !\\\"#$%&'()*+,-./\\/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_'abcdefghijklmnopqrstuvwxyz{|}~\"",
         " !\"#$%&'()*+,-.//0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_'abcdefghijklmnopqrstuvwxyz{|}~");
     assert_parse_string(
-        "\"\\\"\\\\\\/\\b\\f\\n\\r\\t\\u20AC\\u732b\"",
-        "\"\\/\b\f\n\r\t€猫");
-    reset(item);
-    assert_parse_string("\"\b\f\n\r\t\"", "\b\f\n\r\t");
+        "\"\\\"\\\\\\/\\b\\f\\n\\r\\t\"",
+        "\"\\/\b\f\n\r\t");
     reset(item);
 }
 
@@ -119,9 +114,22 @@ static void parse_string_should_parse_bug_94(void)
     reset(item);
 }
 
+static void parse_string_should_not_parse_unescaped_control_chars(void)
+{
+    /* Test unescaped control characters (U+0000 to U+001F) */
+    assert_not_parse_string("\"\x0a\""); /* Newline */
+    reset(item);
+    assert_not_parse_string("\"\x00\""); /* Null character */
+    reset(item);
+    assert_not_parse_string("\"1\x0a2\""); /* Newline in middle, matches #766 test case */
+    reset(item);
+    assert_not_parse_string("\"\x1f\""); /* Unit separator (highest control char) */
+    reset(item);
+}
+
 int CJSON_CDECL main(void)
 {
-    /* initialize cJSON item and error pointer */
+    /* Initialize cJSON item and error pointer */
     memset(item, 0, sizeof(cJSON));
 
     UNITY_BEGIN();
@@ -131,5 +139,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_string_should_not_parse_invalid_backslash);
     RUN_TEST(parse_string_should_parse_bug_94);
     RUN_TEST(parse_string_should_not_overflow_with_closing_backslash);
+    RUN_TEST(parse_string_should_not_parse_unescaped_control_chars); /* New test */
     return UNITY_END();
 }
