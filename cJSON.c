@@ -2257,6 +2257,11 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const it
         /* not the last element */
         item->next->prev = item->prev;
     }
+    else
+    {
+        /* the last element - need to fix the prev pointer of the 1st element */
+        parent->child->prev = item->prev;
+    }
 
     if (item == parent->child)
     {
