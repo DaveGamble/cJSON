@@ -638,20 +638,20 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     /* This checks for NaN and Infinity */
     if (isnan(d) || isinf(d))
     {
-        length = sprintf((char*)number_buffer, "null");
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "null");
     }
     else if(d == (double)item->valueint)
     {
-        length = sprintf((char*)number_buffer, "%d", item->valueint);
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%d", item->valueint);
     }
     else if (item->type & cJSON_NumberIsFormatted) {
         precision = _get_precision_from_item(item, sizeof(number_buffer));
         if (item->type & cJSON_NumberFormatStyleFixedPoint) {
-            length = sprintf((char*)number_buffer, "%.*f", (int)precision, d);
+            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%.*f", (int)precision, d);
             remove_trailing_zeros((char*)number_buffer);
             length = (int)strlen((char*)number_buffer);
         } else {
-            length = sprintf((char*)number_buffer, "%.*g", (int)precision, d);
+            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%.*g", (int)precision, d);
         }
     }
     else
