@@ -824,7 +824,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
     unsigned char *output = NULL;
 
     /* not a string */
-    if (buffer_at_offset(input_buffer)[0] != '\"')
+    if (cannot_access_at_index(input_buffer, 0) || buffer_at_offset(input_buffer)[0] != '\"')
     {
         goto fail;
     }
@@ -1099,11 +1099,6 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
        buffer->offset++;
     }
 
-    if (buffer->offset == buffer->length)
-    {
-        buffer->offset--;
-    }
-
     return buffer;
 }
 
@@ -1125,17 +1120,12 @@ static parse_buffer *skip_utf8_bom(parse_buffer * const buffer)
 
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated)
 {
-    size_t buffer_length;
-
     if (NULL == value)
     {
         return NULL;
     }
 
-    /* Adding null character size due to require_null_terminated. */
-    buffer_length = strlen(value) + sizeof("");
-
-    return cJSON_ParseWithLengthOpts(value, buffer_length, return_parse_end, require_null_terminated);
+    return cJSON_ParseWithLengthOpts(value, (size_t)strlen(value), return_parse_end, require_null_terminated);
 }
 
 /* Parse an object - create a new root, and populate. */
@@ -1174,7 +1164,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer
     if (require_null_terminated)
     {
         buffer_skip_whitespace(&buffer);
-        if ((buffer.offset >= buffer.length) || buffer_at_offset(&buffer)[0] != '\0')
+        if ((buffer.offset > buffer.length) || buffer_at_offset(&buffer)[0] != '\0')
         {
             goto fail;
         }
@@ -1204,7 +1194,7 @@ fail:
         }
         else if (buffer.length > 0)
         {
-            local_error.position = buffer.length - 1;
+            local_error.position = buffer.length;
         }
 
         if (return_parse_end != NULL)
@@ -1500,7 +1490,7 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
     }
     input_buffer->depth++;
 
-    if (buffer_at_offset(input_buffer)[0] != '[')
+    if (cannot_access_at_index(input_buffer, 0) || buffer_at_offset(input_buffer)[0] != '[')
     {
         /* not an array */
         goto fail;
@@ -1517,7 +1507,6 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
     /* check if we skipped to the end of the buffer */
     if (cannot_access_at_index(input_buffer, 0))
     {
-        input_buffer->offset--;
         goto fail;
     }
 
@@ -1675,7 +1664,6 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
     /* check if we skipped to the end of the buffer */
     if (cannot_access_at_index(input_buffer, 0))
     {
-        input_buffer->offset--;
         goto fail;
     }
 
