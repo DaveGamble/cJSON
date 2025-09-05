@@ -282,7 +282,7 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
         return 0;
     }
 
-    for (position = 0; (pointer[position] >= '0') && (pointer[0] <= '9'); position++)
+    for (position = 0; (pointer[position] >= '0') && (pointer[position] <= '9'); position++)
     {
         parsed_index = (10 * parsed_index) + (size_t)(pointer[position] - '0');
 
