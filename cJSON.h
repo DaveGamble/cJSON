@@ -120,6 +120,8 @@ typedef struct cJSON
 
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
     char *string;
+    /* The item's size include object and array */
+    int size;
 } cJSON;
 
 typedef struct cJSON_Hooks
