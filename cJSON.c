@@ -824,7 +824,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
     unsigned char *output = NULL;
 
     /* not a string */
-    if (buffer_at_offset(input_buffer)[0] != '\"')
+    if (cannot_access_at_index(input_buffer, 0) || buffer_at_offset(input_buffer)[0] != '\"')
     {
         goto fail;
     }
