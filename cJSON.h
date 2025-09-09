@@ -48,8 +48,6 @@ or
 -xldscope=hidden (for sun cc)
 to CFLAGS
 
-then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJSON_EXPORT_SYMBOLS does
-
 */
 
 #define CJSON_CDECL __cdecl
@@ -71,7 +69,7 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define CJSON_CDECL
 #define CJSON_STDCALL
 
-#if (defined(__GNUC__) || defined(__SUNPRO_CC) || defined (__SUNPRO_C)) && defined(CJSON_API_VISIBILITY)
+#if (defined(__GNUC__) || defined(__SUNPRO_CC) || defined (__SUNPRO_C)) && !defined(CJSON_HIDE_SYMBOLS)
 #define CJSON_PUBLIC(type)   __attribute__((visibility("default"))) type
 #else
 #define CJSON_PUBLIC(type) type

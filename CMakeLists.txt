@@ -87,11 +87,11 @@ endif()
 option(ENABLE_PUBLIC_SYMBOLS "Export library symbols." On)
 if (ENABLE_PUBLIC_SYMBOLS)
     list(APPEND custom_compiler_flags -fvisibility=hidden)
-    add_definitions(-DCJSON_EXPORT_SYMBOLS -DCJSON_API_VISIBILITY)
+    add_definitions(-DCJSON_EXPORT_SYMBOLS)
 endif()
 option(ENABLE_HIDDEN_SYMBOLS "Hide library symbols." Off)
 if (ENABLE_HIDDEN_SYMBOLS)
-    add_definitions(-DCJSON_HIDE_SYMBOLS -UCJSON_API_VISIBILITY)
+    add_definitions(-DCJSON_HIDE_SYMBOLS)
 endif()
 
 # apply custom compiler flags
