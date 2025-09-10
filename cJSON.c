@@ -132,6 +132,8 @@ CJSON_PUBLIC(const char*) cJSON_Version(void)
 /* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
 static int case_insensitive_strcmp(const unsigned char *string1, const unsigned char *string2)
 {
+    int l = 0;
+    int r = 0;
     if ((string1 == NULL) || (string2 == NULL))
     {
         return 1;
@@ -142,15 +144,16 @@ static int case_insensitive_strcmp(const unsigned char *string1, const unsigned 
         return 0;
     }
 
-    for(; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
+    while (true)
     {
-        if (*string1 == '\0')
+        l = *(string1++);
+        r = *(string2++);
+        if (l != r || l == 0) 
         {
-            return 0;
+            return l - r;
         }
     }
-
-    return tolower(*string1) - tolower(*string2);
+    return 0;
 }
 
 typedef struct internal_hooks
