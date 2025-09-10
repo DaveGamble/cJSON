@@ -117,7 +117,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
-#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 19)
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 18)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
@@ -146,8 +146,8 @@ static int case_insensitive_strcmp(const unsigned char *string1, const unsigned 
 
     while (true)
     {
-        l = *(string1++);
-        r = *(string2++);
+        l = tolower(*string1++);
+        r = tolower(*string2++);
         if (l != r || l == 0) 
         {
             return l - r;
