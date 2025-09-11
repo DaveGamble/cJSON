@@ -85,6 +85,9 @@
 #endif
 #endif
 
+#define STR(s) #s
+#define XSTR(s) STR(s)
+
 typedef struct {
     const unsigned char *json;
     size_t position;
@@ -121,12 +124,11 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
+#define VERSION_NUMBER (XSTR(CJSON_VERSION_MAJOR) "." XSTR(cJSON_VERSION_MINOR) "." XSTR(cJSON_VERSION_PATCH))
+
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
-    static char version[15];
-    sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
-
-    return version;
+    return VERSION_NUMBER;
 }
 
 /* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
