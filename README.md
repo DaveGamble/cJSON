@@ -555,6 +555,9 @@ cJSON is written in ANSI C (or C89, C90). If your compiler or C library doesn't 
 
 NOTE: ANSI C is not C++ therefore it shouldn't be compiled with a C++ compiler. You can compile it with a C compiler and link it with your C++ code however. Although compiling with a C++ compiler might work, correct behavior is not guaranteed.
 
+Absence of Undefined Behaviors on the test suite guaranteed by [TrustInSoft CI](https://ci.trust-in-soft.com/projects/DaveGamble/cJSON/latest):  
+[![TrustInSoft CI](https://ci.trust-in-soft.com/projects/DaveGamble/cJSON.svg)](https://ci.trust-in-soft.com/projects/DaveGamble/cJSON)
+
 #### Floating Point Numbers
 
 cJSON does not officially support any `double` implementations other than IEEE754 double precision floating point numbers. It might still work with other implementations but bugs with these will be considered invalid.

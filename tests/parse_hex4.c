@@ -34,7 +34,12 @@ static void parse_hex4_should_parse_all_combinations(void)
     unsigned char digits_lower[6];
     unsigned char digits_upper[6];
     /* test all combinations */
+#if defined(__TRUSTINSOFT_ANALYZER__)
+    /* Reduce the test's size for TIS CI. */
+    for (number = 0; number <= 0xFFF; number++)
+#else
     for (number = 0; number <= 0xFFFF; number++)
+#endif
     {
         TEST_ASSERT_EQUAL_INT_MESSAGE(4, sprintf((char*)digits_lower, "%.4x", number), "sprintf failed.");
         TEST_ASSERT_EQUAL_INT_MESSAGE(4, sprintf((char*)digits_upper, "%.4X", number), "sprintf failed.");
