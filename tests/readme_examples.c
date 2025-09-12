@@ -29,16 +29,16 @@
 #include "common.h"
 
 static const char *json = "{\n\
-\t\"name\":\t\"Awesome 4K\",\n\
-\t\"resolutions\":\t[{\n\
-\t\t\t\"width\":\t1280,\n\
-\t\t\t\"height\":\t720\n\
+\t\"name\": \"Awesome 4K\",\n\
+\t\"resolutions\": [{\n\
+\t\t\t\"width\": 1280,\n\
+\t\t\t\"height\": 720\n\
 \t\t}, {\n\
-\t\t\t\"width\":\t1920,\n\
-\t\t\t\"height\":\t1080\n\
+\t\t\t\"width\": 1920,\n\
+\t\t\t\"height\": 1080\n\
 \t\t}, {\n\
-\t\t\t\"width\":\t3840,\n\
-\t\t\t\"height\":\t2160\n\
+\t\t\t\"width\": 3840,\n\
+\t\t\t\"height\": 2160\n\
 \t\t}]\n\
 }";
 
@@ -236,9 +236,9 @@ static void supports_full_hd_should_check_for_full_hd_support(void)
 {
     static const char *monitor_without_hd = "{\n\
 \t\t\"name\": \"lame monitor\",\n\
-\t\t\"resolutions\":\t[{\n\
-\t\t\t\"width\":\t640,\n\
-\t\t\t\"height\":\t480\n\
+\t\t\"resolutions\": [{\n\
+\t\t\t\"width\": 640,\n\
+\t\t\t\"height\": 480\n\
 \t\t}]\n\
 }";
 
