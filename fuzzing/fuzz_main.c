@@ -8,7 +8,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size); /* required by C89
 
 int main(int argc, char **argv)
 {
-    FILE *f;
+    FILE *f = NULL;
     char *buf = NULL;
     long siz_buf;
 
@@ -25,7 +25,10 @@ int main(int argc, char **argv)
         goto err;
     }
 
-    fseek(f, 0, SEEK_END);
+    if(fseek(f, 0, SEEK_END) != 0) {
+        fprintf(stderr, "fseek() to end failed\n");
+        goto err;
+    }
 
     siz_buf = ftell(f);
     rewind(f);
@@ -49,6 +52,10 @@ int main(int argc, char **argv)
 
 err:
     free(buf);
+    if (f != NULL)
+    {
+        fclose(f);
+    }
 
     return 0;
 }
