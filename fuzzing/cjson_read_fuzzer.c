@@ -57,7 +57,11 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if(minify)
     {
         copied = (unsigned char*)malloc(size);
-        if(copied == NULL) return 0;
+        if(copied == NULL) 
+        {
+            cJSON_Delete(json);
+            return 0;
+        }
 
         memcpy(copied, data, size);
 
