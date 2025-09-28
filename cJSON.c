@@ -587,6 +587,15 @@ static cJSON_bool compare_double(double a, double b)
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
+/* check if the double value is in the range [-(2^53-1), 2^53-1] and has no fractional part */
+#define Number_MAX_SAFE_INTEGER ((double)9007199254740991.0)   /* 2^53-1 */
+static cJSON_bool is_safe_integer(double d)
+{
+    double abs_d = fabs(d);
+    double trunc_d = d >= 0 ? floor(d) : -floor(-d);
+    return (abs_d <= Number_MAX_SAFE_INTEGER && (fabs(d - trunc_d) <= abs_d * DBL_EPSILON));
+}
+
 /* Render the number nicely from the given item into a string. */
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
 {
@@ -611,6 +620,13 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     else if(d == (double)item->valueint)
     {
         length = sprintf((char*)number_buffer, "%d", item->valueint);
+    }
+    else if (is_safe_integer(d))
+    {
+        /* Avoid exponential expression in case of integer between
+         * Number.MIN_SAFE_INTEGER and Number.MAX_SAFE_INTEGER
+         */
+        length = sprintf((char*)number_buffer, "%.0f", d);
     }
     else
     {
