@@ -24,6 +24,7 @@ Contributors:
 * [Debora Grosse](https://github.com/DeboraG)
 * [dieyushi](https://github.com/dieyushi)
 * [Dōngwén Huáng (黄东文)](https://github.com/DongwenHuang)
+* [Dominik](https://github.com/DL6ER)
 * [Donough Liu](https://github.com/ldm0)
 * [Erez Oxman](https://github.com/erez-o)
 * Eswar Yaganti
@@ -80,6 +81,8 @@ Contributors:
 * [Stephan Gatzka](https://github.com/gatzka)
 * [Tony Langhammer](https://github.com/BigBrainAFK)
 * [Vemake](https://github.com/vemakereporter)
+* [vwvw](https://github.com/vwvw)
+* [warmsocks](https://github.com/warmsocks)
 * [Wei Tan](https://github.com/tan-wei)
 * [Weston Schmidt](https://github.com/schmidtw)
 * [xiaomianhehe](https://github.com/xiaomianhehe)

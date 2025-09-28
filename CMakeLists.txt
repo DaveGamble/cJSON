@@ -2,7 +2,7 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 cmake_minimum_required(VERSION 3.0)
 
 project(cJSON
-    VERSION 1.7.18
+    VERSION 1.7.19
     LANGUAGES C)
 
 cmake_policy(SET CMP0054 NEW)  # set CMP0054 policy
