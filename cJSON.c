@@ -444,6 +444,10 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 
 CJSON_PUBLIC(void) cJSON_SetNumberFormat(cJSON *object, cJSON_bool g_format, int precision)
 {
+    if (object == NULL)
+    {
+        return;
+    }
     if ((object->type != cJSON_Number) && precision < 0)
     {
         return;
