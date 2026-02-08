@@ -19,7 +19,6 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 */
-
 /* cJSON */
 /* JSON parser in C. */
 
@@ -470,6 +469,27 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     return copy;
 }
 
+CJSON_PUBLIC(void) cJSON_SetNumberFormat(cJSON *object, cJSON_bool g_format, int precision)
+{
+    if (object == NULL)
+    {
+        return;
+    }
+    if ((object->type != cJSON_Number) && precision < 0)
+    {
+        return;
+    }
+    /* Signal that the number is formatted */
+    object->type &= ~(cJSON_NumberIsFormatted);
+    object->type |= cJSON_NumberIsFormatted;
+    /* Set format style */
+    object->type &= ~(cJSON_NumberFormatStyleFixedPoint);
+    object->type |= cJSON_NumberFormatStyleSet(g_format);
+    /* Set precision bits */
+    object->type &= ~(cJSON_NumberFormatPrecision);
+    object->type |= cJSON_NumberFormatPrecisionSet(precision);
+}
+
 typedef struct
 {
     unsigned char *buffer;
@@ -587,16 +607,59 @@ static cJSON_bool compare_double(double a, double b)
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 
+static void remove_trailing_zeros(char *str) {
+    cJSON_bool is_neg = (*str == '-');
+    char *dot = strchr(str, '.'); /* Find the decimal point */
+    char *start;
+    char *end = str + strlen(str) - 1; /* Start at the end of the string */
+    /* Check if floating point, if not return */
+    if (!dot)
+    {
+        return;
+    }
+    /* Remove trailing zeros */
+    while (end > dot && *end == '0') {
+        *end = '\0'; /* Replace zero with null terminator */
+        end--;
+    }
+    /* If the last character is now the decimal point, remove it */
+    if (*end == '.') {
+        *end = '\0';
+        end--;
+    }
+    /* Check if zero */
+    start = str + is_neg;
+    while (start != end && *start == '0') {
+        start++;
+    }
+    /* Discard negative sign if zero */
+    if (start == end) {
+        *str = '0';
+        *(str + 1) = '\0';
+    }
+}
+
+static int _get_precision_from_item(const cJSON * const item, int max_len) {
+    int precision = (cJSON_NumberFormatPrecisionGet(item->type) & 0xFF);
+    if (max_len <= precision)
+    {
+      precision = max_len - 1;
+    }
+    return precision;
+}
+
 /* Render the number nicely from the given item into a string. */
 static cJSON_bool print_number(const cJSON * const item, printbuffer * const output_buffer)
 {
     unsigned char *output_pointer = NULL;
     double d = item->valuedouble;
+
     int length = 0;
     size_t i = 0;
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
     double test = 0.0;
+    int precision;
 
     if (output_buffer == NULL)
     {
@@ -606,11 +669,21 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     /* This checks for NaN and Infinity */
     if (isnan(d) || isinf(d))
     {
-        length = sprintf((char*)number_buffer, "null");
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "null");
     }
     else if(d == (double)item->valueint)
     {
-        length = sprintf((char*)number_buffer, "%d", item->valueint);
+        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%d", item->valueint);
+    }
+    else if (item->type & cJSON_NumberIsFormatted) {
+        precision = _get_precision_from_item(item, sizeof(number_buffer));
+        if (item->type & cJSON_NumberFormatStyleFixedPoint) {
+            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%.*f", (int)precision, d);
+            remove_trailing_zeros((char*)number_buffer);
+            length = (int)strlen((char*)number_buffer);
+        } else {
+            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%.*g", (int)precision, d);
+        }
     }
     else
     {
