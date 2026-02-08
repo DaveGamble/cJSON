@@ -822,6 +822,8 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
     const unsigned char *input_end = buffer_at_offset(input_buffer) + 1;
     unsigned char *output_pointer = NULL;
     unsigned char *output = NULL;
+    size_t skipped_bytes = 0;
+    size_t allocation_length = 0;
 
     /* not a string */
     if (buffer_at_offset(input_buffer)[0] != '\"')
@@ -831,20 +833,23 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 
     {
         /* calculate approximate size of the output (overestimate) */
-        size_t allocation_length = 0;
-        size_t skipped_bytes = 0;
-        while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
+
+        size_t remaining_length = input_buffer->length;
+        while (remaining_length > 0 && (*input_end != '\"'))
         {
+            remaining_length--;
+
             /* is escape sequence */
             if (input_end[0] == '\\')
             {
-                if ((size_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
+                if (remaining_length == 0)
                 {
                     /* prevent buffer overflow when last input character is a backslash */
                     goto fail;
                 }
                 skipped_bytes++;
                 input_end++;
+                remaining_length--;
             }
             input_end++;
         }
@@ -862,65 +867,73 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
         }
     }
 
-    output_pointer = output;
-    /* loop through the string literal */
-    while (input_pointer < input_end)
+    /* If there are no escaped characters, we can use memcmp */
+    if(skipped_bytes == 0)
     {
-        if (*input_pointer != '\\')
-        {
-            *output_pointer++ = *input_pointer++;
-        }
-        /* escape sequence */
-        else
-        {
-            unsigned char sequence_length = 2;
-            if ((input_end - input_pointer) < 1)
-            {
-                goto fail;
-            }
-
-            switch (input_pointer[1])
-            {
-                case 'b':
-                    *output_pointer++ = '\b';
-                    break;
-                case 'f':
-                    *output_pointer++ = '\f';
-                    break;
-                case 'n':
-                    *output_pointer++ = '\n';
-                    break;
-                case 'r':
-                    *output_pointer++ = '\r';
-                    break;
-                case 't':
-                    *output_pointer++ = '\t';
-                    break;
-                case '\"':
-                case '\\':
-                case '/':
-                    *output_pointer++ = input_pointer[1];
-                    break;
-
-                /* UTF-16 literal */
-                case 'u':
-                    sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
-                    if (sequence_length == 0)
-                    {
-                        /* failed to convert UTF16-literal to UTF-8 */
-                        goto fail;
-                    }
-                    break;
-
-                default:
-                    goto fail;
-            }
-            input_pointer += sequence_length;
-        }
+        memcpy(output, input_pointer, allocation_length);
+        output[allocation_length-1] = '\0';
     }
+    else
+    {
+        /* else loop through the string literal */
+        output_pointer = output;
+        while (input_pointer < input_end)
+        {
+            if (*input_pointer != '\\')
+            {
+                *output_pointer++ = *input_pointer++;
+            }
+            /* escape sequence */
+            else
+            {
+                unsigned char sequence_length = 2;
+                if ((input_end - input_pointer) < 1)
+                {
+                    goto fail;
+                }
 
-    /* zero terminate the output */
-    *output_pointer = '\0';
+                switch (input_pointer[1])
+                {
+                    case 'b':
+                        *output_pointer++ = '\b';
+                        break;
+                    case 'f':
+                        *output_pointer++ = '\f';
+                        break;
+                    case 'n':
+                        *output_pointer++ = '\n';
+                        break;
+                    case 'r':
+                        *output_pointer++ = '\r';
+                        break;
+                    case 't':
+                        *output_pointer++ = '\t';
+                        break;
+                    case '\"':
+                    case '\\':
+                    case '/':
+                        *output_pointer++ = input_pointer[1];
+                        break;
+
+                    /* UTF-16 literal */
+                    case 'u':
+                        sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
+                        if (sequence_length == 0)
+                        {
+                            /* failed to convert UTF16-literal to UTF-8 */
+                            goto fail;
+                        }
+                        break;
+
+                    default:
+                        goto fail;
+                }
+                input_pointer += sequence_length;
+            }
+        }
+        /* zero terminate the output */
+        *output_pointer = '\0';
+    }
 
     item->type = cJSON_String;
     item->valuestring = (char*)output;
@@ -1368,13 +1381,6 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     }
 
     /* parse the different types of values */
-    /* null */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
-    {
-        item->type = cJSON_NULL;
-        input_buffer->offset += 4;
-        return true;
-    }
     /* false */
     if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
     {
@@ -1409,6 +1415,13 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '{'))
     {
         return parse_object(item, input_buffer);
+    }
+    /* null */
+    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+    {
+        item->type = cJSON_NULL;
+        input_buffer->offset += 4;
+        return true;
     }
 
     return false;
