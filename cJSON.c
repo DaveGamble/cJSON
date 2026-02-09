@@ -271,6 +271,7 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
             item->string = NULL;
         }
         global_hooks.deallocate(item);
+        item = NULL;
         item = next;
     }
 }
@@ -380,6 +381,7 @@ loop_end:
     {
         /* free the temporary buffer */
         input_buffer->hooks.deallocate(number_c_string);
+        number_c_string = NULL;
         return false; /* parse_error */
     }
 
@@ -404,6 +406,7 @@ loop_end:
     input_buffer->offset += (size_t)(after_end - number_c_string);
     /* free the temporary buffer */
     input_buffer->hooks.deallocate(number_c_string);
+    number_c_string = NULL;
     return true;
 }
 
@@ -560,6 +563,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
 
         memcpy(newbuffer, p->buffer, p->offset + 1);
         p->hooks.deallocate(p->buffer);
+        p->buffer = NULL;
     }
     p->length = newsize;
     p->buffer = newbuffer;
@@ -2093,6 +2097,7 @@ static cJSON_bool add_item_to_object(cJSON * const object, const char * const st
     if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
     {
         hooks->deallocate(item->string);
+        item->string = NULL;
     }
 
     item->string = new_key;
