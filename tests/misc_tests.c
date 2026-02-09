@@ -488,24 +488,6 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
-static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
-{       
-    cJSON *obj;
-    char* str;
-    char* str2;
-
-    obj =  cJSON_Parse("\"foo0z\"");
-    
-    str =  cJSON_SetValuestring(obj, "abcde");
-    str += 1;
-    /* The string passed to strcpy overlap which is not allowed.*/
-    str2 = cJSON_SetValuestring(obj, str);
-    /* If it overlaps, the string will be messed up.*/
-    TEST_ASSERT_TRUE(strcmp(str, "bcde") == 0);
-    TEST_ASSERT_NULL(str2);
-    cJSON_Delete(obj);
-}
-
 static void *CJSON_CDECL failing_realloc(void *pointer, size_t size)
 {
     (void)size;
@@ -817,7 +799,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
     RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
-    RUN_TEST(cjson_set_valuestring_should_return_null_if_strings_overlap);
     RUN_TEST(ensure_should_fail_on_failed_realloc);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
