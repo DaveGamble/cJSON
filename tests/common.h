@@ -23,7 +23,7 @@
 #ifndef CJSON_TESTS_COMMON_H
 #define CJSON_TESTS_COMMON_H
 
-#include "../cJSON.c"
+#include "../cjson/cJSON.c"
 
 void reset(cJSON *item);
 void reset(cJSON *item) {
