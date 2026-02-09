@@ -3054,6 +3054,77 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
+static cJSON_bool compare_object(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+{
+    cJSON *a_element = NULL;
+    cJSON *b_element = NULL;
+    cJSON *last_b = NULL;
+    cJSON *found_b = NULL;
+    cJSON_bool keys_are_orderly = true;
+
+    a_element = a->child;
+    b_element = b->child;
+    while (a_element && b_element)
+    {
+        a_element = a_element->next;
+        b_element = b_element->next;
+    }
+    if (a_element != b_element)
+    {
+        /* The objects don't have the same number of keys */
+        return false;
+    }
+
+    a_element = a->child;
+    b_element = b->child;
+    while (a_element && keys_are_orderly)
+    {
+        if ((case_sensitive && strcmp(a_element->string, b_element->string) == 0) || (!case_sensitive && case_insensitive_strcmp((const unsigned char*)a_element->string, (const unsigned char*)(b_element->string)) == 0))
+        {
+            if (!cJSON_Compare(a_element, b_element, case_sensitive))
+            {
+                return false;
+            }
+            a_element = a_element->next;
+            b_element = b_element->next;
+        }
+        else
+        {
+            /* Stop assuming the keys are orderly */
+            /* Values of a_element and b_element_last_orderly allow us to reuse any work accomplished in this loop */
+            last_b = b_element;
+            keys_are_orderly = false;
+        }
+    }
+
+    if (keys_are_orderly)
+    {
+        /* Iterated through all a and b with no key mismatches and all comparisons returned true */
+        return true;
+    }
+
+    /* The keys mismatch or are in diffrent order so we need to search b for each one */
+    /* This is O(n^2) at runtime */
+    for (; a_element; a_element = a_element->next)
+    {
+        found_b = NULL;
+        for (b_element = last_b; b_element && !found_b; b_element = b_element->next)
+        {
+            if ((case_sensitive && strcmp(a_element->string, b_element->string) == 0) || (!case_sensitive && case_insensitive_strcmp((const unsigned char*)a_element->string, (const unsigned char*)(b_element->string)) == 0))
+            {
+                found_b = b_element;
+            }
+        }
+
+        if (!found_b || !cJSON_Compare(a_element, found_b, case_sensitive))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
@@ -3137,42 +3208,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         }
 
         case cJSON_Object:
-        {
-            cJSON *a_element = NULL;
-            cJSON *b_element = NULL;
-            cJSON_ArrayForEach(a_element, a)
-            {
-                /* TODO This has O(n^2) runtime, which is horrible! */
-                b_element = get_object_item(b, a_element->string, case_sensitive);
-                if (b_element == NULL)
-                {
-                    return false;
-                }
-
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
-                {
-                    return false;
-                }
+            if(compare_object(a, b, case_sensitive)) {
+                return true;
             }
-
-            /* doing this twice, once on a and b to prevent true comparison if a subset of b
-             * TODO: Do this the proper way, this is just a fix for now */
-            cJSON_ArrayForEach(b_element, b)
-            {
-                a_element = get_object_item(a, b_element->string, case_sensitive);
-                if (a_element == NULL)
-                {
-                    return false;
-                }
-
-                if (!cJSON_Compare(b_element, a_element, case_sensitive))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+            return false;
 
         default:
             return false;
