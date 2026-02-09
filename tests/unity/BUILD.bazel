@@ -1,0 +1,27 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "unity",
+    srcs = glob(["src/*.c"]),
+    hdrs = glob(["src/*.h"]),
+    copts = select({
+        "@platforms//os:windows": [
+            "/wd4100",  # Disable warning C4100: unreferenced formal parameter (similar to -Wno-error)
+            "/wd4065",  # Disable warning C4065: switch statement contains default but no case (similar to -Wno-switch-enum)
+        ],
+        "//conditions:default": [
+            "-fvisibility=default",
+            "-fno-sanitize=float-divide-by-zero",
+            "-Wno-switch-enum",
+        ],
+    }),
+    includes = ["src"],
+    visibility = ["//tests:__pkg__"],
+    deps = [":unity-examples"],
+)
+
+cc_library(
+    name = "unity-examples",
+    hdrs = ["examples/unity_config.h"],
+    visibility = ["//tests:__pkg__"],
+)

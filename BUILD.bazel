@@ -1,0 +1,76 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+CJSON_COPTS = select({
+    "@bazel_tools//src/conditions:darwin": [
+        "-std=c89",  # Standards compliance
+        "-Wc++-compat",  # C++ compatibility
+        "-fvisibility=hidden",  # Symbol visibility
+    ],
+    "@bazel_tools//src/conditions:linux": [
+        "-std=c89",  # Standards compliance
+        "-Wc++-compat",  # C++ compatibility
+        "-fstack-protector-strong",  # Security (GCC/Clang on Linux supports this)
+        "-fvisibility=hidden",  # Symbol visibility
+    ],
+    "@bazel_tools//src/conditions:windows": [
+        "/Za",  # Equivalent to -std=c89 (enforce ANSI C)
+        "/W3",  # Moderate warning level (instead of -Wc++-compat)
+        "/GS",  # Stack protection (equivalent to -fstack-protect-strong)
+    ],
+})
+
+cc_library(
+    name = "cjson",
+    srcs = ["cJSON.c"],
+    hdrs = ["cJSON.h"],
+    copts = CJSON_COPTS + [
+        "-DCJSON_EXPORT_SYMBOLS",
+        "-DCJSON_API_VISIBILITY",
+    ],
+    linkopts = select({
+        "@bazel_tools//src/conditions:windows": [],
+        "//conditions:default": ["-lm"],  # Link math library on non-Windows
+    }),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "cjson_utils",
+    srcs = ["cJSON_Utils.c"],
+    hdrs = ["cJSON_Utils.h"],
+    copts = CJSON_COPTS + [
+        "-DCJSON_EXPORT_SYMBOLS",
+        "-DCJSON_API_VISIBILITY",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":cjson"],
+)
+
+cc_library(
+    name = "cjson_tests",  # Some tests directly include the .c file
+    hdrs = ["cJSON.c"],
+    visibility = ["//tests:__pkg__"],
+)
+
+cc_test(
+    name = "cjson_test",
+    size = "small",
+    srcs = ["test.c"],
+    copts = CJSON_COPTS + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [
+            "-fno-sanitize=float-divide-by-zero",
+        ],
+    }),
+    deps = [":cjson"],
+)
+
+test_suite(
+    name = "all_tests",
+    tests = [
+        ":cjson_test",
+        "//tests:json_patch_tests",
+        "//tests:parse_examples",
+        "//tests:unity_tests",
+    ],
+)
