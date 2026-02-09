@@ -1,9 +1,12 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+
 # Whether the utils lib was build.
 set(CJSON_UTILS_FOUND @ENABLE_CJSON_UTILS@)
 
 # The include directories used by cJSON
-set(CJSON_INCLUDE_DIRS "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
-set(CJSON_INCLUDE_DIR "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
+set(CJSON_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
+set(CJSON_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
 
 get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
@@ -11,19 +14,21 @@ get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 set(CJSON_LIBRARY "@CJSON_LIB@")
 if(@ENABLE_TARGET_EXPORT@)
   # Include the target
-  include("${_dir}/cjson.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/cjson-targets.cmake")
 endif()
 
 if(CJSON_UTILS_FOUND)
   # The cJSON utils library
-  set(CJSON_UTILS_LIBRARY @CJSON_UTILS_LIB@)
+  set(CJSON_UTILS_LIBRARY "@CJSON_UTILS_LIB@")
   # All cJSON libraries
   set(CJSON_LIBRARIES "@CJSON_UTILS_LIB@" "@CJSON_LIB@")
   if(@ENABLE_TARGET_EXPORT@)
     # Include the target
-    include("${_dir}/cjson_utils.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/cjson_utils-targets.cmake")
   endif()
 else()
   # All cJSON libraries
   set(CJSON_LIBRARIES "@CJSON_LIB@")
 endif()
+
+check_required_components("@CMAKE_PROJECT_NAME@")
