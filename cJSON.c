@@ -2915,7 +2915,9 @@ CJSON_PUBLIC(void) cJSON_Minify(char *json)
         return;
     }
 
-    while (json[0] != '\0')
+    char *end = json + strlen(json);
+
+    while (json < end && json[0] != '\0')
     {
         switch (json[0])
         {
