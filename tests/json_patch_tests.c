@@ -157,7 +157,10 @@ static cJSON_bool test_generate_test(cJSON *test)
     TEST_ASSERT_NOT_NULL_MESSAGE(patch, "Failed to generate patches.");
 
     printed_patch = cJSON_Print(patch);
-    printf("%s\n", printed_patch);
+    if (printed_patch)
+    {
+        printf("%s\n", printed_patch);
+    }
     free(printed_patch);
 
     /* apply the generated patch */

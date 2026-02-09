@@ -27,7 +27,12 @@
 
 void reset(cJSON *item);
 void reset(cJSON *item) {
-    if ((item != NULL) && (item->child != NULL))
+    if (item == NULL)
+    {
+        return;
+    }
+
+    if (item->child != NULL)
     {
         cJSON_Delete(item->child);
     }
