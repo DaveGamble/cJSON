@@ -2114,7 +2114,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObjectCS(cJSON *object, const char *stri
 
 CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item)
 {
-    if (array == NULL)
+    if (array == NULL || !cJSON_IsArray(array))
     {
         return false;
     }
