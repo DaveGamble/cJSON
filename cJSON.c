@@ -2365,6 +2365,22 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     replacement->next = item->next;
     replacement->prev = item->prev;
 
+    if (item->string)
+    {
+        /* duplicate name from source to replacement */
+        if (!(replacement->type & cJSON_StringIsConst) && (replacement->string != NULL))
+        {
+            cJSON_free(replacement->string);
+        }
+        replacement->string = (char*)cJSON_strdup((const unsigned char*)item->string, &global_hooks);
+        if (replacement->string == NULL)
+        {
+            return false;
+        }
+
+        replacement->type &= ~cJSON_StringIsConst;
+    }
+
     if (replacement->next != NULL)
     {
         replacement->next->prev = replacement;
@@ -2415,19 +2431,6 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
     {
         return false;
     }
-
-    /* replace the name in the replacement */
-    if (!(replacement->type & cJSON_StringIsConst) && (replacement->string != NULL))
-    {
-        cJSON_free(replacement->string);
-    }
-    replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
-    if (replacement->string == NULL)
-    {
-        return false;
-    }
-
-    replacement->type &= ~cJSON_StringIsConst;
 
     return cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
 }
