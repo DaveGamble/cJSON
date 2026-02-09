@@ -6,6 +6,7 @@ project(cJSON
     LANGUAGES C)
 
 cmake_policy(SET CMP0054 NEW)  # set CMP0054 policy
+cmake_policy(SET CMP0077 NEW)  # set CMP0077 policy
 
 include(GNUInstallDirs)
 
