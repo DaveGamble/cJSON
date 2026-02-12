@@ -2610,7 +2610,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
     cJSON *p = NULL;
     cJSON *a = NULL;
 
-    if ((count < 0) || (numbers == NULL))
+    if ((count < 0) || ((count > 0) && (numbers == NULL)))
     {
         return NULL;
     }
@@ -2650,7 +2650,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
     cJSON *p = NULL;
     cJSON *a = NULL;
 
-    if ((count < 0) || (numbers == NULL))
+    if ((count < 0) || ((count > 0) && (numbers == NULL)))
     {
         return NULL;
     }
@@ -2690,7 +2690,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
     cJSON *p = NULL;
     cJSON *a = NULL;
 
-    if ((count < 0) || (numbers == NULL))
+    if ((count < 0) || ((count > 0) && (numbers == NULL)))
     {
         return NULL;
     }
@@ -2730,7 +2730,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int co
     cJSON *p = NULL;
     cJSON *a = NULL;
 
-    if ((count < 0) || (strings == NULL))
+    if ((count < 0) || ((count > 0) && (strings == NULL)))
     {
         return NULL;
     }
