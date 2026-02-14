@@ -81,6 +81,12 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
 CJSON_PUBLIC(void) cJSONUtils_SortObject(cJSON * const object);
 CJSON_PUBLIC(void) cJSONUtils_SortObjectCaseSensitive(cJSON * const object);
 
+/* Sort the members of the array according to the provided comparison function. */
+/* The comparison function must return an integer that shows if the first */
+/* argument is considered less than (< 0), equals to (0) or greater than (> 0) */
+/* the second argument. */
+CJSON_PUBLIC(void) cJSONUtils_SortArray(cJSON * const object, int (*compar)(const cJSON * const a, const cJSON * const b));
+
 #ifdef __cplusplus
 }
 #endif
