@@ -324,6 +324,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     size_t i = 0;
     size_t number_string_length = 0;
     cJSON_bool has_decimal_point = false;
+    cJSON_bool has_exponent = false;
     /* Use a stack buffer to avoid heap allocation for number parsing.
      * 64 bytes is more than enough for any valid JSON number
      * (max ~25 chars for doubles like -1.7976931348623157e+308). */
@@ -335,6 +336,63 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     {
         return false;
     }
+
+    /* ===== Fast path: simple integers (no decimal, no exponent) =====
+     * Avoids strtod() entirely for the most common JSON number type.
+     * strtod() is expensive: locale handling, NaN/Inf detection, etc.
+     * Handles values up to 9 digits (<=999,999,999) to stay C89-safe with unsigned long. */
+    {
+        const unsigned char *p = buffer_at_offset(input_buffer);
+        unsigned long fast_int = 0;
+        cJSON_bool fast_negative = false;
+        size_t fast_len = 0;
+        size_t digit_count = 0;
+
+        if (*p == '-')
+        {
+            fast_negative = true;
+            p++;
+            fast_len++;
+        }
+
+        /* Must have at least one digit */
+        if (*p >= '0' && *p <= '9')
+        {
+            /* Accumulate up to 9 digits - guaranteed no overflow in unsigned long */
+            while (*p >= '0' && *p <= '9' && digit_count < 9)
+            {
+                fast_int = fast_int * 10u + (unsigned long)(*p - '0');
+                p++;
+                fast_len++;
+                digit_count++;
+            }
+
+            /* Fast path valid if: no more digits, no decimal, no exponent */
+            if ((*p < '0' || *p > '9') && *p != '.' && *p != 'e' && *p != 'E')
+            {
+                double fast_value = fast_negative ? -(double)fast_int : (double)fast_int;
+
+                item->valuedouble = fast_value;
+                if (fast_value >= INT_MAX)
+                {
+                    item->valueint = INT_MAX;
+                }
+                else if (fast_value <= (double)INT_MIN)
+                {
+                    item->valueint = INT_MIN;
+                }
+                else
+                {
+                    item->valueint = (int)fast_value;
+                }
+                item->type = cJSON_Number;
+                input_buffer->offset += fast_len;
+                return true;
+            }
+            /* else: fall through to full strtod path below */
+        }
+    }
+    /* ===== End fast path ===== */
 
     /* copy the number into a temporary buffer and replace '.' with the decimal point
      * of the current locale (for strtod)
@@ -355,9 +413,13 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
             case '9':
             case '+':
             case '-':
+                number_string_length++;
+                break;
+
             case 'e':
             case 'E':
                 number_string_length++;
+                has_exponent = true;
                 break;
 
             case '.':
@@ -399,6 +461,8 @@ loop_end:
             }
         }
     }
+
+    (void)has_exponent; /* used only to detect fast path exclusion above */
 
     number = strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
