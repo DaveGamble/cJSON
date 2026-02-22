@@ -249,7 +249,7 @@ static cJSON *cJSON_New_Item(const internal_hooks * const hooks)
     return node;
 }
 
-/* Delete a cJSON structure. */
+/* Delete a cJSON structure. Iterative to avoid stack overflow on deep nesting. */
 CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
 {
     cJSON *next = NULL;
@@ -258,17 +258,29 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
         next = item->next;
         if (!(item->type & cJSON_IsReference) && (item->child != NULL))
         {
-            cJSON_Delete(item->child);
+            /* Instead of recursing, descend into child iteratively:
+             * Push current sibling chain onto the child's tail so we
+             * process it after the subtree is freed. */
+            cJSON *child = item->child;
+            cJSON *last_child = child;
+            item->child = NULL;
+
+            /* Find the last sibling in the child chain */
+            while (last_child->next != NULL)
+            {
+                last_child = last_child->next;
+            }
+            /* Append remaining siblings after child chain */
+            last_child->next = next;
+            next = child;
         }
         if (!(item->type & cJSON_IsReference) && (item->valuestring != NULL))
         {
             global_hooks.deallocate(item->valuestring);
-            item->valuestring = NULL;
         }
         if (!(item->type & cJSON_StringIsConst) && (item->string != NULL))
         {
             global_hooks.deallocate(item->string);
-            item->string = NULL;
         }
         global_hooks.deallocate(item);
         item = next;
@@ -308,11 +320,16 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 {
     double number = 0;
     unsigned char *after_end = NULL;
-    unsigned char *number_c_string;
     unsigned char decimal_point = get_decimal_point();
     size_t i = 0;
     size_t number_string_length = 0;
     cJSON_bool has_decimal_point = false;
+    /* Use a stack buffer to avoid heap allocation for number parsing.
+     * 64 bytes is more than enough for any valid JSON number
+     * (max ~25 chars for doubles like -1.7976931348623157e+308). */
+    unsigned char number_c_string_stack[64];
+    unsigned char *number_c_string = NULL;
+    cJSON_bool number_c_string_allocated = false;
 
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
@@ -353,11 +370,19 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
         }
     }
 loop_end:
-    /* malloc for temporary buffer, add 1 for '\0' */
-    number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);
-    if (number_c_string == NULL)
+    /* Use stack buffer if possible, fall back to heap for unusually long numbers */
+    if (number_string_length < sizeof(number_c_string_stack))
     {
-        return false; /* allocation failure */
+        number_c_string = number_c_string_stack;
+    }
+    else
+    {
+        number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);
+        if (number_c_string == NULL)
+        {
+            return false; /* allocation failure */
+        }
+        number_c_string_allocated = true;
     }
 
     memcpy(number_c_string, buffer_at_offset(input_buffer), number_string_length);
@@ -378,8 +403,10 @@ loop_end:
     number = strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
     {
-        /* free the temporary buffer */
-        input_buffer->hooks.deallocate(number_c_string);
+        if (number_c_string_allocated)
+        {
+            input_buffer->hooks.deallocate(number_c_string);
+        }
         return false; /* parse_error */
     }
 
@@ -402,8 +429,10 @@ loop_end:
     item->type = cJSON_Number;
 
     input_buffer->offset += (size_t)(after_end - number_c_string);
-    /* free the temporary buffer */
-    input_buffer->hooks.deallocate(number_c_string);
+    if (number_c_string_allocated)
+    {
+        input_buffer->hooks.deallocate(number_c_string);
+    }
     return true;
 }
 
@@ -1094,9 +1123,14 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
         return buffer;
     }
 
-    while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= 32))
+    while (can_access_at_index(buffer, 0))
     {
-       buffer->offset++;
+        unsigned char c = buffer_at_offset(buffer)[0];
+        if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+        {
+            break;
+        }
+        buffer->offset++;
     }
 
     if (buffer->offset == buffer->length)
@@ -1367,48 +1401,73 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
         return false; /* no input */
     }
 
-    /* parse the different types of values */
-    /* null */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+    /* Dispatch based on first character for faster type detection */
+    if (cannot_access_at_index(input_buffer, 0))
     {
-        item->type = cJSON_NULL;
-        input_buffer->offset += 4;
-        return true;
+        return false;
     }
-    /* false */
-    if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
+
+    switch (buffer_at_offset(input_buffer)[0])
     {
-        item->type = cJSON_False;
-        input_buffer->offset += 5;
-        return true;
-    }
-    /* true */
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
-    {
-        item->type = cJSON_True;
-        item->valueint = 1;
-        input_buffer->offset += 4;
-        return true;
-    }
-    /* string */
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '\"'))
-    {
-        return parse_string(item, input_buffer);
-    }
-    /* number */
-    if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
-    {
-        return parse_number(item, input_buffer);
-    }
-    /* array */
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '['))
-    {
-        return parse_array(item, input_buffer);
-    }
-    /* object */
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '{'))
-    {
-        return parse_object(item, input_buffer);
+        /* string */
+        case '\"':
+            return parse_string(item, input_buffer);
+
+        /* number */
+        case '-':
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            return parse_number(item, input_buffer);
+
+        /* array */
+        case '[':
+            return parse_array(item, input_buffer);
+
+        /* object */
+        case '{':
+            return parse_object(item, input_buffer);
+
+        /* null */
+        case 'n':
+            if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+            {
+                item->type = cJSON_NULL;
+                input_buffer->offset += 4;
+                return true;
+            }
+            break;
+
+        /* true */
+        case 't':
+            if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
+            {
+                item->type = cJSON_True;
+                item->valueint = 1;
+                input_buffer->offset += 4;
+                return true;
+            }
+            break;
+
+        /* false */
+        case 'f':
+            if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
+            {
+                item->type = cJSON_False;
+                input_buffer->offset += 5;
+                return true;
+            }
+            break;
+
+        default:
+            break;
     }
 
     return false;
@@ -1798,16 +1857,12 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     {
         if (output_buffer->format)
         {
-            size_t i;
             output_pointer = ensure(output_buffer, output_buffer->depth);
             if (output_pointer == NULL)
             {
                 return false;
             }
-            for (i = 0; i < output_buffer->depth; i++)
-            {
-                *output_pointer++ = '\t';
-            }
+            memset(output_pointer, '\t', output_buffer->depth);
             output_buffer->offset += output_buffer->depth;
         }
 
@@ -1867,11 +1922,9 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     }
     if (output_buffer->format)
     {
-        size_t i;
-        for (i = 0; i < (output_buffer->depth - 1); i++)
-        {
-            *output_pointer++ = '\t';
-        }
+        size_t indent = output_buffer->depth - 1;
+        memset(output_pointer, '\t', indent);
+        output_pointer += indent;
     }
     *output_pointer++ = '}';
     *output_pointer = '\0';
