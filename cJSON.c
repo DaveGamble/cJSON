@@ -410,6 +410,11 @@ loop_end:
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
 CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
 {
+    if (object == NULL)
+    {
+        return (double)NAN;
+    }
+
     if (number >= INT_MAX)
     {
         object->valueint = INT_MAX;
