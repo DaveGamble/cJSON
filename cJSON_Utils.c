@@ -374,7 +374,7 @@ static void decode_pointer_inplace(unsigned char *string)
             }
             else if (string[1] == '1')
             {
-                decoded_string[1] = '/';
+                decoded_string[0] = '/';
             }
             else
             {
@@ -383,6 +383,10 @@ static void decode_pointer_inplace(unsigned char *string)
             }
 
             string++;
+        }
+        else
+        {
+            decoded_string[0] = string[0];
         }
     }
 
