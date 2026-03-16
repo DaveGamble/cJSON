@@ -799,6 +799,27 @@ static void cjson_parse_big_numbers_should_not_report_error(void)
     cJSON_Delete(valid_big_number_json_object2);
 }
 
+static void cjson_create_true_should_set_valueint(void)
+{
+    cJSON *parsed = cJSON_Parse("true");
+    cJSON *created_true = cJSON_CreateTrue();
+    cJSON *created_bool = cJSON_CreateBool(1);
+    cJSON *created_false = cJSON_CreateFalse();
+    cJSON *created_bool_false = cJSON_CreateBool(0);
+
+    TEST_ASSERT_EQUAL_INT(1, parsed->valueint);
+    TEST_ASSERT_EQUAL_INT(1, created_true->valueint);
+    TEST_ASSERT_EQUAL_INT(1, created_bool->valueint);
+    TEST_ASSERT_EQUAL_INT(0, created_false->valueint);
+    TEST_ASSERT_EQUAL_INT(0, created_bool_false->valueint);
+
+    cJSON_Delete(parsed);
+    cJSON_Delete(created_true);
+    cJSON_Delete(created_bool);
+    cJSON_Delete(created_false);
+    cJSON_Delete(created_bool_false);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -833,6 +854,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
     RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
+    RUN_TEST(cjson_create_true_should_set_valueint);
 
     return UNITY_END();
 }
