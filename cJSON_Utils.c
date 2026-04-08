@@ -906,7 +906,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     if ((opcode == MOVE) || (opcode == COPY))
     {
         cJSON *from = get_object_item(patch, "from", case_sensitive);
-        if (from == NULL)
+        if (!cJSON_IsString(from))
         {
             /* missing "from" for copy/move. */
             status = 4;
