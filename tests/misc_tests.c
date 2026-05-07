@@ -799,6 +799,26 @@ static void cjson_parse_big_numbers_should_not_report_error(void)
     cJSON_Delete(valid_big_number_json_object2);
 }
 
+static void cjson_get_array_size_should_return_correct_size(void)
+{
+    cJSON *array = cJSON_Parse("[1, 2, 3, 4, 5]");
+    TEST_ASSERT_EQUAL_INT(5, cJSON_GetArraySize(array));
+    TEST_ASSERT_EQUAL_INT(0, cJSON_GetArraySize(cJSON_CreateArray()));
+    TEST_ASSERT_EQUAL_INT(0, cJSON_GetArraySize(NULL));
+    cJSON_Delete(array);
+}
+
+static void cjson_get_array_item_should_get_items(void)
+{
+    cJSON *array = cJSON_Parse("[1, \"two\", true]");
+    TEST_ASSERT_NOT_NULL(cJSON_GetArrayItem(array, 0));
+    TEST_ASSERT_EQUAL_DOUBLE(1.0, cJSON_GetArrayItem(array, 0)->valuedouble);
+    TEST_ASSERT_EQUAL_STRING("two", cJSON_GetArrayItem(array, 1)->valuestring);
+    TEST_ASSERT_NULL(cJSON_GetArrayItem(array, 3)); // 越界访问
+    TEST_ASSERT_NULL(cJSON_GetArrayItem(NULL, 0));
+    cJSON_Delete(array);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -833,6 +853,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
     RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
+    RUN_TEST(cjson_get_array_size_should_return_correct_size);
+    RUN_TEST(cjson_get_array_item_should_get_items);
 
     return UNITY_END();
 }
