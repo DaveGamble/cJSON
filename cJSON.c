@@ -509,6 +509,11 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
         return NULL;
     }
 
+    if (p->offset > (size_t)(INT_MAX) - needed)
+    {
+        /* integer overflow */
+        return NULL;
+    }
     needed += p->offset + 1;
     if (needed <= p->length)
     {
