@@ -136,6 +136,9 @@ typedef int cJSON_bool;
 #ifndef CJSON_NESTING_LIMIT
 #define CJSON_NESTING_LIMIT 1000
 #endif
+#ifndef CJSON_STRING_MAX_LENGTH
+#define CJSON_STRING_MAX_LENGTH (32 * 1024 * 1024) /* 32MB max string length */
+#endif
 
 /* Limits the length of circular references can be before cJSON rejects to parse them.
  * This is to prevent stack overflows. */

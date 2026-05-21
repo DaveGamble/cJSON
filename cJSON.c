@@ -860,6 +860,10 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
 
         /* This is at most how much we need for the output */
         allocation_length = (size_t) (input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
+        if (allocation_length > CJSON_STRING_MAX_LENGTH)
+        {
+            goto fail;
+        }
         output = (unsigned char*)input_buffer->hooks.allocate(allocation_length + sizeof(""));
         if (output == NULL)
         {
