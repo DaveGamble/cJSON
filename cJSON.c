@@ -442,24 +442,25 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     {
         return NULL;
     }
-    /* return NULL if the object is corrupted or valuestring is NULL */
-    if (object->valuestring == NULL || valuestring == NULL)
+    /* return NULL if valuestring is NULL */
+    if (valuestring == NULL)
     {
         return NULL;
     }
-
-    v1_len = strlen(valuestring);
-    v2_len = strlen(object->valuestring);
-
-    if (v1_len <= v2_len)
+    if(object->valuestring)
     {
-        /* strcpy does not handle overlapping string: [X1, X2] [Y1, Y2] => X2 < Y1 or Y2 < X1 */
-        if (!( valuestring + v1_len < object->valuestring || object->valuestring + v2_len < valuestring ))
+        v1_len = strlen(valuestring);
+        v2_len = strlen(object->valuestring);
+
+        if (v1_len <= v2_len)
         {
-            return NULL;
+            /* strcpy does not handle overlapping string: [X1, X2] [Y1, Y2] => X2 < Y1 or Y2 < X1 */
+            if ( valuestring + v1_len < object->valuestring || object->valuestring + v2_len < valuestring )
+            {
+                strcpy(object->valuestring, valuestring);
+                return object->valuestring;
+            }            
         }
-        strcpy(object->valuestring, valuestring);
-        return object->valuestring;
     }
     copy = (char*) cJSON_strdup((const unsigned char*)valuestring, &global_hooks);
     if (copy == NULL)
