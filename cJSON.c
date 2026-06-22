@@ -90,10 +90,14 @@ typedef struct {
     size_t position;
 } error;
 static error global_error = { NULL, 0 };
-
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 {
-    return (const char*) (global_error.json + global_error.position);
+    if (global_error.json == NULL)
+    {
+        return NULL;
+    }
+
+    return (const char *)(global_error.json + global_error.position);
 }
 
 CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)

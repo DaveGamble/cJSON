@@ -798,7 +798,14 @@ static void cjson_parse_big_numbers_should_not_report_error(void)
     cJSON_Delete(valid_big_number_json_object1);
     cJSON_Delete(valid_big_number_json_object2);
 }
+static void cjson_get_error_ptr_should_return_null_for_null_input(void)
+{
+    cJSON *json = cJSON_Parse(NULL);
+    const char *error_ptr = cJSON_GetErrorPtr();
 
+    TEST_ASSERT_NULL(json);
+    TEST_ASSERT_NULL(error_ptr);
+}
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -833,6 +840,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
     RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
-
+RUN_TEST(cjson_get_error_ptr_should_return_null_for_null_input);
     return UNITY_END();
 }
