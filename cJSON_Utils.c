@@ -275,6 +275,10 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
 {
     size_t parsed_index = 0;
     size_t position = 0;
+    if ((pointer[0] == '\0') || (pointer[0] == '/'))
+{
+    return 0;
+}
 
     if ((pointer[0] == '0') && ((pointer[1] != '\0') && (pointer[1] != '/')))
     {
@@ -298,8 +302,27 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
     return 1;
 }
 
-static cJSON *get_item_from_pointer(cJSON * const object, const char * pointer, const cJSON_bool case_sensitive)
+static cJSON_bool decode_array_index_from_pointer(
+    const unsigned char * const pointer,
+    size_t * const index)
 {
+    size_t parsed_index = 0;
+    size_t position = 0;
+
+    /* Empty reference token is invalid */
+    if ((pointer[0] == '\0') || (pointer[0] == '/'))
+    {
+        return 0;
+    }
+
+    if ((pointer[0] == '0') &&
+        ((pointer[1] != '\0') && (pointer[1] != '/')))
+    {
+        return 0;
+    }
+
+    ...
+}{
     cJSON *current_element = object;
 
     if (pointer == NULL)
