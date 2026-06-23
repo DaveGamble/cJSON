@@ -2913,10 +2913,15 @@ static void minify_string(char **input, char **output) {
             *input += static_strlen("\"");
             *output += static_strlen("\"");
             return;
-        } else if (((*input)[0] == '\\') && ((*input)[1] == '\"')) {
-            (*output)[1] = (*input)[1];
-            *input += static_strlen("\"");
-            *output += static_strlen("\"");
+        }
+        else if ((*input)[0] == '\\')
+        {
+            if ((*input)[1] != '\0')
+            {
+                (*output)[1] = (*input)[1];
+                *input += 1;
+                *output += 1;
+            }
         }
     }
 }

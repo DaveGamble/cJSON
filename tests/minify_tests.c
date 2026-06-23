@@ -95,6 +95,54 @@ static void cjson_minify_should_not_modify_strings(void)
     TEST_ASSERT_EQUAL_STRING(to_minify, minified);
 
     free(minified);
+
+    {
+        const char to_minify2[] = "\"escaped backslash \\\\\"";
+        char* minified2 = (char*) malloc(sizeof(to_minify2));
+        TEST_ASSERT_NOT_NULL(minified2);
+        strcpy(minified2, to_minify2);
+
+        cJSON_Minify(minified2);
+        TEST_ASSERT_EQUAL_STRING(to_minify2, minified2);
+
+        free(minified2);
+    }
+
+    {
+        const char to_minify3[] = "[ \"\\\\\" , \"a\" ]";
+        char* minified3 = (char*) malloc(sizeof(to_minify3));
+        TEST_ASSERT_NOT_NULL(minified3);
+        strcpy(minified3, to_minify3);
+
+        cJSON_Minify(minified3);
+        TEST_ASSERT_EQUAL_STRING("[\"\\\\\",\"a\"]", minified3);
+
+        free(minified3);
+    }
+
+    {
+        const char to_minify4[] = "[ \"\\\\\" /* comment */ , \"a\" ]";
+        char* minified4 = (char*) malloc(sizeof(to_minify4));
+        TEST_ASSERT_NOT_NULL(minified4);
+        strcpy(minified4, to_minify4);
+
+        cJSON_Minify(minified4);
+        TEST_ASSERT_EQUAL_STRING("[\"\\\\\",\"a\"]", minified4);
+
+        free(minified4);
+    }
+
+    {
+        const char to_minify5[] = "\"\\\\\\\\\"";
+        char* minified5 = (char*) malloc(sizeof(to_minify5));
+        TEST_ASSERT_NOT_NULL(minified5);
+        strcpy(minified5, to_minify5);
+
+        cJSON_Minify(minified5);
+        TEST_ASSERT_EQUAL_STRING("\"\\\\\\\\\"", minified5);
+
+        free(minified5);
+    }
 }
 
 static void cjson_minify_should_minify_json(void) {
