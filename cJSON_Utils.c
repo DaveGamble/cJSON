@@ -222,6 +222,11 @@ CJSON_PUBLIC(char *) cJSONUtils_FindPointerFromObjectTo(const cJSON * const obje
             {
                 /* reserve enough memory for a 64 bit integer + '/' and '\0' */
                 unsigned char *full_pointer = (unsigned char*)cJSON_malloc(strlen((char*)target_pointer) + 20 + sizeof("/"));
+                if (full_pointer == NULL)
+{
+    cJSON_free(target_pointer);
+    return NULL;
+}
                 /* check if conversion to unsigned long is valid
                  * This should be eliminated at compile time by dead code elimination
                  * if size_t is an alias of unsigned long, or if it is bigger */
@@ -275,10 +280,10 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
 {
     size_t parsed_index = 0;
     size_t position = 0;
-    if ((pointer[0] == '\0') || (pointer[0] == '/'))
-{
-    return 0;
-}
+     if ((pointer[0] == '\0') || (pointer[0] == '/'))
+    {
+        return 0;
+    }
 
     if ((pointer[0] == '0') && ((pointer[1] != '\0') && (pointer[1] != '/')))
     {
@@ -302,27 +307,8 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
     return 1;
 }
 
-static cJSON_bool decode_array_index_from_pointer(
-    const unsigned char * const pointer,
-    size_t * const index)
+static cJSON *get_item_from_pointer(cJSON * const object, const char * pointer, const cJSON_bool case_sensitive)
 {
-    size_t parsed_index = 0;
-    size_t position = 0;
-
-    /* Empty reference token is invalid */
-    if ((pointer[0] == '\0') || (pointer[0] == '/'))
-    {
-        return 0;
-    }
-
-    if ((pointer[0] == '0') &&
-        ((pointer[1] != '\0') && (pointer[1] != '/')))
-    {
-        return 0;
-    }
-
-    ...
-}{
     cJSON *current_element = object;
 
     if (pointer == NULL)
@@ -1140,10 +1126,16 @@ static void compose_patch(cJSON * const patches, const unsigned char * const ope
     {
         size_t suffix_length = pointer_encoded_length(suffix);
         size_t path_length = strlen((const char*)path);
-        unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
+       unsigned char *full_path =
+    (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
 
-        sprintf((char*)full_path, "%s/", (const char*)path);
-        encode_string_as_pointer(full_path + path_length + 1, suffix);
+if (full_path == NULL)
+{
+    return;
+}
+
+sprintf((char*)full_path, "%s/", (const char*)path);
+encode_string_as_pointer(full_path + path_length + 1, suffix);
 
         cJSON_AddItemToObject(patch, "path", cJSON_CreateString((const char*)full_path));
         cJSON_free(full_path);
@@ -1195,8 +1187,15 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
             size_t index = 0;
             cJSON *from_child = from->child;
             cJSON *to_child = to->child;
-            unsigned char *new_path = (unsigned char*)cJSON_malloc(strlen((const char*)path) + 20 + sizeof("/")); /* Allow space for 64bit int. log10(2^64) = 20 */
-
+            unsigned char *new_path = (unsigned char*)cJSON_malloc(strlen((const char*)path) + 20 + sizeof("/"));
+            if (new_path == NULL)
+{
+    return NULL;
+} /* Allow space for 64bit int. log10(2^64) = 20 */
+            sprintf((char*)new_path,
+        "%s/%lu",
+        path,
+        (unsigned long)index);
             /* generate patches for all array elements that exist in both "from" and "to" */
             for (index = 0; (from_child != NULL) && (to_child != NULL); (void)(from_child = from_child->next), (void)(to_child = to_child->next), index++)
             {
@@ -1267,7 +1266,10 @@ static void create_patches(cJSON * const patches, const unsigned char * const pa
                     size_t path_length = strlen((const char*)path);
                     size_t from_child_name_length = pointer_encoded_length((unsigned char*)from_child->string);
                     unsigned char *new_path = (unsigned char*)cJSON_malloc(path_length + from_child_name_length + sizeof("/"));
-
+                    if (new_path == NULL)
+{
+    return NULL;
+}
                     sprintf((char*)new_path, "%s/", path);
                     encode_string_as_pointer(new_path + path_length + 1, (unsigned char*)from_child->string);
 
