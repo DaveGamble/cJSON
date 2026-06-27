@@ -97,6 +97,39 @@ static void parse_with_opts_should_parse_utf8_bom(void)
     cJSON_Delete(without_bom);
 }
 
+static void parse_with_length_opts_should_handle_zero_length_input(void)
+{
+    const char json[] = "{}";
+    const char *error_pointer = NULL;
+
+    TEST_ASSERT_NULL(cJSON_ParseWithLengthOpts(json, 0, &error_pointer, false));
+    TEST_ASSERT_EQUAL_PTR(json, error_pointer);
+    TEST_ASSERT_EQUAL_PTR(json, cJSON_GetErrorPtr());
+}
+
+static void parse_with_length_opts_should_parse_non_null_terminated_input(void)
+{
+    const char json[] = "[] trailing data";
+    const char *parse_end = NULL;
+    cJSON *item = NULL;
+
+    item = cJSON_ParseWithLengthOpts(json, 2, &parse_end, false);
+    TEST_ASSERT_NOT_NULL(item);
+    TEST_ASSERT_EQUAL_PTR(json + 2, parse_end);
+
+    cJSON_Delete(item);
+}
+
+static void parse_with_length_opts_should_require_null_termination(void)
+{
+    const char json[] = "[]x";
+    const char *parse_end = NULL;
+
+    TEST_ASSERT_NULL(cJSON_ParseWithLengthOpts(json, sizeof(json) - 1, &parse_end, true));
+    TEST_ASSERT_EQUAL_PTR(json + 2, parse_end);
+    TEST_ASSERT_EQUAL_PTR(json + 2, cJSON_GetErrorPtr());
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -107,6 +140,9 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_with_opts_should_require_null_if_requested);
     RUN_TEST(parse_with_opts_should_return_parse_end);
     RUN_TEST(parse_with_opts_should_parse_utf8_bom);
+    RUN_TEST(parse_with_length_opts_should_handle_zero_length_input);
+    RUN_TEST(parse_with_length_opts_should_parse_non_null_terminated_input);
+    RUN_TEST(parse_with_length_opts_should_require_null_termination);
 
     return UNITY_END();
 }
