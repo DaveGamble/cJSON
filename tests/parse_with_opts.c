@@ -89,7 +89,7 @@ static void parse_with_opts_should_parse_utf8_bom(void)
     with_bom = cJSON_ParseWithOpts("\xEF\xBB\xBF{}", NULL, true);
     TEST_ASSERT_NOT_NULL(with_bom);
     without_bom = cJSON_ParseWithOpts("{}", NULL, true);
-    TEST_ASSERT_NOT_NULL(with_bom);
+    TEST_ASSERT_NOT_NULL(without_bom);
 
     TEST_ASSERT_TRUE(cJSON_Compare(with_bom, without_bom, true));
 
