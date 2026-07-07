@@ -70,11 +70,32 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_utils_apply_patches_should_reject_null_object(void)
+{
+    /* A well-formed patch array that targets the document root ("") with an
+     * "add" operation. On a NULL object this used to dereference the object
+     * (object->string) and crash; it must now return a non-zero error code. */
+    cJSON *patches = cJSON_CreateArray();
+    cJSON *patch = cJSON_CreateObject();
+    TEST_ASSERT_NOT_NULL(patches);
+    TEST_ASSERT_NOT_NULL(patch);
+    cJSON_AddItemToObject(patch, "op", cJSON_CreateString("add"));
+    cJSON_AddItemToObject(patch, "path", cJSON_CreateString(""));
+    cJSON_AddItemToObject(patch, "value", cJSON_CreateNumber(1));
+    cJSON_AddItemToArray(patches, patch);
+
+    TEST_ASSERT_TRUE(cJSONUtils_ApplyPatches(NULL, patches) != 0);
+    TEST_ASSERT_TRUE(cJSONUtils_ApplyPatchesCaseSensitive(NULL, patches) != 0);
+
+    cJSON_Delete(patches);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_apply_patches_should_reject_null_object);
 
     return UNITY_END();
 }

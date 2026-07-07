@@ -1040,6 +1040,12 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
     const cJSON *current_patch = NULL;
     int status = 0;
 
+    if (object == NULL)
+    {
+        /* invalid object. */
+        return 1;
+    }
+
     if (!cJSON_IsArray(patches))
     {
         /* malformed patches. */
@@ -1068,6 +1074,12 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, con
 {
     const cJSON *current_patch = NULL;
     int status = 0;
+
+    if (object == NULL)
+    {
+        /* invalid object. */
+        return 1;
+    }
 
     if (!cJSON_IsArray(patches))
     {
