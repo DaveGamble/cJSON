@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -391,6 +392,11 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
     if (needed > INT_MAX)
     {
         /* sizes bigger than INT_MAX are currently not supported */
+        return NULL;
+    }
+
+    /* Ensure adding (p->offset + 1) won't overflow SIZE_MAX */
+    if (p->offset > SIZE_MAX - 1 - needed) {
         return NULL;
     }
 
