@@ -1388,7 +1388,7 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
         {
             if (to_child != NULL)
             {
-                diff = strcmp(from_child->string, to_child->string);
+                diff = compare_strings((const unsigned char *)from_child->string, (const unsigned char *)to_child->string, case_sensitive);
             }
             else
             {
