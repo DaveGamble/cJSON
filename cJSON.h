@@ -232,6 +232,15 @@ CJSON_PUBLIC(void) cJSON_DeleteItemFromObjectCaseSensitive(cJSON *object, const 
 /* Update array items. */
 CJSON_PUBLIC(void) cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem); /* Shifts pre-existing items to the right. */
 CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON * const item, cJSON * replacement);
+
+/* Replaces an item at index 'which' in 'array' with 'newitem'.
+ *
+ * @return cJSON_True (1) on successful replacement.
+ * @return cJSON_False (0) if the operation fails (e.g., if 'array' or 'newitem' is NULL,
+ *         or if 'which' is negative or exceeds the current array bounds).
+ *
+ * Note: An out-of-range index fails silently by returning cJSON_False without modifying the array.
+ */
 CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem);
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 CJSON_PUBLIC(void) cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object,const char *string,cJSON *newitem);

@@ -545,7 +545,16 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     return true;
 }
 
-/* parse 4 digit hexadecimal number */
+/* Helper function to parse 4 hexadecimal digits from input.
+ *
+ * NOTE ON RETURN VALUE:
+ * Returns 0 in two scenarios:
+ * 1. Success: The input sequence is valid hexadecimal representing 0x0000 (e.g., "\u0000").
+ * 2. Failure: An invalid hexadecimal character was encountered.
+ *
+ * Callers that need to distinguish a valid 0x0000 from a parse failure must check input 
+ * validation or pointer offset before relying solely on a non-zero return value.
+ */
 static unsigned parse_hex4(const unsigned char * const input)
 {
     unsigned int h = 0;
@@ -2288,6 +2297,8 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     return true;
 }
 
+/* Replace an item in an array at a given index.
+ * Returns cJSON_False if input pointers are NULL or if 'which' index is out of bounds. */
 CJSON_PUBLIC(void) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
 {
     if (which < 0)
