@@ -1919,6 +1919,41 @@ CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)
     return (int)size;
 }
 
+/*
+    Returns all keys of an object as a cJSON string array. The caller is responsible
+    for freeing the returned array with cJSON_Delete. Returns NULL on invalid input
+    or allocation failure.
+*/
+CJSON_PUBLIC(cJSON *) cJSON_GetAllKeys(const cJSON *const object)
+{
+    if (object == NULL || !(object->type & cJSON_Object))
+    {
+        return NULL;
+    }
+
+    cJSON *array = cJSON_CreateArray();
+    if (array == NULL)
+    {
+        return NULL;
+    }
+
+    cJSON *child = object->child;
+    while (child)
+    {
+        char *key = child->string;
+        cJSON *newItem = cJSON_CreateString(key);
+        if (newItem == NULL)
+        {
+            cJSON_Delete(array);
+            return NULL;
+        }
+        cJSON_AddItemToArray(array, newItem);
+
+        child = child->next;
+    }
+    return array;
+}
+
 static cJSON* get_array_item(const cJSON *array, size_t index)
 {
     cJSON *current_child = NULL;
