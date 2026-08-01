@@ -69,14 +69,6 @@
 #endif
 #define false ((cJSON_bool)0)
 
-/* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
-#ifndef isinf
-#define isinf(d) (isnan((d - d)) && !isnan(d))
-#endif
-#ifndef isnan
-#define isnan(d) (d != d)
-#endif
-
 #ifndef NAN
 #ifdef _WIN32
 #define NAN sqrt(-1.0)
@@ -609,7 +601,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
 
     /* This checks for NaN and Infinity */
-    if (isnan(d) || isinf(d))
+    if ((d != d) || (d > DBL_MAX) || (d < -DBL_MAX))
     {
         length = sprintf((char*)number_buffer, "null");
     }
