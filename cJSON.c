@@ -1219,6 +1219,12 @@ fail:
 
         global_error = local_error;
     }
+    else 
+    {
+        const unsigned char *safe_to_dereference = (const unsigned char*)"";
+        global_error.json = safe_to_dereference;
+        global_error.position = 0;
+    }
 
     return NULL;
 }
