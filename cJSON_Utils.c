@@ -601,8 +601,13 @@ static void sort_object(cJSON * const object, const cJSON_bool case_sensitive)
     object->child = sort_list(object->child, case_sensitive);
 }
 
-static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensitive)
+static cJSON_bool compare_json(cJSON *a, cJSON *b, size_t depth, const cJSON_bool case_sensitive)
 {
+    /* Prevent stack overflow from deeply nested JSON comparison (#995) */
+    if (depth >= CJSON_NESTING_LIMIT)
+    {
+        return false;
+    }
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
     {
         /* mismatched type. */
@@ -635,7 +640,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
         case cJSON_Array:
             for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
-                cJSON_bool identical = compare_json(a, b, case_sensitive);
+                cJSON_bool identical = compare_json(a, b, depth + 1, case_sensitive);
                 if (!identical)
                 {
                     return false;
@@ -664,7 +669,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
                     /* missing member */
                     return false;
                 }
-                identical = compare_json(a, b, case_sensitive);
+                identical = compare_json(a, b, depth + 1, case_sensitive);
                 if (!identical)
                 {
                     return false;
@@ -831,7 +836,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), get_object_item(patch, "value", case_sensitive), case_sensitive);
+        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), get_object_item(patch, "value", case_sensitive), 0, case_sensitive);
         goto cleanup;
     }
 
@@ -1318,9 +1323,16 @@ CJSON_PUBLIC(void) cJSONUtils_SortObjectCaseSensitive(cJSON * const object)
     sort_object(object, true);
 }
 
-static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_bool case_sensitive)
+static cJSON *merge_patch(cJSON *target, const cJSON * const patch, size_t depth, const cJSON_bool case_sensitive)
 {
     cJSON *patch_child = NULL;
+
+    /* Prevent stack overflow from deeply nested JSON merge patch (#995) */
+    if (depth >= CJSON_NESTING_LIMIT)
+    {
+        cJSON_Delete(target);
+        return NULL;
+    }
 
     if (!cJSON_IsObject(patch))
     {
@@ -1364,7 +1376,7 @@ static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_
                 replace_me = cJSON_DetachItemFromObject(target, patch_child->string);
             }
 
-            replacement = merge_patch(replace_me, patch_child, case_sensitive);
+            replacement = merge_patch(replace_me, patch_child, depth + 1, case_sensitive);
             if (replacement == NULL)
             {
                 cJSON_Delete(target);
@@ -1380,19 +1392,25 @@ static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatch(cJSON *target, const cJSON * const patch)
 {
-    return merge_patch(target, patch, false);
+    return merge_patch(target, patch, 0, false);
 }
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatchCaseSensitive(cJSON *target, const cJSON * const patch)
 {
-    return merge_patch(target, patch, true);
+    return merge_patch(target, patch, 0, true);
 }
 
-static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const cJSON_bool case_sensitive)
+static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, size_t depth, const cJSON_bool case_sensitive)
 {
     cJSON *from_child = NULL;
     cJSON *to_child = NULL;
     cJSON *patch = NULL;
+    cJSON *sub_patch = NULL;
+    /* Prevent stack overflow from deeply nested JSON generate merge patch (#995) */
+    if (depth >= CJSON_NESTING_LIMIT)
+    {
+        return NULL;
+    }
     if (to == NULL)
     {
         /* patch to delete everything */
@@ -1449,10 +1467,16 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
         else
         {
             /* object key exists in both objects */
-            if (!compare_json(from_child, to_child, case_sensitive))
+            if (!compare_json(from_child, to_child, 0, case_sensitive))
             {
+                sub_patch = generate_merge_patch(from_child, to_child, depth + 1, case_sensitive);
+                if (sub_patch == NULL)
+                {
+                    cJSON_Delete(patch);
+                    return NULL;
+                }
                 /* not identical --> generate a patch */
-                cJSON_AddItemToObject(patch, to_child->string, cJSONUtils_GenerateMergePatch(from_child, to_child));
+                cJSON_AddItemToObject(patch, to_child->string, sub_patch);
             }
 
             /* next key in the object */
@@ -1472,10 +1496,10 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to)
 {
-    return generate_merge_patch(from, to, false);
+    return generate_merge_patch(from, to, 0, false);
 }
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatchCaseSensitive(cJSON * const from, cJSON * const to)
 {
-    return generate_merge_patch(from, to, true);
+    return generate_merge_patch(from, to, 0, true);
 }
