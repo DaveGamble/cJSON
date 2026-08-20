@@ -1324,9 +1324,13 @@ static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_
 
     if (!cJSON_IsObject(patch))
     {
-        /* scalar value, array or NULL, just duplicate */
+        /* scalar value, array or NULL, just duplicate.
+         * Duplicate the patch first in case it is a subtree of target,
+         * otherwise cJSON_Delete(target) would free the patch memory
+         * and the subsequent cJSON_Duplicate would read freed memory. */
+        cJSON *duplicate = cJSON_Duplicate(patch, 1);
         cJSON_Delete(target);
-        return cJSON_Duplicate(patch, 1);
+        return duplicate;
     }
 
     if (!cJSON_IsObject(target))
