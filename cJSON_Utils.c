@@ -1118,6 +1118,11 @@ static void compose_patch(cJSON * const patches, const unsigned char * const ope
         size_t suffix_length = pointer_encoded_length(suffix);
         size_t path_length = strlen((const char*)path);
         unsigned char *full_path = (unsigned char*)cJSON_malloc(path_length + suffix_length + sizeof("/"));
+        if (full_path == NULL)
+        {
+            cJSON_Delete(patch);
+            return;
+        }
 
         sprintf((char*)full_path, "%s/", (const char*)path);
         encode_string_as_pointer(full_path + path_length + 1, suffix);
