@@ -1099,9 +1099,18 @@ static parse_buffer *buffer_skip_whitespace(parse_buffer * const buffer)
         return buffer;
     }
 
-    while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= 32))
+    /* RFC 8259 whitespace: only ' ', '\t', '\n', '\r'. The old
+     * `<= 32` accepted every control byte (NUL, 0x01, 0x0b, 0x0c,
+     * 0x1f, ...) as whitespace between tokens, so cJSON_ParseWith
+     * LengthOpts("[\\x0b1]", 5, NULL, 1) would parse [1]. */
+    while (can_access_at_index(buffer, 0))
     {
-       buffer->offset++;
+        unsigned char c = buffer_at_offset(buffer)[0];
+        if ((c != ' ') && (c != '\t') && (c != '\n') && (c != '\r'))
+        {
+            break;
+        }
+        buffer->offset++;
     }
 
     if (buffer->offset == buffer->length)
