@@ -277,6 +277,18 @@ static void test15_should_not_heap_buffer_overflow(void)
     }
 }
 
+static void test16_should_parse_short_json_with_bom_without_null_termination(void)
+{
+    const char json[] = { (char)0xef, (char)0xbb, (char)0xbf, '0' };
+    cJSON *tree = cJSON_ParseWithLength(json, sizeof(json));
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(tree, "Failed to parse valid short JSON with a UTF-8 BOM.");
+    TEST_ASSERT_TRUE(cJSON_IsNumber(tree));
+    TEST_ASSERT_EQUAL_DOUBLE(0, tree->valuedouble);
+
+    cJSON_Delete(tree);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -295,5 +307,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(test13_should_be_parsed_without_null_termination);
     RUN_TEST(test14_should_not_be_parsed);
     RUN_TEST(test15_should_not_heap_buffer_overflow);
+    RUN_TEST(test16_should_parse_short_json_with_bom_without_null_termination);
     return UNITY_END();
 }
