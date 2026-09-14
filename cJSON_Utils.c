@@ -1393,7 +1393,7 @@ CJSON_PUBLIC(cJSON *) cJSONUtils_MergePatchCaseSensitive(cJSON *target, const cJ
     return merge_patch(target, patch, true);
 }
 
-static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const cJSON_bool case_sensitive)
+static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const cJSON_bool case_sensitive, size_t depth)
 {
     cJSON *from_child = NULL;
     cJSON *to_child = NULL;
@@ -1402,6 +1402,11 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
     {
         /* patch to delete everything */
         return cJSON_CreateNull();
+    }
+    if (depth >= CJSON_NESTING_LIMIT)
+    {
+        /* Do not recurse beyond the same limit used by cJSON comparisons. */
+        return NULL;
     }
     if (!cJSON_IsObject(to) || !cJSON_IsObject(from))
     {
@@ -1457,7 +1462,7 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
             if (!compare_json(from_child, to_child, case_sensitive, 0))
             {
                 /* not identical --> generate a patch */
-                cJSON_AddItemToObject(patch, to_child->string, cJSONUtils_GenerateMergePatch(from_child, to_child));
+                cJSON_AddItemToObject(patch, to_child->string, generate_merge_patch(from_child, to_child, case_sensitive, depth + 1));
             }
 
             /* next key in the object */
@@ -1477,10 +1482,10 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatch(cJSON * const from, cJSON * const to)
 {
-    return generate_merge_patch(from, to, false);
+    return generate_merge_patch(from, to, false, 0);
 }
 
 CJSON_PUBLIC(cJSON *) cJSONUtils_GenerateMergePatchCaseSensitive(cJSON * const from, cJSON * const to)
 {
-    return generate_merge_patch(from, to, true);
+    return generate_merge_patch(from, to, true, 0);
 }
