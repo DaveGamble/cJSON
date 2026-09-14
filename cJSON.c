@@ -3069,9 +3069,14 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+static cJSON_bool cJSON_Compare_rec(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive, size_t depth)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
+    {
+        return false;
+    }
+
+    if (depth >= CJSON_NESTING_LIMIT)
     {
         return false;
     }
@@ -3134,7 +3139,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
 
             for (; (a_element != NULL) && (b_element != NULL);)
             {
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                if (!cJSON_Compare_rec(a_element, b_element, case_sensitive, depth + 1))
                 {
                     return false;
                 }
@@ -3164,7 +3169,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
                     return false;
                 }
 
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                if (!cJSON_Compare_rec(a_element, b_element, case_sensitive, depth + 1))
                 {
                     return false;
                 }
@@ -3180,7 +3185,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
                     return false;
                 }
 
-                if (!cJSON_Compare(b_element, a_element, case_sensitive))
+                if (!cJSON_Compare_rec(b_element, a_element, case_sensitive, depth + 1))
                 {
                     return false;
                 }
@@ -3192,6 +3197,11 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         default:
             return false;
     }
+}
+
+CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+{
+    return cJSON_Compare_rec(a, b, case_sensitive, 0);
 }
 
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size)
