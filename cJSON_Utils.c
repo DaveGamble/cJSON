@@ -1398,6 +1398,7 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
     cJSON *from_child = NULL;
     cJSON *to_child = NULL;
     cJSON *patch = NULL;
+    cJSON *child_patch = NULL;
     if (to == NULL)
     {
         /* patch to delete everything */
@@ -1462,7 +1463,13 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
             if (!compare_json(from_child, to_child, case_sensitive, 0))
             {
                 /* not identical --> generate a patch */
-                cJSON_AddItemToObject(patch, to_child->string, generate_merge_patch(from_child, to_child, case_sensitive, depth + 1));
+                child_patch = generate_merge_patch(from_child, to_child, case_sensitive, depth + 1);
+                if ((child_patch == NULL) || !cJSON_AddItemToObject(patch, to_child->string, child_patch))
+                {
+                    cJSON_Delete(child_patch);
+                    cJSON_Delete(patch);
+                    return NULL;
+                }
             }
 
             /* next key in the object */
