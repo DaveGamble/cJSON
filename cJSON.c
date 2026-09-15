@@ -585,20 +585,20 @@ static void remove_trailing_zeros(char *str) {
     char *dot = strchr(str, '.'); /* Find the decimal point */
     char *start;
     char *end = str + strlen(str) - 1; /* Start at the end of the string */
-    /* Check if floating point, if not return */
-    if (!dot)
+    /* Only a fractional part can carry trailing zeros; an integral one still needs the
+     * signed-zero check below, so this skips the stripping rather than returning */
+    if (dot)
     {
-        return;
-    }
-    /* Remove trailing zeros */
-    while (end > dot && *end == '0') {
-        *end = '\0'; /* Replace zero with null terminator */
-        end--;
-    }
-    /* If the last character is now the decimal point, remove it */
-    if (*end == '.') {
-        *end = '\0';
-        end--;
+        /* Remove trailing zeros */
+        while (end > dot && *end == '0') {
+            *end = '\0'; /* Replace zero with null terminator */
+            end--;
+        }
+        /* If the last character is now the decimal point, remove it */
+        if (*end == '.') {
+            *end = '\0';
+            end--;
+        }
     }
     /* Check if zero */
     start = str + is_neg;

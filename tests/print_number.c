@@ -154,6 +154,13 @@ static void print_number_fixed_point(void)
     assert_print_number_with_precision("0", -10e-10, false, 5);
     assert_print_number_with_precision("-0.03", -0.029999999999999999, false, 2);
     assert_print_number_with_precision("0.03", 0.029999999999999999, false, 2);
+    /* A negative that rounds away to zero drops its sign at every precision, including 0,
+     * where "%.0f" yields "-0" and there is no decimal point to strip */
+    assert_print_number_with_precision("0", -0.4, false, 0);
+    assert_print_number_with_precision("0", -0.0001, false, 0);
+    assert_print_number_with_precision("0", -0.5, false, 0);   /* Bankers rounding, to the nearest even */
+    assert_print_number_with_precision("-1", -0.6, false, 0);
+    assert_print_number_with_precision("-2", -1.5, false, 0);  /* Bankers rounding, to the nearest even */
 }
 
 static void print_number_fixed_point_single_digit_result(void)
