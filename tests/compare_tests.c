@@ -189,6 +189,59 @@ static void cjson_compare_should_compare_objects(void)
                 false))
 }
 
+static cJSON *create_nested_arrays(const size_t depth)
+{
+    cJSON *root = cJSON_CreateArray();
+    cJSON *current = root;
+    size_t i;
+
+    if (root == NULL)
+    {
+        return NULL;
+    }
+
+    for (i = 0; i < depth; i++)
+    {
+        cJSON *child = cJSON_CreateArray();
+        if (child == NULL)
+        {
+            cJSON_Delete(root);
+            return NULL;
+        }
+        cJSON_AddItemToArray(current, child);
+        current = child;
+    }
+
+    if (cJSON_AddItemToArray(current, cJSON_CreateNumber(1)) == false)
+    {
+        cJSON_Delete(root);
+        return NULL;
+    }
+
+    return root;
+}
+
+static void cjson_compare_should_bound_recursive_comparisons(void)
+{
+    cJSON *within_limit = create_nested_arrays(CJSON_NESTING_LIMIT - 2);
+    cJSON *within_limit_copy = create_nested_arrays(CJSON_NESTING_LIMIT - 2);
+    cJSON *at_limit = create_nested_arrays(CJSON_NESTING_LIMIT - 1);
+    cJSON *at_limit_copy = create_nested_arrays(CJSON_NESTING_LIMIT - 1);
+
+    TEST_ASSERT_NOT_NULL(within_limit);
+    TEST_ASSERT_NOT_NULL(within_limit_copy);
+    TEST_ASSERT_NOT_NULL(at_limit);
+    TEST_ASSERT_NOT_NULL(at_limit_copy);
+
+    TEST_ASSERT_TRUE(cJSON_Compare(within_limit, within_limit_copy, true));
+    TEST_ASSERT_FALSE(cJSON_Compare(at_limit, at_limit_copy, true));
+
+    cJSON_Delete(within_limit);
+    cJSON_Delete(within_limit_copy);
+    cJSON_Delete(at_limit);
+    cJSON_Delete(at_limit_copy);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -203,6 +256,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_compare_should_compare_raw);
     RUN_TEST(cjson_compare_should_compare_arrays);
     RUN_TEST(cjson_compare_should_compare_objects);
+    RUN_TEST(cjson_compare_should_bound_recursive_comparisons);
 
     return UNITY_END();
 }

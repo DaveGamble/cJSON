@@ -70,11 +70,60 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static cJSON *create_nested_objects(const size_t depth)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *current = root;
+    size_t i;
+
+    if (root == NULL)
+    {
+        return NULL;
+    }
+
+    for (i = 0; i < depth; i++)
+    {
+        cJSON *child = cJSON_CreateObject();
+        if (child == NULL || cJSON_AddItemToObject(current, "child", child) == false)
+        {
+            cJSON_Delete(child);
+            cJSON_Delete(root);
+            return NULL;
+        }
+        current = child;
+    }
+
+    if (cJSON_AddNumberToObject(current, "value", 1) == NULL)
+    {
+        cJSON_Delete(root);
+        return NULL;
+    }
+
+    return root;
+}
+
+static void cjson_utils_should_propagate_bounded_merge_patch_failure(void)
+{
+    cJSON *from = create_nested_objects(CJSON_NESTING_LIMIT - 1);
+    cJSON *to = create_nested_objects(CJSON_NESTING_LIMIT - 1);
+    cJSON *patch = NULL;
+
+    TEST_ASSERT_NOT_NULL(from);
+    TEST_ASSERT_NOT_NULL(to);
+
+    patch = cJSONUtils_GenerateMergePatch(from, to);
+    TEST_ASSERT_NULL(patch);
+
+    cJSON_Delete(from);
+    cJSON_Delete(to);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_should_propagate_bounded_merge_patch_failure);
 
     return UNITY_END();
 }
