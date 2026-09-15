@@ -156,6 +156,18 @@ static void print_number_fixed_point(void)
     assert_print_number_with_precision("0.03", 0.029999999999999999, false, 2);
 }
 
+static void print_number_fixed_point_single_digit_result(void)
+{
+    /* Rounding up to one digit: the trailing-zero strip left "1", and the zero check took a lone
+     * digit for a zero, printing "0". A single digit is only zero when it is '0'. */
+    assert_print_number_with_precision("1", 0.999, false, 2);
+    assert_print_number_with_precision("-1", -0.999, false, 2);
+    assert_print_number_with_precision("1", 0.96, false, 1);
+    assert_print_number_with_precision("10", 9.999, false, 2);
+    assert_print_number_with_precision("0", 0.0049, false, 2);
+    assert_print_number_with_precision("0", -0.0049, false, 2);
+}
+
 static void print_number_general_format(void)
 {
   /* In general format, the precision specifies the number of significant digits. */
@@ -190,6 +202,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(print_number_should_print_negative_reals);
     RUN_TEST(print_number_should_print_non_number);
     RUN_TEST(print_number_fixed_point);
+    RUN_TEST(print_number_fixed_point_single_digit_result);
     RUN_TEST(print_number_general_format);
 
     return UNITY_END();

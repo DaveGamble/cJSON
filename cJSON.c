@@ -605,8 +605,8 @@ static void remove_trailing_zeros(char *str) {
     while (start != end && *start == '0') {
         start++;
     }
-    /* Discard negative sign if zero */
-    if (start == end) {
+    /* Discard negative sign if zero: everything from the sign to the end was a zero */
+    if (start == end && *end == '0') {
         *str = '0';
         *(str + 1) = '\0';
     }
