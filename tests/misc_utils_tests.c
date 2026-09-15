@@ -104,8 +104,8 @@ static cJSON *create_nested_objects(const size_t depth)
 
 static void cjson_utils_should_propagate_bounded_merge_patch_failure(void)
 {
-    cJSON *from = create_nested_objects(CJSON_NESTING_LIMIT - 1);
-    cJSON *to = create_nested_objects(CJSON_NESTING_LIMIT - 1);
+    cJSON *from = create_nested_objects(CJSON_NESTING_LIMIT);
+    cJSON *to = create_nested_objects(CJSON_NESTING_LIMIT);
     cJSON *patch = NULL;
 
     TEST_ASSERT_NOT_NULL(from);
