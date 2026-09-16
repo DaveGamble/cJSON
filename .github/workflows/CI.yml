@@ -12,6 +12,9 @@ on:
       - '**.md'
       - 'LICENSE'
 
+permissions:
+  contents: read
+
 jobs:
   linux:
     runs-on: ubuntu-latest
@@ -27,7 +30,7 @@ jobs:
           - GCC
           - CLANG
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: install build dependencies
       run: |
         sudo apt-get update
@@ -73,7 +76,7 @@ jobs:
           - GCC
           - CLANG
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: build and test
       shell: bash
       run: |
