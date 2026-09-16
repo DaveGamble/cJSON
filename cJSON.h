@@ -172,6 +172,10 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item);
 
 /* Returns the number of items in an array (or object). */
 CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array);
+
+/* Returns an array of all keys in an object as cJSON strings. Returns NULL if object is not an object or is NULL. Caller must free the result with cJSON_Delete. */
+CJSON_PUBLIC(cJSON *) cJSON_GetAllKeys(const cJSON *const object);
+
 /* Retrieve item number "index" from array "array". Returns NULL if unsuccessful. */
 CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index);
 /* Get item "string" from object. Case insensitive. */
@@ -261,7 +265,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse);
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive);
 
 /* Minify a strings, remove blank characters(such as ' ', '\t', '\r', '\n') from strings.
- * The input pointer json cannot point to a read-only address area, such as a string constant, 
+ * The input pointer json cannot point to a read-only address area, such as a string constant,
  * but should point to a readable and writable address area. */
 CJSON_PUBLIC(void) cJSON_Minify(char *json);
 
