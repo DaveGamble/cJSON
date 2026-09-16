@@ -97,7 +97,8 @@ if(ENABLE_CJSON_TEST)
         set (cjson_utils_tests
             json_patch_tests
             old_utils_tests
-            misc_utils_tests)
+            misc_utils_tests
+            sort_utils_tests)
 
         foreach (cjson_utils_test ${cjson_utils_tests})
             add_executable("${cjson_utils_test}" "${cjson_utils_test}.c")
