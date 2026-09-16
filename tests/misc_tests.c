@@ -502,7 +502,12 @@ static void cjson_set_valuestring_should_return_null_if_strings_overlap(void)
     /* The string passed to strcpy overlap which is not allowed.*/
     str2 = cJSON_SetValuestring(obj, str);
     /* If it overlaps, the string will be messed up.*/
+#if defined(__GNUC__) && (__GNUC__ >= 16)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overread"
     TEST_ASSERT_TRUE(strcmp(str, "bcde") == 0);
+#pragma GCC diagnostic pop
+#endif
     TEST_ASSERT_NULL(str2);
     cJSON_Delete(obj);
 }
