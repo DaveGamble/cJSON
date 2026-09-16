@@ -189,6 +189,39 @@ static void merge_tests(void)
     }
 }
 
+static void merge_patch_should_not_read_freed_memory_when_patch_is_subtree(void)
+{
+    /* When patch is a subtree of target, merge_patch must duplicate the patch
+     * before deleting target. Otherwise cJSON_Delete(target) frees the patch
+     * memory and the subsequent cJSON_Duplicate reads freed memory (UAF).
+     * See CVE candidate: heap-use-after-free in merge_patch (cJSON_Utils.c). */
+    cJSON *target = cJSON_Parse("{\"a\":[1,2,3]}");
+    cJSON *patch = cJSON_GetObjectItem(target, "a");
+    cJSON *result = NULL;
+    cJSON *first = NULL;
+    cJSON *second = NULL;
+    cJSON *third = NULL;
+
+    TEST_ASSERT_NOT_NULL(target);
+    TEST_ASSERT_NOT_NULL(patch);
+
+    /* patch (array [1,2,3]) is a subtree of target. This used to trigger
+     * heap-use-after-free under AddressSanitizer before the fix. */
+    result = cJSONUtils_MergePatch(target, patch);
+    TEST_ASSERT_NOT_NULL(result);
+    TEST_ASSERT_TRUE(cJSON_IsArray(result));
+    TEST_ASSERT_EQUAL_INT(3, cJSON_GetArraySize(result));
+
+    first = cJSON_GetArrayItem(result, 0);
+    second = cJSON_GetArrayItem(result, 1);
+    third = cJSON_GetArrayItem(result, 2);
+    TEST_ASSERT_EQUAL_INT(1, first->valueint);
+    TEST_ASSERT_EQUAL_INT(2, second->valueint);
+    TEST_ASSERT_EQUAL_INT(3, third->valueint);
+
+    cJSON_Delete(result);
+}
+
 static void generate_merge_tests(void)
 {
     size_t i = 0;
@@ -219,6 +252,7 @@ int main(void)
     RUN_TEST(misc_tests);
     RUN_TEST(sort_tests);
     RUN_TEST(merge_tests);
+    RUN_TEST(merge_patch_should_not_read_freed_memory_when_patch_is_subtree);
     RUN_TEST(generate_merge_tests);
 
     return UNITY_END();
