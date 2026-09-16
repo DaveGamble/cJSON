@@ -73,6 +73,7 @@ static void assert_not_parse_string(const char * const string)
 static void parse_string_should_parse_strings(void)
 {
     assert_parse_string("\"\"", "");
+    assert_parse_string("\"Simple string\"", "Simple string");
     assert_parse_string(
         "\" !\\\"#$%&'()*+,-./\\/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_'abcdefghijklmnopqrstuvwxyz{|}~\"",
         " !\"#$%&'()*+,-.//0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_'abcdefghijklmnopqrstuvwxyz{|}~");
