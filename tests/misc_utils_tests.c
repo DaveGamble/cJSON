@@ -29,6 +29,29 @@
 #include "common.h"
 #include "../cJSON_Utils.h"
 
+static void decode_pointer_inplace_should_decode_tilde_one_to_forward_slash(void)
+{
+    /* A key whose name contains a literal '/' must be addressed in a JSON
+     * Pointer using the ~1 escape sequence (RFC 6901).  A previous bug wrote
+     * '/' to decoded_string[1] instead of decoded_string[0], leaving '~' in
+     * place and producing "~/" instead of "/". */
+    cJSON *object = cJSON_Parse("{\"foo/bar\": 1}");
+    cJSON *patch = cJSON_Parse("[{\"op\": \"replace\", \"path\": \"/foo~1bar\", \"value\": 2}]");
+    cJSON *item = NULL;
+
+    TEST_ASSERT_NOT_NULL(object);
+    TEST_ASSERT_NOT_NULL(patch);
+
+    TEST_ASSERT_EQUAL_INT(0, cJSONUtils_ApplyPatches(object, patch));
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "foo/bar");
+    TEST_ASSERT_NOT_NULL_MESSAGE(item, "Key \"foo/bar\" not found after patch with ~1 path.");
+    TEST_ASSERT_EQUAL_DOUBLE(2.0, item->valuedouble);
+
+    cJSON_Delete(object);
+    cJSON_Delete(patch);
+}
+
 static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
 {
     cJSON *item = cJSON_CreateString("item");
@@ -74,6 +97,7 @@ int main(void)
 {
     UNITY_BEGIN();
 
+    RUN_TEST(decode_pointer_inplace_should_decode_tilde_one_to_forward_slash);
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
 
     return UNITY_END();
