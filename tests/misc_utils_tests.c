@@ -70,11 +70,66 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_utils_apply_patches_should_reject_null_valuestring(void)
+{
+    /* A cJSON_String item can have a NULL valuestring (e.g. when created with
+     * cJSON_CreateStringReference(NULL)). The JSON patch code checks the "op",
+     * "path" and "from" fields with cJSON_IsString() and then dereferences
+     * valuestring. Such patches must be rejected with an error code instead of
+     * crashing on the NULL valuestring. */
+
+    /* NULL "op" valuestring */
+    {
+        cJSON *object = cJSON_CreateObject();
+        cJSON *patches = cJSON_CreateArray();
+        cJSON *patch = cJSON_CreateObject();
+        cJSON_AddItemToObject(patch, "op", cJSON_CreateStringReference(NULL));
+        cJSON_AddItemToObject(patch, "path", cJSON_CreateString(""));
+        cJSON_AddItemToObject(patch, "value", cJSON_CreateNumber(1));
+        cJSON_AddItemToArray(patches, patch);
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatches(object, patches), "NULL \"op\" valuestring should be rejected.");
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatchesCaseSensitive(object, patches), "NULL \"op\" valuestring should be rejected.");
+        cJSON_Delete(object);
+        cJSON_Delete(patches);
+    }
+
+    /* NULL "path" valuestring */
+    {
+        cJSON *object = cJSON_CreateObject();
+        cJSON *patches = cJSON_CreateArray();
+        cJSON *patch = cJSON_CreateObject();
+        cJSON_AddItemToObject(patch, "op", cJSON_CreateString("remove"));
+        cJSON_AddItemToObject(patch, "path", cJSON_CreateStringReference(NULL));
+        cJSON_AddItemToArray(patches, patch);
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatches(object, patches), "NULL \"path\" valuestring should be rejected.");
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatchesCaseSensitive(object, patches), "NULL \"path\" valuestring should be rejected.");
+        cJSON_Delete(object);
+        cJSON_Delete(patches);
+    }
+
+    /* NULL "from" valuestring */
+    {
+        cJSON *object = cJSON_CreateObject();
+        cJSON *patches = cJSON_CreateArray();
+        cJSON *patch = cJSON_CreateObject();
+        cJSON_AddItemToObject(object, "a", cJSON_CreateNumber(1));
+        cJSON_AddItemToObject(patch, "op", cJSON_CreateString("move"));
+        cJSON_AddItemToObject(patch, "path", cJSON_CreateString("/b"));
+        cJSON_AddItemToObject(patch, "from", cJSON_CreateStringReference(NULL));
+        cJSON_AddItemToArray(patches, patch);
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatches(object, patches), "NULL \"from\" valuestring should be rejected.");
+        TEST_ASSERT_TRUE_MESSAGE(0 != cJSONUtils_ApplyPatchesCaseSensitive(object, patches), "NULL \"from\" valuestring should be rejected.");
+        cJSON_Delete(object);
+        cJSON_Delete(patches);
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_apply_patches_should_reject_null_valuestring);
 
     return UNITY_END();
 }

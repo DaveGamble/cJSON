@@ -742,7 +742,7 @@ enum patch_operation { INVALID, ADD, REMOVE, REPLACE, MOVE, COPY, TEST };
 static enum patch_operation decode_patch_operation(const cJSON * const patch, const cJSON_bool case_sensitive)
 {
     cJSON *operation = get_object_item(patch, "op", case_sensitive);
-    if (!cJSON_IsString(operation))
+    if (!cJSON_IsString(operation) || (operation->valuestring == NULL))
     {
         return INVALID;
     }
@@ -815,7 +815,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     int status = 0;
 
     path = get_object_item(patch, "path", case_sensitive);
-    if (!cJSON_IsString(path))
+    if (!cJSON_IsString(path) || (path->valuestring == NULL))
     {
         /* malformed patch. */
         status = 2;
@@ -906,7 +906,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     if ((opcode == MOVE) || (opcode == COPY))
     {
         cJSON *from = get_object_item(patch, "from", case_sensitive);
-        if (!cJSON_IsString(from))
+        if (!cJSON_IsString(from) || (from->valuestring == NULL))
         {
             /* missing "from" for copy/move. */
             status = 4;
