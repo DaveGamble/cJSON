@@ -29,6 +29,25 @@
 #include "common.h"
 #include "../cJSON_Utils.h"
 
+#define TEST_NESTING_LIMIT 2000
+
+static cJSON *create_deeply_nested_object(size_t depth)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON *curr = root;
+    cJSON *next = NULL;
+    size_t i = 0;
+
+    for (i = 0; (i < depth) && (curr != NULL); ++i)
+    {
+        next = cJSON_CreateObject();
+        cJSON_AddItemToObject(curr, "a", next);
+        curr = next;
+    }
+
+    return root;
+}
+
 static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
 {
     cJSON *item = cJSON_CreateString("item");
@@ -70,11 +89,42 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_utils_merge_patch_should_not_overflow_stack_on_deep_nesting(void)
+{
+    cJSON *target = cJSON_CreateObject();
+    cJSON *patch = create_deeply_nested_object(TEST_NESTING_LIMIT);
+
+    TEST_ASSERT_NOT_NULL(target);
+    TEST_ASSERT_NOT_NULL(patch);
+
+    TEST_ASSERT_NULL(cJSONUtils_MergePatch(target, patch));
+
+    cJSON_Delete(patch);
+}
+
+static void cjson_utils_generate_merge_patch_should_not_overflow_stack_on_deep_nesting(void)
+{
+    cJSON *from = create_deeply_nested_object(TEST_NESTING_LIMIT);
+    cJSON *to = create_deeply_nested_object(TEST_NESTING_LIMIT);
+
+    TEST_ASSERT_NOT_NULL(from);
+    TEST_ASSERT_NOT_NULL(to);
+
+    cJSON_AddNumberToObject(to, "diff", 123);
+
+    TEST_ASSERT_NULL(cJSONUtils_GenerateMergePatch(from, to));
+
+    cJSON_Delete(from);
+    cJSON_Delete(to);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_merge_patch_should_not_overflow_stack_on_deep_nesting);
+    RUN_TEST(cjson_utils_generate_merge_patch_should_not_overflow_stack_on_deep_nesting);
 
     return UNITY_END();
 }
