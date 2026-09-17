@@ -92,7 +92,15 @@ typedef struct {
 static error global_error = { NULL, 0 };
 
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
-{
+{   
+    if (global_error.json == NULL) 
+    {
+        const unsigned char *safe_to_dereference = (const unsigned char*)"";
+        global_error.json = safe_to_dereference;
+        global_error.position = 0;
+        
+    }
+
     return (const char*) (global_error.json + global_error.position);
 }
 
