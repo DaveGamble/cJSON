@@ -788,15 +788,15 @@ static void overwrite_item(cJSON * const root, const cJSON replacement)
         return;
     }
 
-    if (root->string != NULL)
+    if (!(root->type & cJSON_StringIsConst) && (root->string != NULL))
     {
         cJSON_free(root->string);
     }
-    if (root->valuestring != NULL)
+    if (!(root->type & cJSON_IsReference) && (root->valuestring != NULL))
     {
         cJSON_free(root->valuestring);
     }
-    if (root->child != NULL)
+    if (!(root->type & cJSON_IsReference) && (root->child != NULL))
     {
         cJSON_Delete(root->child);
     }
