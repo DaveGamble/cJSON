@@ -2475,6 +2475,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateTrue(void)
     if(item)
     {
         item->type = cJSON_True;
+        item->valueint = 1;
     }
 
     return item;
@@ -2497,6 +2498,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean)
     if(item)
     {
         item->type = boolean ? cJSON_True : cJSON_False;
+        item->valueint = boolean ? 1 : 0;
     }
 
     return item;
