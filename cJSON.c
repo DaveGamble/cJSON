@@ -509,6 +509,11 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
         return NULL;
     }
 
+    if (p->offset > ((size_t)-1) - 1 - needed)
+    {
+        return NULL;
+    }
+
     needed += p->offset + 1;
     if (needed <= p->length)
     {
@@ -662,7 +667,9 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     return true;
 }
 
-/* parse 4 digit hexadecimal number */
+/* parse 4 digit hexadecimal number
+ * returns 0 for both the valid sequence 0000 and for any invalid hex digit.
+ * Callers disambiguate by pointer position. */
 static unsigned parse_hex4(const unsigned char * const input)
 {
     unsigned int h = 0;
@@ -2414,6 +2421,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     return true;
 }
 
+/* Note: Returns false if out-of-range, which is indistinguishable from NULL-arg / allocation failures */
 CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
 {
     if (which < 0)
