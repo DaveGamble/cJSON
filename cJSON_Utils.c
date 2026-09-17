@@ -52,6 +52,14 @@
 
 #include "cJSON_Utils.h"
 
+/* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
+#ifndef isinf
+#define isinf(d) (isnan((d - d)) && !isnan(d))
+#endif
+#ifndef isnan
+#define isnan(d) (d != d)
+#endif
+
 /* define our own boolean type */
 #ifdef true
 #undef true
@@ -111,7 +119,17 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
 /* securely comparison of floating-point variables */
 static cJSON_bool compare_double(double a, double b)
 {
-    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    double maxVal = 0.0;
+
+    /* the epsilon-based comparison below breaks down for infinities: a - b
+     * and maxVal both come out as +/-infinity, so it can't tell +inf from
+     * -inf, or notice that two separately computed +inf values match */
+    if (isinf(a) || isinf(b))
+    {
+        return (a == b);
+    }
+
+    maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 

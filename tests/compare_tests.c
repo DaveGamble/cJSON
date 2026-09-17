@@ -20,6 +20,8 @@
   THE SOFTWARE.
 */
 
+#include <math.h>
+
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
 #include "common.h"
@@ -189,6 +191,34 @@ static void cjson_compare_should_compare_objects(void)
                 false))
 }
 
+static void cjson_compare_should_compare_infinities_correctly(void)
+{
+    /* JSON text has no way to spell an infinite number, so build these
+     * directly instead of going through compare_from_string. */
+    cJSON *positive_a = cJSON_CreateNumber(INFINITY);
+    cJSON *positive_b = cJSON_CreateNumber(INFINITY);
+    cJSON *negative_a = cJSON_CreateNumber(-INFINITY);
+    cJSON *negative_b = cJSON_CreateNumber(-INFINITY);
+
+    TEST_ASSERT_NOT_NULL(positive_a);
+    TEST_ASSERT_NOT_NULL(positive_b);
+    TEST_ASSERT_NOT_NULL(negative_a);
+    TEST_ASSERT_NOT_NULL(negative_b);
+
+    /* two separately created +Infinity values are equal to each other */
+    TEST_ASSERT_TRUE(cJSON_Compare(positive_a, positive_b, true));
+    /* two separately created -Infinity values are equal to each other */
+    TEST_ASSERT_TRUE(cJSON_Compare(negative_a, negative_b, true));
+    /* +Infinity and -Infinity are not equal */
+    TEST_ASSERT_FALSE(cJSON_Compare(positive_a, negative_a, true));
+    TEST_ASSERT_FALSE(cJSON_Compare(negative_a, positive_a, true));
+
+    cJSON_Delete(positive_a);
+    cJSON_Delete(positive_b);
+    cJSON_Delete(negative_a);
+    cJSON_Delete(negative_b);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -196,6 +226,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_compare_should_compare_null_pointer_as_not_equal);
     RUN_TEST(cjson_compare_should_compare_invalid_as_not_equal);
     RUN_TEST(cjson_compare_should_compare_numbers);
+    RUN_TEST(cjson_compare_should_compare_infinities_correctly);
     RUN_TEST(cjson_compare_should_compare_booleans);
     RUN_TEST(cjson_compare_should_compare_null);
     RUN_TEST(cjson_compare_should_not_accept_invalid_types);
