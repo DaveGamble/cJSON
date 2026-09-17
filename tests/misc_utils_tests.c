@@ -29,6 +29,24 @@
 #include "common.h"
 #include "../cJSON_Utils.h"
 
+static void * CJSON_CDECL failing_malloc(size_t size)
+{
+    (void)size;
+    return NULL;
+}
+
+/* work around MSVC error C2322: '...' address of dllimport '...' is not static */
+static void CJSON_CDECL normal_free(void *pointer)
+{
+    free(pointer);
+}
+
+static cJSON_Hooks failing_hooks =
+{
+    failing_malloc,
+    normal_free
+};
+
 static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
 {
     cJSON *item = cJSON_CreateString("item");
@@ -70,11 +88,44 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_utils_find_pointer_from_object_to_should_fail_on_allocation_failure(void)
+{
+    cJSON *object = NULL;
+    cJSON *object_child = NULL;
+    cJSON *array = NULL;
+    cJSON *array_child = NULL;
+
+    object = cJSON_CreateObject();
+    TEST_ASSERT_NOT_NULL(object);
+
+    object_child = cJSON_CreateString("value");
+    TEST_ASSERT_NOT_NULL(object_child);
+    cJSON_AddItemToObject(object, "item", object_child);
+
+    array = cJSON_CreateArray();
+    TEST_ASSERT_NOT_NULL(array);
+
+    array_child = cJSON_CreateString("value");
+    TEST_ASSERT_NOT_NULL(array_child);
+    cJSON_AddItemToArray(array, array_child);
+
+    cJSON_InitHooks(&failing_hooks);
+
+    TEST_ASSERT_NULL(cJSONUtils_FindPointerFromObjectTo(object, object_child));
+    TEST_ASSERT_NULL(cJSONUtils_FindPointerFromObjectTo(array, array_child));
+
+    cJSON_InitHooks(NULL);
+
+    cJSON_Delete(object);
+    cJSON_Delete(array);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_find_pointer_from_object_to_should_fail_on_allocation_failure);
 
     return UNITY_END();
 }
