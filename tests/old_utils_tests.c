@@ -85,6 +85,28 @@ static void json_pointer_tests(void)
     cJSON_Delete(root);
 }
 
+static void json_pointer_should_reject_empty_array_index(void)
+{
+    /* An empty reference token is not a valid array index (RFC 6901), so it
+     * must not be silently accepted as index 0. */
+    cJSON *array = cJSON_Parse("[\"first\", \"second\", \"third\"]");
+    cJSON *nested = cJSON_Parse("[[1, 2], [3, 4]]");
+
+    TEST_ASSERT_NOT_NULL(array);
+    TEST_ASSERT_NOT_NULL(nested);
+
+    /* valid array indices still resolve */
+    TEST_ASSERT_EQUAL_PTR(cJSONUtils_GetPointer(array, "/0"), cJSON_GetArrayItem(array, 0));
+    TEST_ASSERT_EQUAL_PTR(cJSONUtils_GetPointer(nested, "/0/1"), cJSON_GetArrayItem(cJSON_GetArrayItem(nested, 0), 1));
+
+    /* an empty array reference token must be rejected, not resolved to index 0 */
+    TEST_ASSERT_NULL(cJSONUtils_GetPointer(array, "/"));
+    TEST_ASSERT_NULL(cJSONUtils_GetPointer(nested, "/0/"));
+
+    cJSON_Delete(array);
+    cJSON_Delete(nested);
+}
+
 static void misc_tests(void)
 {
     /* Misc tests */
@@ -249,6 +271,7 @@ int main(void)
     UNITY_BEGIN();
 
     RUN_TEST(json_pointer_tests);
+    RUN_TEST(json_pointer_should_reject_empty_array_index);
     RUN_TEST(misc_tests);
     RUN_TEST(sort_tests);
     RUN_TEST(merge_tests);

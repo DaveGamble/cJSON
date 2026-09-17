@@ -87,5 +87,17 @@
         "doc": {"foo": {"bar": 1}},
         "patch": [{"op": "add", "path": "/foo/bar/baz", "value": "5"}],
         "error": "attempting to add to subfield of non-object"
-    } 
+    },
+    {
+        "comment": "16, an empty reference token is not a valid array index",
+        "doc": [ "first", "second", "third" ],
+        "patch": [{ "op": "remove", "path": "/" }],
+        "error": "an empty reference token is not a valid array index"
+    },
+    {
+        "comment": "17, an empty reference token is not a valid array index",
+        "doc": [ "first", "second", "third" ],
+        "patch": [{ "op": "replace", "path": "/", "value": "x" }],
+        "error": "an empty reference token is not a valid array index"
+    }
 ]

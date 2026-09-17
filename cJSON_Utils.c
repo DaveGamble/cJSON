@@ -276,6 +276,12 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
     size_t parsed_index = 0;
     size_t position = 0;
 
+    if ((pointer[0] == '\0') || (pointer[0] == '/'))
+    {
+        /* an empty reference token is not a valid array index */
+        return 0;
+    }
+
     if ((pointer[0] == '0') && ((pointer[1] != '\0') && (pointer[1] != '/')))
     {
         /* leading zeroes are not permitted */
