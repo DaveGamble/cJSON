@@ -200,6 +200,8 @@ typedef struct cJSON
     /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
     int valueint;
     double valuedouble;
+    /* Decimal places used when printing non-integral values; 0 uses default formatting. */
+    int decimal_places;
     char *string;
 } cJSON;
 ```
@@ -278,6 +280,44 @@ If you want to access an item in an object, use `cJSON_GetObjectItemCaseSensitiv
 To iterate over an object, you can use the `cJSON_ArrayForEach` macro the same way as for arrays.
 
 cJSON also provides convenient helper functions for quickly creating a new item and adding it to an object, like `cJSON_AddNullToObject`. They return a pointer to the new item or `NULL` if they failed.
+
+`cJSON_AddNumberWithPrecisionToObject` specifies the number of digits after the decimal point when printing a non-integral value. Non-integral values are padded or rounded as needed. Integral values are printed without a decimal point or trailing zeroes. `decimal_places` must be between 1 and 14. For example, the following rounds the representation of pi to six decimal places while leaving an integral value unchanged:
+
+```c
+/* Returns a heap-allocated string that must be released with cJSON_free. */
+char *create_numbers_with_precision(void)
+{
+    char *string = NULL;
+    cJSON *object = cJSON_CreateObject();
+
+    if (object == NULL)
+    {
+        return NULL;
+    }
+
+    if (cJSON_AddNumberWithPrecisionToObject(object, "pi", 3.141592653589793, 6) == NULL)
+    {
+        goto end;
+    }
+
+    if (cJSON_AddNumberWithPrecisionToObject(object, "integer", 3.0, 5) == NULL)
+    {
+        goto end;
+    }
+
+    string = cJSON_PrintUnformatted(object);
+
+end:
+    cJSON_Delete(object);
+    return string;
+}
+```
+
+The generated JSON is:
+
+```json
+{"pi":3.141593,"integer":3}
+```
 
 ### Parsing JSON
 

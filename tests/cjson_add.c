@@ -255,6 +255,44 @@ static void cjson_add_number_should_add_number(void)
     cJSON_Delete(root);
 }
 
+static void assert_add_number_with_precision_prints(const char *expected, double number, int decimal_places)
+{
+    cJSON *root = cJSON_CreateObject();
+    char *printed = NULL;
+
+    TEST_ASSERT_NOT_NULL(cJSON_AddNumberWithPrecisionToObject(root, "number", number, decimal_places));
+
+    printed = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING(expected, printed);
+
+    cJSON_free(printed);
+    cJSON_Delete(root);
+}
+
+static void cjson_add_number_with_precision_should_format_output(void)
+{
+    assert_add_number_with_precision_prints("{\"number\":1.20}", 1.2, 2);
+    assert_add_number_with_precision_prints("{\"number\":1.24}", 1.236, 2);
+    assert_add_number_with_precision_prints("{\"number\":-1.200}", -1.2, 3);
+    assert_add_number_with_precision_prints("{\"number\":3}", 3.0, 5);
+    assert_add_number_with_precision_prints("{\"number\":0.12345678901234}", 0.12345678901234, 14);
+}
+
+static void cjson_add_number_with_precision_should_reject_invalid_precision(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    char *printed = NULL;
+
+    TEST_ASSERT_NULL(cJSON_AddNumberWithPrecisionToObject(root, "number", 1.2, 0));
+    TEST_ASSERT_NULL(cJSON_AddNumberWithPrecisionToObject(root, "number", 1.2, 15));
+
+    printed = cJSON_PrintUnformatted(root);
+    TEST_ASSERT_EQUAL_STRING("{}", printed);
+
+    cJSON_free(printed);
+    cJSON_Delete(root);
+}
+
 static void cjson_add_number_should_fail_with_null_pointers(void)
 {
     cJSON *root = cJSON_CreateObject();
@@ -448,6 +486,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_add_bool_should_fail_on_allocation_failure);
 
     RUN_TEST(cjson_add_number_should_add_number);
+    RUN_TEST(cjson_add_number_with_precision_should_format_output);
+    RUN_TEST(cjson_add_number_with_precision_should_reject_invalid_precision);
     RUN_TEST(cjson_add_number_should_fail_with_null_pointers);
     RUN_TEST(cjson_add_number_should_fail_on_allocation_failure);
 

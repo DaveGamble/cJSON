@@ -165,6 +165,34 @@ end:
     return string;
 }
 
+/* Returns a heap-allocated string that must be released with cJSON_free. */
+static char *create_numbers_with_precision(void)
+{
+    char *string = NULL;
+    cJSON *object = cJSON_CreateObject();
+
+    if (object == NULL)
+    {
+        return NULL;
+    }
+
+    if (cJSON_AddNumberWithPrecisionToObject(object, "pi", 3.141592653589793, 6) == NULL)
+    {
+        goto end;
+    }
+
+    if (cJSON_AddNumberWithPrecisionToObject(object, "integer", 3.0, 5) == NULL)
+    {
+        goto end;
+    }
+
+    string = cJSON_PrintUnformatted(object);
+
+end:
+    cJSON_Delete(object);
+    return string;
+}
+
 /* return 1 if the monitor supports full hd, 0 otherwise */
 static int supports_full_hd(const char * const monitor)
 {
@@ -232,6 +260,16 @@ static void create_monitor_with_helpers_should_create_a_monitor(void)
     free(monitor);
 }
 
+static void create_numbers_with_precision_should_round_and_preserve_integers(void)
+{
+    char *numbers = create_numbers_with_precision();
+
+    TEST_ASSERT_NOT_NULL(numbers);
+    TEST_ASSERT_EQUAL_STRING("{\"pi\":3.141593,\"integer\":3}", numbers);
+
+    cJSON_free(numbers);
+}
+
 static void supports_full_hd_should_check_for_full_hd_support(void)
 {
     static const char *monitor_without_hd = "{\n\
@@ -252,6 +290,7 @@ int CJSON_CDECL main(void)
 
     RUN_TEST(create_monitor_should_create_a_monitor);
     RUN_TEST(create_monitor_with_helpers_should_create_a_monitor);
+    RUN_TEST(create_numbers_with_precision_should_round_and_preserve_integers);
     RUN_TEST(supports_full_hd_should_check_for_full_hd_support);
 
     return UNITY_END();
