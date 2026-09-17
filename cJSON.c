@@ -351,6 +351,10 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
             default:
                 goto loop_end;
         }
+        if (number_string_length > CJSON_NUMBER_LENGTH_LIMIT)
+        {
+            return false;
+        }
     }
 loop_end:
     /* malloc for temporary buffer, add 1 for '\0' */
