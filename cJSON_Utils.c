@@ -68,6 +68,11 @@ static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
     size_t length = 0;
     unsigned char *copy = NULL;
 
+    if (string == NULL)
+    {
+        return NULL;
+    }
+
     length = strlen((const char*)string) + sizeof("");
     copy = (unsigned char*) cJSON_malloc(length);
     if (copy == NULL)
@@ -815,7 +820,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     int status = 0;
 
     path = get_object_item(patch, "path", case_sensitive);
-    if (!cJSON_IsString(path))
+    if (!cJSON_IsString(path) || (path->valuestring == NULL))
     {
         /* malformed patch. */
         status = 2;
@@ -906,7 +911,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     if ((opcode == MOVE) || (opcode == COPY))
     {
         cJSON *from = get_object_item(patch, "from", case_sensitive);
-        if (!cJSON_IsString(from))
+        if (!cJSON_IsString(from) || (from->valuestring == NULL))
         {
             /* missing "from" for copy/move. */
             status = 4;
