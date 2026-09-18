@@ -371,18 +371,23 @@ static void decode_pointer_inplace(unsigned char *string)
             if (string[1] == '0')
             {
                 decoded_string[0] = '~';
+                string++;
             }
             else if (string[1] == '1')
             {
-                decoded_string[1] = '/';
+                decoded_string[0] = '/';
+                string++;
             }
             else
             {
                 /* invalid escape sequence */
+                *decoded_string = '\0';
                 return;
             }
-
-            string++;
+        }
+        else
+        {
+            decoded_string[0] = string[0];
         }
     }
 
