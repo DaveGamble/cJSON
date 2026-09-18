@@ -19,7 +19,7 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 */
-
+/* clang-format off */
 #ifndef cJSON__h
 #define cJSON__h
 
@@ -87,17 +87,28 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 
 /* cJSON Types: */
 #define cJSON_Invalid (0)
-#define cJSON_False  (1 << 0)
-#define cJSON_True   (1 << 1)
-#define cJSON_NULL   (1 << 2)
-#define cJSON_Number (1 << 3)
-#define cJSON_String (1 << 4)
-#define cJSON_Array  (1 << 5)
-#define cJSON_Object (1 << 6)
-#define cJSON_Raw    (1 << 7) /* raw json */
+#define cJSON_False   (1 << 0)
+#define cJSON_True    (1 << 1)
+#define cJSON_NULL    (1 << 2)
+#define cJSON_Number  (1 << 3)
+#define cJSON_String  (1 << 4)
+#define cJSON_Array   (1 << 5)
+#define cJSON_Object  (1 << 6)
+#define cJSON_Raw     (1 << 7) /* raw json */
 
-#define cJSON_IsReference 256
-#define cJSON_StringIsConst 512
+#define cJSON_IsReference   (1 << 8)
+#define cJSON_StringIsConst (1 << 9)
+
+#define cJSON_NumberIsFormatted              (1 << 10)
+#define cJSON_NumberFormatStyleFixedPoint    (1 << 11)
+#define cJSON_NumberFormatStyleSet(g_format) ((g_format == true) ? 0 : cJSON_NumberFormatStyleFixedPoint) /* 0 for general, 1 for fixed point */
+#define cJSON_NumberFormatPrecisionShift     (12)   /* Position of the mask */
+#define cJSON_NumberFormatPrecisionMask      (0x3F) /* 0x3F is the maximum precision */
+#define cJSON_NumberFormatPrecision          (cJSON_NumberFormatPrecisionMask << cJSON_NumberFormatPrecisionShift)
+#define cJSON_NumberFormatPrecisionSet(x)    (((x) << cJSON_NumberFormatPrecisionShift) & cJSON_NumberFormatPrecision)
+#define cJSON_NumberFormatPrecisionGet(x)    (((x) >> cJSON_NumberFormatPrecisionShift) & cJSON_NumberFormatPrecisionMask)
+
+typedef int cJSON_bool;
 
 /* The cJSON structure: */
 typedef struct cJSON
@@ -128,8 +139,6 @@ typedef struct cJSON_Hooks
       void *(CJSON_CDECL *malloc_fn)(size_t sz);
       void (CJSON_CDECL *free_fn)(void *ptr);
 } cJSON_Hooks;
-
-typedef int cJSON_bool;
 
 /* Limits how deeply nested arrays/objects can be before cJSON rejects to parse them.
  * This is to prevent stack overflows. */
@@ -284,6 +293,9 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number);
 #define cJSON_SetNumberValue(object, number) ((object != NULL) ? cJSON_SetNumberHelper(object, (double)number) : (number))
 /* Change the valuestring of a cJSON_String object, only takes effect when type of object is cJSON_String */
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring);
+
+/* Interface to set formatting options for numbers */
+CJSON_PUBLIC(void) cJSON_SetNumberFormat(cJSON *object, cJSON_bool general_format, int precision);
 
 /* If the object is not a boolean type this does nothing and returns cJSON_Invalid else it returns the new type*/
 #define cJSON_SetBoolValue(object, boolValue) ( \
