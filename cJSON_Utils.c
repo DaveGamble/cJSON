@@ -97,7 +97,7 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
         return strcmp((const char*)string1, (const char*)string2);
     }
 
-    for(; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
+    for (; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
     {
         if (*string1 == '\0')
         {
@@ -147,7 +147,7 @@ static cJSON_bool compare_pointers(const unsigned char *name, const unsigned cha
     if (((*pointer != 0) && (*pointer != '/')) != (*name != 0))
     {
         /* one string has ended, the other not */
-        return false;;
+        return false;
     }
 
     return true;

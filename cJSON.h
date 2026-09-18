@@ -124,9 +124,9 @@ typedef struct cJSON
 
 typedef struct cJSON_Hooks
 {
-      /* malloc/free are CDECL on Windows regardless of the default calling convention of the compiler, so ensure the hooks allow passing those functions directly. */
-      void *(CJSON_CDECL *malloc_fn)(size_t sz);
-      void (CJSON_CDECL *free_fn)(void *ptr);
+    /* malloc/free are CDECL on Windows regardless of the default calling convention of the compiler, so ensure the hooks allow passing those functions directly. */
+    void *(CJSON_CDECL *malloc_fn)(size_t sz);
+    void (CJSON_CDECL *free_fn)(void *ptr);
 } cJSON_Hooks;
 
 typedef int cJSON_bool;
@@ -261,7 +261,7 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse);
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive);
 
 /* Minify a strings, remove blank characters(such as ' ', '\t', '\r', '\n') from strings.
- * The input pointer json cannot point to a read-only address area, such as a string constant, 
+ * The input pointer json cannot point to a read-only address area, such as a string constant,
  * but should point to a readable and writable address area. */
 CJSON_PUBLIC(void) cJSON_Minify(char *json);
 
