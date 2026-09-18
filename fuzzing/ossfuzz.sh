@@ -5,7 +5,7 @@
 
 mkdir build
 cd build
-cmake -DBUILD_SHARED_LIBS=OFF -DENABLE_CJSON_TEST=OFF ..
+cmake -DBUILD_SHARED_LIBS=OFF -DENABLE_CJSON_TEST=ON ..
 make -j$(nproc)
 
 $CXX $CXXFLAGS $SRC/cjson/fuzzing/cjson_read_fuzzer.c -I. \
