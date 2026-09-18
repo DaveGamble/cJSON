@@ -3,36 +3,41 @@
 Ultralightweight JSON parser in ANSI C.
 
 ## Table of contents
-* [License](#license)
-* [Usage](#usage)
-  * [Welcome to cJSON](#welcome-to-cjson)
-  * [Building](#building)
-    * [Copying the source](#copying-the-source)
-    * [CMake](#cmake)
-    * [Makefile](#makefile)
-    * [Meson](#meson)
-    * [Vcpkg](#Vcpkg)
-  * [Including cJSON](#including-cjson)
-  * [Data Structure](#data-structure)
-  * [Working with the data structure](#working-with-the-data-structure)
-    * [Basic types](#basic-types)
-    * [Arrays](#arrays)
-    * [Objects](#objects)
-  * [Parsing JSON](#parsing-json)
-  * [Printing JSON](#printing-json)
-  * [Example](#example)
-    * [Printing](#printing)
-    * [Parsing](#parsing)
-  * [Caveats](#caveats)
-    * [Zero Character](#zero-character)
-    * [Character Encoding](#character-encoding)
-    * [C Standard](#c-standard)
-    * [Floating Point Numbers](#floating-point-numbers)
-    * [Deep Nesting Of Arrays And Objects](#deep-nesting-of-arrays-and-objects)
-    * [Thread Safety](#thread-safety)
-    * [Case Sensitivity](#case-sensitivity)
-    * [Duplicate Object Members](#duplicate-object-members)
-  * [Enjoy cJSON!](#enjoy-cjson)
+- [cJSON](#cjson)
+  - [Table of contents](#table-of-contents)
+  - [License](#license)
+  - [Usage](#usage)
+    - [Welcome to cJSON.](#welcome-to-cjson)
+    - [Building](#building)
+      - [copying the source](#copying-the-source)
+      - [CMake](#cmake)
+      - [Makefile](#makefile)
+      - [Meson](#meson)
+      - [Vcpkg](#vcpkg)
+    - [Including cJSON](#including-cjson)
+    - [Data Structure](#data-structure)
+    - [Working with the data structure](#working-with-the-data-structure)
+      - [Basic types](#basic-types)
+      - [Arrays](#arrays)
+      - [Objects](#objects)
+    - [Parsing JSON](#parsing-json)
+    - [Printing JSON](#printing-json)
+    - [Example](#example)
+      - [Printing](#printing)
+      - [Parsing](#parsing)
+    - [Caveats](#caveats)
+      - [Zero Character](#zero-character)
+      - [Character Encoding](#character-encoding)
+        - [Input](#input)
+        - [Storage](#storage)
+        - [Output](#output)
+      - [C Standard](#c-standard)
+      - [Floating Point Numbers](#floating-point-numbers)
+      - [Deep Nesting Of Arrays And Objects](#deep-nesting-of-arrays-and-objects)
+      - [Thread Safety](#thread-safety)
+      - [Case Sensitivity](#case-sensitivity)
+      - [Duplicate Object Members](#duplicate-object-members)
+- [Enjoy cJSON!](#enjoy-cjson)
 
 ## License
 
@@ -229,8 +234,8 @@ Additionally there are the following two flags:
 
 For every value type there is a `cJSON_Create...` function that can be used to create an item of that type.
 All of these will allocate a `cJSON` struct that can later be deleted with `cJSON_Delete`.
-Note that you have to delete them at some point, otherwise you will get a memory leak.  
-**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, 
+Note that you have to delete them at some point, otherwise you will get a memory leak.
+**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted,
 it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `cJSON_String`'s `valuestring`, and you needn't to free the previous `valuestring` manually.
 
 #### Basic types
@@ -547,7 +552,38 @@ cJSON doesn't support strings that contain the zero character `'\0'` or `\u0000`
 
 #### Character Encoding
 
-cJSON only supports UTF-8 encoded input. In most cases it doesn't reject invalid UTF-8 as input though, it just propagates it through as is. As long as the input doesn't contain invalid UTF-8, the output will always be valid UTF-8.
+The cJSON maintainers are making every effort to modify the program to meet standard requirements and adapt to the ever-expanding Unicode code points.
+
+##### Input
+
+cJSON accepts three way to input a characters
+1. one or two `\uxxxx` escape sequence(s)
+   1. if one sequence, its codepoint must be valid
+   2. if two sequences, they must be valid UTF-16 surrogate pair
+2. a utf-8 encoded input. cJSON just propagates it through as is. As long as the input doesn't contain characters whose codepoint is invaild, the output will always be valid UTF-8.
+3. two-character sequence escape representations of some popular (control) characters. For example, a string containing only a single reverse solidus character may be represented more compactly as "\\".
+
+##### Storage
+
+Nothing to say. The C-language doesn't provide methods to convert characters.
+
+##### Output
+
+Current behavior is designed to fit RFC 8259, and make output readable as much as possible:
+1. ASCII TEXT characters: output as is
+2. ASCII CONTROL characters:
+   1. is "popular characters": escape as `\*`
+   2. is not: escape as `\u00ab`
+3. UTF-8 characters:
+   1. length is 2: output as is
+   2. length is 3:
+      - vaild: output as is
+      - invaild: raise error
+   3. length is 4 (non-BMP): escape as `\u6789\uabcd`
+   4. length bigger than 4: raise error
+
+The maintainers of this section are making every effort to fit the requirements from RFC 8259, but known and confirmed difference contains:
+1. does't escape `/` to `\/` , regarding the usual practices.
 
 #### C Standard
 

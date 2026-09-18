@@ -65,6 +65,11 @@ static void print_string_should_print_utf8(void)
     assert_print_string("\"ü猫慕\"", "ü猫慕");
 }
 
+static void print_string_should_print_utf16_surrogate_pairs(void)
+{
+    assert_print_string("\"\\ud801\\udc1d\\ud852\\udf62\"", "𐐝𤭢");
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -73,6 +78,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(print_string_should_print_empty_strings);
     RUN_TEST(print_string_should_print_ascii);
     RUN_TEST(print_string_should_print_utf8);
+    RUN_TEST(print_string_should_print_utf16_surrogate_pairs);
 
     return UNITY_END();
 }
