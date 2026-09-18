@@ -1437,7 +1437,15 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             {
                 return false;
             }
-            strcpy((char*)output, "null");
+            //
+            // this modifications are made because the strcpy does not work in some cases
+            *output++ = 'n';
+            *output++ = 'u';
+            *output++ = 'l';
+            *output++ = 'l';
+            *output   = '\0';
+            // this does not work
+            //strcpy((char*)output, "null");
             return true;
 
         case cJSON_False:
@@ -1446,7 +1454,16 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             {
                 return false;
             }
-            strcpy((char*)output, "false");
+            //
+            // this modifications are made because the strcpy does not work in some cases
+            *output++ = 'f';
+            *output++ = 'a';
+            *output++ = 'l';
+            *output++ = 's';
+            *output++ = 'e';
+            *output   = '\0';
+            // this does not work
+            //strcpy((char*)output, "false");
             return true;
 
         case cJSON_True:
@@ -1455,7 +1472,15 @@ static cJSON_bool print_value(const cJSON * const item, printbuffer * const outp
             {
                 return false;
             }
-            strcpy((char*)output, "true");
+            //
+            // this modifications are made because the strcpy does not work in some cases
+            *output++ = 't';
+            *output++ = 'r';
+            *output++ = 'u';
+            *output++ = 'e';
+            *output   = '\0';
+            // this does not work
+            //strcpy((char*)output, "true");
             return true;
 
         case cJSON_Number:
