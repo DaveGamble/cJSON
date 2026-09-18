@@ -57,6 +57,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
             /W4
             /wd4001
             /D_CRT_SECURE_NO_WARNINGS
+            /utf-8
         )
     endif()
 endif()
