@@ -51,6 +51,10 @@ static int print_preallocated(cJSON *root)
 
     /* formatted print */
     out = cJSON_Print(root);
+    if (out == NULL) {
+        printf("Failed to print cJSON object.\n");
+        return -1;
+    }
 
     /* create buffer to succeed */
     /* the extra 5 bytes are because of inaccuracies when reserving memory */
@@ -59,6 +63,7 @@ static int print_preallocated(cJSON *root)
     if (buf == NULL)
     {
         printf("Failed to allocate memory.\n");
+        free(out);
         exit(1);
     }
 
@@ -68,6 +73,8 @@ static int print_preallocated(cJSON *root)
     if (buf_fail == NULL)
     {
         printf("Failed to allocate memory.\n");
+        free(out);
+        free(buf);
         exit(1);
     }
 
