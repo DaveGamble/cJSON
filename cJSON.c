@@ -121,12 +121,13 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
+#define STRINGIFY_(s) #s
+#define STRINGIFY(s) STRINGIFY_(s)
+
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
-    static char version[15];
-    sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
-
-    return version;
+    return STRINGIFY(CJSON_VERSION_MAJOR) "." STRINGIFY(CJSON_VERSION_MINOR) "." \
+        STRINGIFY(CJSON_VERSION_PATCH);
 }
 
 /* Case insensitive string comparison, doesn't consider two NULL pointers equal though */
