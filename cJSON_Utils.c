@@ -1038,6 +1038,7 @@ cleanup:
 CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches)
 {
     const cJSON *current_patch = NULL;
+    cJSON *patches_copy = NULL;
     int status = 0;
 
     if (!cJSON_IsArray(patches))
@@ -1046,27 +1047,34 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
         return 1;
     }
 
-    if (patches != NULL)
+    /* iterate over a copy: the patch array may be part of object, and
+     * applying a patch can delete it (use-after-free of current_patch) */
+    patches_copy = cJSON_Duplicate(patches, true);
+    if (patches_copy == NULL)
     {
-        current_patch = patches->child;
+        return 1;
     }
 
+    current_patch = patches_copy->child;
     while (current_patch != NULL)
     {
         status = apply_patch(object, current_patch, false);
         if (status != 0)
         {
+            cJSON_Delete(patches_copy);
             return status;
         }
         current_patch = current_patch->next;
     }
 
+    cJSON_Delete(patches_copy);
     return 0;
 }
 
 CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, const cJSON * const patches)
 {
     const cJSON *current_patch = NULL;
+    cJSON *patches_copy = NULL;
     int status = 0;
 
     if (!cJSON_IsArray(patches))
@@ -1075,21 +1083,27 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, con
         return 1;
     }
 
-    if (patches != NULL)
+    /* iterate over a copy: the patch array may be part of object, and
+     * applying a patch can delete it (use-after-free of current_patch) */
+    patches_copy = cJSON_Duplicate(patches, true);
+    if (patches_copy == NULL)
     {
-        current_patch = patches->child;
+        return 1;
     }
 
+    current_patch = patches_copy->child;
     while (current_patch != NULL)
     {
         status = apply_patch(object, current_patch, true);
         if (status != 0)
         {
+            cJSON_Delete(patches_copy);
             return status;
         }
         current_patch = current_patch->next;
     }
 
+    cJSON_Delete(patches_copy);
     return 0;
 }
 
