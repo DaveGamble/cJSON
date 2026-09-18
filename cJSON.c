@@ -2426,7 +2426,16 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON
 
 static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSON *replacement, cJSON_bool case_sensitive)
 {
+    char *new_key = NULL;
+
     if ((replacement == NULL) || (string == NULL))
+    {
+        return false;
+    }
+
+    /* duplicate the key before freeing the old one: string may alias replacement->string */
+    new_key = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
+    if (new_key == NULL)
     {
         return false;
     }
@@ -2436,15 +2445,11 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
     {
         cJSON_free(replacement->string);
     }
-    replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
-    if (replacement->string == NULL)
-    {
-        return false;
-    }
+    replacement->string = new_key;
 
     replacement->type &= ~cJSON_StringIsConst;
 
-    return cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
+    return cJSON_ReplaceItemViaPointer(object, get_object_item(object, new_key, case_sensitive), replacement);
 }
 
 CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
