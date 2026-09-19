@@ -222,6 +222,50 @@ static void merge_patch_should_not_read_freed_memory_when_patch_is_subtree(void)
     cJSON_Delete(result);
 }
 
+static void apply_patches_should_not_read_freed_memory_when_patches_is_subtree(void)
+{
+    /* The patch array may be a subtree of the object being patched. If a
+     * patch deletes it ("remove" on its own path), the loop must not read
+     * ->next from the freed node (heap-use-after-free, cJSON_Utils.c). */
+    cJSON *doc = cJSON_Parse("{\"keep\":1,\"patches\":[{\"op\":\"remove\",\"path\":\"/patches\"}]}");
+    cJSON *patches = cJSON_GetObjectItem(doc, "patches");
+    cJSON *keep = NULL;
+
+    TEST_ASSERT_NOT_NULL(doc);
+    TEST_ASSERT_NOT_NULL(patches);
+
+    /* used to trigger heap-use-after-free under AddressSanitizer */
+    TEST_ASSERT_EQUAL_INT(0, cJSONUtils_ApplyPatches(doc, patches));
+
+    /* /patches removed, /keep untouched */
+    TEST_ASSERT_NULL(cJSON_GetObjectItem(doc, "patches"));
+    keep = cJSON_GetObjectItem(doc, "keep");
+    TEST_ASSERT_NOT_NULL(keep);
+    TEST_ASSERT_EQUAL_INT(1, keep->valueint);
+
+    cJSON_Delete(doc);
+}
+
+static void apply_patches_case_sensitive_should_not_read_freed_memory_when_patches_is_subtree(void)
+{
+    /* same as above for cJSONUtils_ApplyPatchesCaseSensitive */
+    cJSON *doc = cJSON_Parse("{\"keep\":1,\"patches\":[{\"op\":\"remove\",\"path\":\"/patches\"}]}");
+    cJSON *patches = cJSON_GetObjectItemCaseSensitive(doc, "patches");
+    cJSON *keep = NULL;
+
+    TEST_ASSERT_NOT_NULL(doc);
+    TEST_ASSERT_NOT_NULL(patches);
+
+    TEST_ASSERT_EQUAL_INT(0, cJSONUtils_ApplyPatchesCaseSensitive(doc, patches));
+
+    TEST_ASSERT_NULL(cJSON_GetObjectItemCaseSensitive(doc, "patches"));
+    keep = cJSON_GetObjectItemCaseSensitive(doc, "keep");
+    TEST_ASSERT_NOT_NULL(keep);
+    TEST_ASSERT_EQUAL_INT(1, keep->valueint);
+
+    cJSON_Delete(doc);
+}
+
 static void generate_merge_tests(void)
 {
     size_t i = 0;
@@ -253,6 +297,8 @@ int main(void)
     RUN_TEST(sort_tests);
     RUN_TEST(merge_tests);
     RUN_TEST(merge_patch_should_not_read_freed_memory_when_patch_is_subtree);
+    RUN_TEST(apply_patches_should_not_read_freed_memory_when_patches_is_subtree);
+    RUN_TEST(apply_patches_case_sensitive_should_not_read_freed_memory_when_patches_is_subtree);
     RUN_TEST(generate_merge_tests);
 
     return UNITY_END();
