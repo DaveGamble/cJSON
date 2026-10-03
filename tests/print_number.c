@@ -72,6 +72,8 @@ static void print_number_should_print_negative_integers(void)
     assert_print_number("-1", -1.0);
     assert_print_number("-32768", -32768.0);
     assert_print_number("-2147483648", -2147483648.0);
+    assert_print_number("-9007199254740990", -9007199254740990.0);
+    assert_print_number("-9007199254740991", -9007199254740991.0);
 }
 
 static void print_number_should_print_positive_integers(void)
@@ -79,6 +81,8 @@ static void print_number_should_print_positive_integers(void)
     assert_print_number("1", 1.0);
     assert_print_number("32767", 32767.0);
     assert_print_number("2147483647", 2147483647.0);
+    assert_print_number("9007199254740990", 9007199254740990.0);
+    assert_print_number("9007199254740991", 9007199254740991.0);
 }
 
 static void print_number_should_print_positive_reals(void)
@@ -89,6 +93,7 @@ static void print_number_should_print_positive_reals(void)
     assert_print_number("1.23e+129", 123e+127);
     assert_print_number("1.23e-126", 123e-128);
     assert_print_number("3.1415926535897931", 3.1415926535897931);
+    assert_print_number("9.10719925474099e+15", 9107199254740991.5);
 }
 
 static void print_number_should_print_negative_reals(void)
@@ -98,6 +103,7 @@ static void print_number_should_print_negative_reals(void)
     assert_print_number("-1e+21", -10e20);
     assert_print_number("-1.23e+129", -123e+127);
     assert_print_number("-1.23e-126", -123e-128);
+    assert_print_number("-9.10719925474099e+15", -9107199254740991.5);
 }
 
 static void print_number_should_print_non_number(void)
