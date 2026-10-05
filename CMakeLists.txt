@@ -137,6 +137,9 @@ else()
 endif()
 if (NOT WIN32)
     target_link_libraries("${CJSON_LIB}" m)
+    if (BUILD_SHARED_AND_STATIC_LIBS)
+        target_link_libraries("${CJSON_LIB}-static" m)
+    endif()
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"

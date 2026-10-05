@@ -59,6 +59,20 @@ jobs:
           make
           make test
           
+    - name: test static library linkage
+      if: matrix.mem_check == 'NONE_MEM_CHECK'
+      shell: bash
+      run: |
+          if [ "${{ matrix.compiler }}" == "GCC" ]; then
+            export CC=gcc
+          else
+            export CC=clang
+          fi
+          # Keep math calls external so compiler builtins cannot hide missing libm.
+          cmake -S . -B build-static -DBUILD_SHARED_AND_STATIC_LIBS=ON -DENABLE_CJSON_UTILS=ON -DCMAKE_C_FLAGS=-fno-builtin-fabs
+          cmake --build build-static
+          ctest --test-dir build-static --output-on-failure
+
   macos:
     runs-on: macos-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
