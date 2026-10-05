@@ -25,7 +25,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
 
-#ifdef __GNUCC__
+#ifdef __GNUC__
 #pragma GCC visibility push(default)
 #endif
 #if defined(_MSC_VER)
@@ -46,7 +46,7 @@
 #if defined(_MSC_VER)
 #pragma warning (pop)
 #endif
-#ifdef __GNUCC__
+#ifdef __GNUC__
 #pragma GCC visibility pop
 #endif
 
