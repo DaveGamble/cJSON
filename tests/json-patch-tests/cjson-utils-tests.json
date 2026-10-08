@@ -82,10 +82,34 @@
 	"expected": {"foo": ["bar", ["abc", "def"]] }
     },
 
-    { 
+    {
         "comment": "15",
         "doc": {"foo": {"bar": 1}},
         "patch": [{"op": "add", "path": "/foo/bar/baz", "value": "5"}],
         "error": "attempting to add to subfield of non-object"
-    } 
+    },
+    {
+	"comment": "16",
+	"doc": { "foo": "bar" },
+	"patch": [{ "op": "add", "path": "/a~1b", "value": "qux" }],
+	"expected": {"a/b": "qux","foo": "bar"}
+    },
+    {
+	"comment": "17",
+	"doc": { "foo": "bar" },
+	"patch": [{ "op": "add", "path": "/m~0n", "value": "qux" }],
+	"expected": {"m~n": "qux","foo": "bar"}
+    },
+    {
+	"comment": "18",
+	"doc": {"a/b": "qux","foo": "bar"},
+	"patch": [{ "op": "remove", "path": "/a~1b" }],
+	"expected": {"foo": "bar"}
+    },
+    {
+	"comment": "19",
+	"doc": {"m~n": "qux","foo": "bar"},
+	"patch": [{ "op": "replace", "path": "/m~0n", "value": "boo" }],
+	"expected": {"m~n": "boo","foo": "bar"}
+    }
 ]
