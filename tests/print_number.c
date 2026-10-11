@@ -100,6 +100,36 @@ static void print_number_should_print_negative_reals(void)
     assert_print_number("-1.23e-126", -123e-128);
 }
 
+static void print_number_should_preserve_double_precision(void)
+{
+    assert_print_number("1.7976931348623157e+308", DBL_MAX);
+    assert_print_number("-1.7976931348623157e+308", -DBL_MAX);
+    assert_print_number("4503601252675219", 4503601252675219.0);
+    assert_print_number("9007199254740992", 9007199254740992.0);
+    assert_print_number("0.30000000000000004", 0.1 + 0.2);
+}
+
+static void print_number_should_roundtrip_finite_numbers(void)
+{
+    const double numbers[] = { DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN,
+        DBL_MIN / 2.0, -DBL_MIN / 2.0, 1.0 + DBL_EPSILON, 1.0 - DBL_EPSILON,
+        4503601252675219.0, 9007199254740992.0, 0.1 + 0.2, 0.3, 0.0, 1.0 };
+    size_t i = 0;
+
+    for (i = 0; i < (sizeof(numbers) / sizeof(numbers[0])); i++)
+    {
+        cJSON *number = cJSON_CreateNumber(numbers[i]);
+        char *printed = cJSON_PrintUnformatted(number);
+        cJSON *parsed = cJSON_Parse(printed);
+        cJSON_bool equal = (parsed != NULL) && (parsed->valuedouble == numbers[i]);
+
+        cJSON_Delete(number);
+        cJSON_free(printed);
+        cJSON_Delete(parsed);
+        TEST_ASSERT_TRUE_MESSAGE(equal, "Printed number did not roundtrip exactly.");
+    }
+}
+
 static void print_number_should_print_non_number(void)
 {
     TEST_IGNORE();
@@ -119,6 +149,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(print_number_should_print_positive_integers);
     RUN_TEST(print_number_should_print_positive_reals);
     RUN_TEST(print_number_should_print_negative_reals);
+    RUN_TEST(print_number_should_preserve_double_precision);
+    RUN_TEST(print_number_should_roundtrip_finite_numbers);
     RUN_TEST(print_number_should_print_non_number);
 
     return UNITY_END();
