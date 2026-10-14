@@ -158,6 +158,20 @@ static void cjson_minify_should_not_loop_infinitely(void) {
     cJSON_Minify(string);
 }
 
+static void cjson_minify_should_handle_escaped_backslash_before_quote(void) {
+    /* the value is the single character '\', so the closing quote directly
+     * follows an escaped backslash. The trailing comment and whitespace must
+     * still be stripped. */
+    char with_comment[] = "{\"p\":\"\\\\\" /* c */ , \"q\":1}";
+    char at_end[] = "{\"a\":\"x\\\\\"  ,  \"b\":2}";
+
+    cJSON_Minify(with_comment);
+    TEST_ASSERT_EQUAL_STRING("{\"p\":\"\\\\\",\"q\":1}", with_comment);
+
+    cJSON_Minify(at_end);
+    TEST_ASSERT_EQUAL_STRING("{\"a\":\"x\\\\\",\"b\":2}", at_end);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -169,6 +183,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_minify_should_remove_spaces);
     RUN_TEST(cjson_minify_should_not_modify_strings);
     RUN_TEST(cjson_minify_should_not_loop_infinitely);
+    RUN_TEST(cjson_minify_should_handle_escaped_backslash_before_quote);
 
     return UNITY_END();
 }

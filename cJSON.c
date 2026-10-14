@@ -2913,7 +2913,10 @@ static void minify_string(char **input, char **output) {
             *input += static_strlen("\"");
             *output += static_strlen("\"");
             return;
-        } else if (((*input)[0] == '\\') && ((*input)[1] == '\"')) {
+        } else if (((*input)[0] == '\\') && ((*input)[1] != '\0')) {
+            /* a backslash escapes the next character, so copy it verbatim and
+             * skip it; otherwise an escaped backslash (\\) would leave the
+             * following quote to be mistaken for the end of the string */
             (*output)[1] = (*input)[1];
             *input += static_strlen("\"");
             *output += static_strlen("\"");
