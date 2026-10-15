@@ -275,6 +275,7 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
 {
     size_t parsed_index = 0;
     size_t position = 0;
+    size_t digit = 0;
 
     if ((pointer[0] == '0') && ((pointer[1] != '\0') && (pointer[1] != '/')))
     {
@@ -284,8 +285,13 @@ static cJSON_bool decode_array_index_from_pointer(const unsigned char * const po
 
     for (position = 0; (pointer[position] >= '0') && (pointer[position] <= '9'); position++)
     {
-        parsed_index = (10 * parsed_index) + (size_t)(pointer[position] - '0');
-
+        digit = (size_t)(pointer[position] - '0');
+        /* a valid array index has to fit into size_t, reject tokens that overflow */
+        if (parsed_index > ((((size_t)-1) - digit) / 10))
+        {
+            return 0;
+        }
+        parsed_index = (10 * parsed_index) + digit;
     }
 
     if ((pointer[position] != '\0') && (pointer[position] != '/'))

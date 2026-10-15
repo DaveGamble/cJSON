@@ -70,11 +70,29 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_utils_should_reject_overflowing_array_index(void)
+{
+    cJSON *array = cJSON_Parse("[10, 20, 30]");
+    TEST_ASSERT_NOT_NULL(array);
+
+    /* in-range indices still resolve */
+    TEST_ASSERT_NOT_NULL(cJSONUtils_GetPointer(array, "/0"));
+    TEST_ASSERT_NOT_NULL(cJSONUtils_GetPointer(array, "/2"));
+
+    /* an index that does not fit into size_t is invalid and must not wrap
+     * around to an in-range element (2^64 + 1 would wrap to 1 on 64 bit) */
+    TEST_ASSERT_NULL(cJSONUtils_GetPointer(array, "/18446744073709551617"));
+    TEST_ASSERT_NULL(cJSONUtils_GetPointer(array, "/99999999999999999999999999"));
+
+    cJSON_Delete(array);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_should_reject_overflowing_array_index);
 
     return UNITY_END();
 }
