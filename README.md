@@ -221,7 +221,7 @@ Because an array is stored as a linked list, iterating it via index is inefficie
 You can create an empty object with `cJSON_CreateObject`. `cJSON_CreateObjectReference` can be used to create an object that doesn't "own" its content, so its content doesn't get deleted by `cJSON_Delete`.
 
 To add items to an object, use `cJSON_AddItemToObject`. Use `cJSON_AddItemToObjectCS` to add an item to an object with a name that is a constant or reference (key of the item, `string` in the `cJSON` struct), so that it doesn't get freed by `cJSON_Delete`.
-Using `cJSON_AddItemReferenceToArray` an element can be added as a reference to another object, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occuring if they are already used elsewhere.
+Using `cJSON_AddItemReferenceToObject` an element can be added as a reference to another object, array or string. This means that `cJSON_Delete` will not delete that items `child` or `valuestring` properties, so no double frees are occuring if they are already used elsewhere.
 
 If you want to take an item out of an object, use `cJSON_DetachItemFromObjectCaseSensitive`, it will return the detached item, so be sure to assign it to a pointer, otherwise you will have a memory leak.
 
