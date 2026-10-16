@@ -90,6 +90,16 @@ static void parse_string_should_parse_utf16_surrogate_pairs(void)
     reset(item);
 }
 
+static void parse_string_should_not_parse_invalid_utf16_escapes(void)
+{
+    assert_not_parse_string("\"\\uX000\"");
+    reset(item);
+    assert_not_parse_string("\"abc\\u00G1def\"");
+    reset(item);
+    assert_not_parse_string("\"\\uD83D\\uZC31\"");
+    reset(item);
+}
+
 static void parse_string_should_not_parse_non_strings(void)
 {
     assert_not_parse_string("this\" is not a string\"");
@@ -127,6 +137,7 @@ int CJSON_CDECL main(void)
     UNITY_BEGIN();
     RUN_TEST(parse_string_should_parse_strings);
     RUN_TEST(parse_string_should_parse_utf16_surrogate_pairs);
+    RUN_TEST(parse_string_should_not_parse_invalid_utf16_escapes);
     RUN_TEST(parse_string_should_not_parse_non_strings);
     RUN_TEST(parse_string_should_not_parse_invalid_backslash);
     RUN_TEST(parse_string_should_parse_bug_94);

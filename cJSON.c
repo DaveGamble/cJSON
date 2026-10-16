@@ -662,8 +662,8 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     return true;
 }
 
-/* parse 4 digit hexadecimal number */
-static unsigned parse_hex4(const unsigned char * const input)
+/* parse 4 digit hexadecimal number, returns false if a character isn't a hex digit */
+static cJSON_bool parse_hex4(const unsigned char * const input, unsigned int * const output)
 {
     unsigned int h = 0;
     size_t i = 0;
@@ -685,7 +685,7 @@ static unsigned parse_hex4(const unsigned char * const input)
         }
         else /* invalid */
         {
-            return 0;
+            return false;
         }
 
         if (i < 3)
@@ -695,7 +695,9 @@ static unsigned parse_hex4(const unsigned char * const input)
         }
     }
 
-    return h;
+    *output = h;
+
+    return true;
 }
 
 /* converts a UTF-16 literal to UTF-8
@@ -717,7 +719,11 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     }
 
     /* get the first utf16 sequence */
-    first_code = parse_hex4(first_sequence + 2);
+    if (!parse_hex4(first_sequence + 2, &first_code))
+    {
+        /* invalid hex digit */
+        goto fail;
+    }
 
     /* check that the code is valid */
     if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)))
@@ -745,7 +751,11 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
         }
 
         /* get the second utf16 sequence */
-        second_code = parse_hex4(second_sequence + 2);
+        if (!parse_hex4(second_sequence + 2, &second_code))
+        {
+            /* invalid hex digit */
+            goto fail;
+        }
         /* check that the code is valid */
         if ((second_code < 0xDC00) || (second_code > 0xDFFF))
         {
