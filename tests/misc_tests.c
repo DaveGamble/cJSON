@@ -256,6 +256,10 @@ static void cjson_set_number_value_should_set_numbers(void)
     cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
     TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+
+    cJSON_SetNumberValue(number, cJSON_SetNumberHelper(NULL, 0.0));
+    TEST_ASSERT_EQUAL(0, number->valueint);
+    TEST_ASSERT_DOUBLE_IS_NAN(number->valuedouble);
 }
 
 static void cjson_detach_item_via_pointer_should_detach_items(void)
