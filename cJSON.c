@@ -303,6 +303,69 @@ typedef struct
 /* get a pointer to the buffer at the position */
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
+/* check that the token is a number as defined by RFC 8259:
+ * [ minus ] int [ frac ] [ exp ] without leading zeroes */
+static cJSON_bool is_valid_number(const unsigned char * const number, const size_t length)
+{
+    size_t position = 0;
+
+    if ((position < length) && (number[position] == '-'))
+    {
+        position++;
+    }
+
+    /* integer part */
+    if ((position < length) && (number[position] == '0'))
+    {
+        position++;
+    }
+    else if ((position < length) && (number[position] >= '1') && (number[position] <= '9'))
+    {
+        while ((position < length) && (number[position] >= '0') && (number[position] <= '9'))
+        {
+            position++;
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    /* fraction part needs at least one digit */
+    if ((position < length) && (number[position] == '.'))
+    {
+        position++;
+        if ((position >= length) || (number[position] < '0') || (number[position] > '9'))
+        {
+            return false;
+        }
+        while ((position < length) && (number[position] >= '0') && (number[position] <= '9'))
+        {
+            position++;
+        }
+    }
+
+    /* exponent part needs at least one digit */
+    if ((position < length) && ((number[position] == 'e') || (number[position] == 'E')))
+    {
+        position++;
+        if ((position < length) && ((number[position] == '+') || (number[position] == '-')))
+        {
+            position++;
+        }
+        if ((position >= length) || (number[position] < '0') || (number[position] > '9'))
+        {
+            return false;
+        }
+        while ((position < length) && (number[position] >= '0') && (number[position] <= '9'))
+        {
+            position++;
+        }
+    }
+
+    return position == length;
+}
+
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
@@ -353,6 +416,11 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
         }
     }
 loop_end:
+    if (!is_valid_number(buffer_at_offset(input_buffer), number_string_length))
+    {
+        return false; /* not a valid JSON number */
+    }
+
     /* malloc for temporary buffer, add 1 for '\0' */
     number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);
     if (number_c_string == NULL)

@@ -67,6 +67,16 @@ static void assert_parse_big_number(const char *string)
     assert_is_number(item);
 }
 
+static void assert_not_parse_number(const char *string)
+{
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = (const unsigned char*)string;
+    buffer.length = strlen(string) + sizeof("");
+    buffer.hooks = global_hooks;
+
+    TEST_ASSERT_FALSE(parse_number(item, &buffer));
+}
+
 static void parse_number_should_parse_zero(void)
 {
     assert_parse_number("0", 0, 0);
@@ -115,6 +125,21 @@ static void parse_number_should_parse_big_numbers(void)
     assert_parse_big_number("999999999999999999999999999999999999999999999991234567890.1234567");
 }
 
+static void parse_number_should_not_parse_invalid_numbers(void)
+{
+    assert_not_parse_number("-");
+    assert_not_parse_number("00");
+    assert_not_parse_number("01");
+    assert_not_parse_number("-01");
+    assert_not_parse_number("1.");
+    assert_not_parse_number("-.5");
+    assert_not_parse_number("2.e3");
+    assert_not_parse_number("1e");
+    assert_not_parse_number("1e+");
+    assert_not_parse_number("1.5.3");
+    assert_not_parse_number("1-2");
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -126,5 +151,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_number_should_parse_positive_reals);
     RUN_TEST(parse_number_should_parse_negative_reals);
     RUN_TEST(parse_number_should_parse_big_numbers);
+    RUN_TEST(parse_number_should_not_parse_invalid_numbers);
     return UNITY_END();
 }
