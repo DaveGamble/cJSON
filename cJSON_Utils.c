@@ -1335,8 +1335,20 @@ static cJSON *merge_patch(cJSON *target, const cJSON * const patch, const cJSON_
 
     if (!cJSON_IsObject(target))
     {
+        /* The patch may be part of target: deleting target would free it.
+         * Work from a copy, as for non-object patches above. */
+        cJSON *patch_copy = cJSON_Duplicate(patch, 1);
+        cJSON *result = cJSON_CreateObject();
+        if ((patch_copy == NULL) || (result == NULL))
+        {
+            cJSON_Delete(patch_copy);
+            cJSON_Delete(result);
+            return NULL;
+        }
         cJSON_Delete(target);
-        target = cJSON_CreateObject();
+        result = merge_patch(result, patch_copy, case_sensitive);
+        cJSON_Delete(patch_copy);
+        return result;
     }
 
     patch_child = patch->child;
