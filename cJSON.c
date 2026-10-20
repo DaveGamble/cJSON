@@ -589,6 +589,15 @@ static void update_offset(printbuffer * const buffer)
 static cJSON_bool compare_double(double a, double b)
 {
     double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+
+    if (a == b)
+    {
+        return true;
+    }
+    if (isnan(a) || isnan(b) || isinf(a) || isinf(b))
+    {
+        return false;
+    }
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 

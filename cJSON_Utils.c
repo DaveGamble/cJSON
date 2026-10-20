@@ -63,6 +63,14 @@
 #endif
 #define false ((cJSON_bool)0)
 
+/* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
+#ifndef isinf
+#define isinf(d) (isnan((d - d)) && !isnan(d))
+#endif
+#ifndef isnan
+#define isnan(d) (d != d)
+#endif
+
 static unsigned char* cJSONUtils_strdup(const unsigned char* const string)
 {
     size_t length = 0;
@@ -112,6 +120,15 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
 static cJSON_bool compare_double(double a, double b)
 {
     double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+
+    if (a == b)
+    {
+        return true;
+    }
+    if (isnan(a) || isnan(b) || isinf(a) || isinf(b))
+    {
+        return false;
+    }
     return (fabs(a - b) <= maxVal * DBL_EPSILON);
 }
 

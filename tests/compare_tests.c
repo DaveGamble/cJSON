@@ -43,6 +43,21 @@ static cJSON_bool compare_from_string(const char * const a, const char * const b
     return result;
 }
 
+static cJSON_bool compare_numbers(const double a, const double b)
+{
+    cJSON a_json;
+    cJSON b_json;
+
+    memset(&a_json, 0, sizeof(a_json));
+    memset(&b_json, 0, sizeof(b_json));
+    a_json.type = cJSON_Number;
+    b_json.type = cJSON_Number;
+    a_json.valuedouble = a;
+    b_json.valuedouble = b;
+
+    return cJSON_Compare(&a_json, &b_json, true);
+}
+
 static void cjson_compare_should_compare_null_pointer_as_not_equal(void)
 {
     TEST_ASSERT_FALSE(cJSON_Compare(NULL, NULL, true));
@@ -70,6 +85,19 @@ static void cjson_compare_should_compare_numbers(void)
 
     TEST_ASSERT_FALSE(compare_from_string("1", "2", true));
     TEST_ASSERT_FALSE(compare_from_string("1", "2", false));
+
+    /* infinity: same sign compares equal, opposite sign compares unequal */
+    TEST_ASSERT_TRUE(compare_numbers(1.0 / 0.0, 1.0 / 0.0));
+    TEST_ASSERT_TRUE(compare_numbers(-1.0 / 0.0, -1.0 / 0.0));
+    TEST_ASSERT_FALSE(compare_numbers(1.0 / 0.0, -1.0 / 0.0));
+    TEST_ASSERT_FALSE(compare_numbers(-1.0 / 0.0, 1.0 / 0.0));
+
+    /* infinity versus a finite number compares unequal */
+    TEST_ASSERT_FALSE(compare_numbers(1.0 / 0.0, 1.0));
+    TEST_ASSERT_FALSE(compare_numbers(-1.0 / 0.0, -1.0));
+
+    /* NaN never compares equal, not even to itself */
+    TEST_ASSERT_FALSE(compare_numbers(NAN, NAN));
 }
 
 static void cjson_compare_should_compare_booleans(void)
