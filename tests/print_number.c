@@ -20,9 +20,30 @@
   THE SOFTWARE.
 */
 
+#include <locale.h>
+
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
 #include "common.h"
+
+/* switch LC_NUMERIC to a locale whose decimal point is longer than one byte,
+ * e.g. U+066B ARABIC DECIMAL SEPARATOR, if one is installed */
+static cJSON_bool set_multibyte_decimal_point_locale(void)
+{
+    const char *locales[] = { "fa_IR.UTF-8", "ps_AF.UTF-8", "ar_SA.UTF-8" };
+    size_t i = 0;
+
+    for (i = 0; i < (sizeof(locales) / sizeof(locales[0])); i++)
+    {
+        if ((setlocale(LC_NUMERIC, locales[i]) != NULL) && (strlen(localeconv()->decimal_point) > 1))
+        {
+            return true;
+        }
+    }
+
+    setlocale(LC_NUMERIC, "C");
+    return false;
+}
 
 static void assert_print_number(const char *expected, double input)
 {
@@ -109,6 +130,20 @@ static void print_number_should_print_non_number(void)
     /* assert_print_number("null", -INFTY); */
 }
 
+static void print_number_should_print_reals_with_multibyte_decimal_point(void)
+{
+    if (!set_multibyte_decimal_point_locale())
+    {
+        TEST_IGNORE_MESSAGE("No locale with a multi-byte decimal point available.");
+    }
+
+    assert_print_number("1.5", 1.5);
+    assert_print_number("-0.001", -0.001);
+    assert_print_number("-123.456", -123.456);
+
+    setlocale(LC_NUMERIC, "C");
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -120,6 +155,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(print_number_should_print_positive_reals);
     RUN_TEST(print_number_should_print_negative_reals);
     RUN_TEST(print_number_should_print_non_number);
+    RUN_TEST(print_number_should_print_reals_with_multibyte_decimal_point);
 
     return UNITY_END();
 }

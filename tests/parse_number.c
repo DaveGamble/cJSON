@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 #include "unity/examples/unity_config.h"
 #include "unity/src/unity.h"
@@ -65,6 +66,25 @@ static void assert_parse_big_number(const char *string)
 
     TEST_ASSERT_TRUE(parse_number(item, &buffer));
     assert_is_number(item);
+}
+
+/* switch LC_NUMERIC to a locale whose decimal point is longer than one byte,
+ * e.g. U+066B ARABIC DECIMAL SEPARATOR, if one is installed */
+static cJSON_bool set_multibyte_decimal_point_locale(void)
+{
+    const char *locales[] = { "fa_IR.UTF-8", "ps_AF.UTF-8", "ar_SA.UTF-8" };
+    size_t i = 0;
+
+    for (i = 0; i < (sizeof(locales) / sizeof(locales[0])); i++)
+    {
+        if ((setlocale(LC_NUMERIC, locales[i]) != NULL) && (strlen(localeconv()->decimal_point) > 1))
+        {
+            return true;
+        }
+    }
+
+    setlocale(LC_NUMERIC, "C");
+    return false;
 }
 
 static void parse_number_should_parse_zero(void)
@@ -115,6 +135,20 @@ static void parse_number_should_parse_big_numbers(void)
     assert_parse_big_number("999999999999999999999999999999999999999999999991234567890.1234567");
 }
 
+static void parse_number_should_parse_reals_with_multibyte_decimal_point(void)
+{
+    if (!set_multibyte_decimal_point_locale())
+    {
+        TEST_IGNORE_MESSAGE("No locale with a multi-byte decimal point available.");
+    }
+
+    assert_parse_number("1.5", 1, 1.5);
+    assert_parse_number("-0.001", 0, -0.001);
+    assert_parse_number("2.5e3", 2500, 2500.0);
+
+    setlocale(LC_NUMERIC, "C");
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -126,5 +160,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_number_should_parse_positive_reals);
     RUN_TEST(parse_number_should_parse_negative_reals);
     RUN_TEST(parse_number_should_parse_big_numbers);
+    RUN_TEST(parse_number_should_parse_reals_with_multibyte_decimal_point);
     return UNITY_END();
 }

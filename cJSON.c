@@ -275,14 +275,14 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
     }
 }
 
-/* get the decimal point character of the current locale */
-static unsigned char get_decimal_point(void)
+/* get the decimal point of the current locale, it can be longer than one byte */
+static const unsigned char *get_decimal_point(void)
 {
 #ifdef ENABLE_LOCALES
     struct lconv *lconv = localeconv();
-    return (unsigned char) lconv->decimal_point[0];
+    return (const unsigned char*) lconv->decimal_point;
 #else
-    return '.';
+    return (const unsigned char*) ".";
 #endif
 }
 
@@ -309,10 +309,13 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
     double number = 0;
     unsigned char *after_end = NULL;
     unsigned char *number_c_string;
-    unsigned char decimal_point = get_decimal_point();
+    const unsigned char *decimal_point = get_decimal_point();
+    size_t decimal_point_length = strlen((const char*)decimal_point);
+    size_t decimal_point_count = 0;
     size_t i = 0;
     size_t number_string_length = 0;
-    cJSON_bool has_decimal_point = false;
+    size_t c_string_length = 0;
+    size_t parsed_length = 0;
 
     if ((input_buffer == NULL) || (input_buffer->content == NULL))
     {
@@ -345,7 +348,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 
             case '.':
                 number_string_length++;
-                has_decimal_point = true;
+                decimal_point_count++;
                 break;
 
             default:
@@ -353,27 +356,28 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
         }
     }
 loop_end:
-    /* malloc for temporary buffer, add 1 for '\0' */
-    number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + 1);
+    /* malloc for temporary buffer, each '.' can grow to the locale's decimal point, add 1 for '\0' */
+    number_c_string = (unsigned char *) input_buffer->hooks.allocate(number_string_length + (decimal_point_count * decimal_point_length) + 1);
     if (number_c_string == NULL)
     {
         return false; /* allocation failure */
     }
 
-    memcpy(number_c_string, buffer_at_offset(input_buffer), number_string_length);
-    number_c_string[number_string_length] = '\0';
-
-    if (has_decimal_point)
+    for (i = 0; i < number_string_length; i++)
     {
-        for (i = 0; i < number_string_length; i++)
+        if (buffer_at_offset(input_buffer)[i] == '.')
         {
-            if (number_c_string[i] == '.')
-            {
-                /* replace '.' with the decimal point of the current locale (for strtod) */
-                number_c_string[i] = decimal_point;
-            }
+            /* replace '.' with the decimal point of the current locale (for strtod) */
+            memcpy(number_c_string + c_string_length, decimal_point, decimal_point_length);
+            c_string_length += decimal_point_length;
+        }
+        else
+        {
+            number_c_string[c_string_length] = buffer_at_offset(input_buffer)[i];
+            c_string_length++;
         }
     }
+    number_c_string[c_string_length] = '\0';
 
     number = strtod((const char*)number_c_string, (char**)&after_end);
     if (number_c_string == after_end)
@@ -401,7 +405,20 @@ loop_end:
 
     item->type = cJSON_Number;
 
-    input_buffer->offset += (size_t)(after_end - number_c_string);
+    /* map the end of the number back to the input, the decimal point can span several bytes */
+    parsed_length = (size_t)(after_end - number_c_string);
+    c_string_length = 0;
+    for (i = 0; i < number_string_length; i++)
+    {
+        size_t character_length = (buffer_at_offset(input_buffer)[i] == '.') ? decimal_point_length : 1;
+        if ((c_string_length + character_length) > parsed_length)
+        {
+            break;
+        }
+        c_string_length += character_length;
+    }
+
+    input_buffer->offset += i;
     /* free the temporary buffer */
     input_buffer->hooks.deallocate(number_c_string);
     return true;
@@ -599,8 +616,10 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     double d = item->valuedouble;
     int length = 0;
     size_t i = 0;
+    size_t output_length = 0;
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
-    unsigned char decimal_point = get_decimal_point();
+    const unsigned char *decimal_point = get_decimal_point();
+    size_t decimal_point_length = strlen((const char*)decimal_point);
     double test = 0.0;
 
     if (output_buffer == NULL)
@@ -644,20 +663,23 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
 
     /* copy the printed number to the output and replace locale
-     * dependent decimal point with '.' */
+     * dependent decimal point, which can be several bytes long, with '.' */
     for (i = 0; i < ((size_t)length); i++)
     {
-        if (number_buffer[i] == decimal_point)
+        if ((decimal_point_length > 0) && (strncmp((const char*)number_buffer + i, (const char*)decimal_point, decimal_point_length) == 0))
         {
-            output_pointer[i] = '.';
+            output_pointer[output_length] = '.';
+            output_length++;
+            i += decimal_point_length - 1;
             continue;
         }
 
-        output_pointer[i] = number_buffer[i];
+        output_pointer[output_length] = number_buffer[i];
+        output_length++;
     }
-    output_pointer[i] = '\0';
+    output_pointer[output_length] = '\0';
 
-    output_buffer->offset += (size_t)length;
+    output_buffer->offset += output_length;
 
     return true;
 }
