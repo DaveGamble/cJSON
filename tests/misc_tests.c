@@ -313,6 +313,23 @@ static void cjson_detach_item_via_pointer_should_return_null_if_item_prev_is_nul
     TEST_ASSERT_TRUE_MESSAGE(cJSON_DetachItemViaPointer(parent, &(list[0])) == &(list[0]), "Failed to detach in the middle.");
 }
 
+static void cjson_replace_item_via_pointer_should_return_false_if_item_prev_is_null(void)
+{
+    cJSON list[2];
+    cJSON parent[1];
+    cJSON replacement;
+
+    memset(list, '\0', sizeof(list));
+    memset(parent, '\0', sizeof(parent));
+    memset(&replacement, '\0', sizeof(replacement));
+
+    /* link the list */
+    list[0].next = &(list[1]);
+
+    parent->child = &list[0];
+    TEST_ASSERT_FALSE_MESSAGE(cJSON_ReplaceItemViaPointer(parent, &(list[1]), &replacement), "Failed to reject item with null prev.");
+}
+
 static void cjson_replace_item_via_pointer_should_replace_items(void)
 {
     cJSON replacements[3];
@@ -816,6 +833,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_detach_item_via_pointer_should_detach_items);
     RUN_TEST(cjson_detach_item_via_pointer_should_return_null_if_item_prev_is_null);
     RUN_TEST(cjson_replace_item_via_pointer_should_replace_items);
+    RUN_TEST(cjson_replace_item_via_pointer_should_return_false_if_item_prev_is_null);
     RUN_TEST(cjson_replace_item_in_object_should_preserve_name);
     RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
     RUN_TEST(cjson_set_valuestring_should_return_null_if_strings_overlap);
