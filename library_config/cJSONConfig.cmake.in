@@ -1,11 +1,12 @@
 # Whether the utils lib was build.
 set(CJSON_UTILS_FOUND @ENABLE_CJSON_UTILS@)
 
-# The include directories used by cJSON
-set(CJSON_INCLUDE_DIRS "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
-set(CJSON_INCLUDE_DIR "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
-
 get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_PACKAGE_PREFIX "${_dir}/../../.." ABSOLUTE)
+
+# The include directories used by cJSON
+set(CJSON_INCLUDE_DIRS "${_PACKAGE_PREFIX}/@CMAKE_INSTALL_INCLUDEDIR@")
+set(CJSON_INCLUDE_DIR "${_PACKAGE_PREFIX}/@CMAKE_INSTALL_INCLUDEDIR@")
 
 # The cJSON library
 set(CJSON_LIBRARY "@CJSON_LIB@")
