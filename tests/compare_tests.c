@@ -189,6 +189,62 @@ static void cjson_compare_should_compare_objects(void)
                 false))
 }
 
+static void cjson_compare_should_compare_nested_objects(void)
+{
+    /* nested identical documents compare true regardless of member
+     * order (exercises the sorted single-pass comparison). */
+    TEST_ASSERT_TRUE(compare_from_string(
+                "{\"b\": {\"d\": 4, \"c\": 3}, \"a\": [1, 2]}",
+                "{\"a\": [1, 2], \"b\": {\"c\": 3, \"d\": 4}}",
+                true));
+    TEST_ASSERT_TRUE(compare_from_string(
+                "{\"B\": 1, \"a\": 2}",
+                "{\"b\": 1, \"A\": 2}",
+                false));
+    /* nested differences are found */
+    TEST_ASSERT_FALSE(compare_from_string(
+                "{\"b\": {\"d\": 4, \"c\": 3}, \"a\": [1, 2]}",
+                "{\"a\": [1, 2], \"b\": {\"c\": 3, \"d\": 5}}",
+                true));
+    /* different member counts are not equal */
+    TEST_ASSERT_FALSE(compare_from_string(
+                "{\"a\": 1}",
+                "{\"a\": 1, \"b\": 2}",
+                true));
+    /* empty objects are equal */
+    TEST_ASSERT_TRUE(compare_from_string("{}", "{}", true));
+}
+
+static void cjson_compare_should_fail_safe_past_nesting_limit(void)
+{
+    /* CVE-2026-67216: over-limit nesting fails safe instead of
+     * recursing without bound. */
+    cJSON *a = cJSON_CreateArray();
+    cJSON *b = cJSON_CreateArray();
+    cJSON *current_a = a;
+    cJSON *current_b = b;
+    int i = 0;
+
+    TEST_ASSERT_NOT_NULL(a);
+    TEST_ASSERT_NOT_NULL(b);
+    for (i = 0; i < 1500; i++)
+    {
+        cJSON *next_a = cJSON_CreateArray();
+        cJSON *next_b = cJSON_CreateArray();
+        TEST_ASSERT_NOT_NULL(next_a);
+        TEST_ASSERT_NOT_NULL(next_b);
+        cJSON_AddItemToArray(current_a, next_a);
+        cJSON_AddItemToArray(current_b, next_b);
+        current_a = next_a;
+        current_b = next_b;
+    }
+
+    TEST_ASSERT_FALSE(cJSON_Compare(a, b, true));
+
+    cJSON_Delete(a);
+    cJSON_Delete(b);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -203,6 +259,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_compare_should_compare_raw);
     RUN_TEST(cjson_compare_should_compare_arrays);
     RUN_TEST(cjson_compare_should_compare_objects);
+    RUN_TEST(cjson_compare_should_compare_nested_objects);
+    RUN_TEST(cjson_compare_should_fail_safe_past_nesting_limit);
 
     return UNITY_END();
 }

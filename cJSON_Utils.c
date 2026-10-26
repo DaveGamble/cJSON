@@ -108,6 +108,46 @@ static int compare_strings(const unsigned char *string1, const unsigned char *st
     return tolower(*string1) - tolower(*string2);
 }
 
+/* qsort comparators for member-pointer arrays (no context pointer, so
+ * one function per case rule). NULL names sort first. */
+static int compare_json_names_sensitive(const void *a, const void *b)
+{
+    const unsigned char *sa = (const unsigned char*)(*(cJSON * const *)a)->string;
+    const unsigned char *sb = (const unsigned char*)(*(cJSON * const *)b)->string;
+    if (sa == sb)
+    {
+        return 0;
+    }
+    if (sa == NULL)
+    {
+        return -1;
+    }
+    if (sb == NULL)
+    {
+        return 1;
+    }
+    return strcmp((const char*)sa, (const char*)sb);
+}
+
+static int compare_json_names_insensitive(const void *a, const void *b)
+{
+    const unsigned char *sa = (const unsigned char*)(*(cJSON * const *)a)->string;
+    const unsigned char *sb = (const unsigned char*)(*(cJSON * const *)b)->string;
+    if (sa == sb)
+    {
+        return 0;
+    }
+    if (sa == NULL)
+    {
+        return -1;
+    }
+    if (sb == NULL)
+    {
+        return 1;
+    }
+    return compare_strings(sa, sb, false);
+}
+
 /* securely comparison of floating-point variables */
 static cJSON_bool compare_double(double a, double b)
 {
@@ -601,8 +641,14 @@ static void sort_object(cJSON * const object, const cJSON_bool case_sensitive)
     object->child = sort_list(object->child, case_sensitive);
 }
 
-static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensitive)
+static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensitive, size_t depth)
 {
+    if (depth >= CJSON_NESTING_LIMIT)
+    {
+        /* nested past the limit: fail safe (CVE-2026-67216). */
+        return false;
+    }
+
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
     {
         /* mismatched type. */
@@ -635,7 +681,7 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
         case cJSON_Array:
             for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
             {
-                cJSON_bool identical = compare_json(a, b, case_sensitive);
+                cJSON_bool identical = compare_json(a, b, case_sensitive, depth + 1);
                 if (!identical)
                 {
                     return false;
@@ -653,33 +699,89 @@ static cJSON_bool compare_json(cJSON *a, cJSON *b, const cJSON_bool case_sensiti
             }
 
         case cJSON_Object:
-            sort_object(a, case_sensitive);
-            sort_object(b, case_sensitive);
-            for ((void)(a = a->child), b = b->child; (a != NULL) && (b != NULL); (void)(a = a->next), b = b->next)
-            {
-                cJSON_bool identical = false;
-                /* compare object keys */
-                if (compare_strings((unsigned char*)a->string, (unsigned char*)b->string, case_sensitive))
-                {
-                    /* missing member */
-                    return false;
-                }
-                identical = compare_json(a, b, case_sensitive);
-                if (!identical)
-                {
-                    return false;
-                }
-            }
+        {
+            /* Sort copies of the member lists once and compare pairwise:
+             * O(n log n) per level instead of sort-then-scan recursion
+             * with quadratic behavior on nested objects (CVE-2026-67216).
+             * Unlike the old code, the compared trees are not reordered. */
+            cJSON **a_members = NULL;
+            cJSON **b_members = NULL;
+            size_t a_count = 0;
+            size_t b_count = 0;
+            size_t i = 0;
+            cJSON *element = NULL;
 
-            /* object length mismatch (one of both children is not null) */
-            if ((a != NULL) || (b != NULL))
+            for (element = a->child; element != NULL; element = element->next)
+            {
+                a_count++;
+            }
+            for (element = b->child; element != NULL; element = element->next)
+            {
+                b_count++;
+            }
+            /* object length mismatch? */
+            if (a_count != b_count)
             {
                 return false;
             }
-            else
+            if (a_count == 0)
             {
                 return true;
             }
+            if ((a_count > (size_t)-1 / sizeof(cJSON*)) || (b_count > (size_t)-1 / sizeof(cJSON*)))
+            {
+                return false;
+            }
+            a_members = (cJSON**)cJSON_malloc(a_count * sizeof(cJSON*));
+            b_members = (cJSON**)cJSON_malloc(b_count * sizeof(cJSON*));
+            if ((a_members == NULL) || (b_members == NULL))
+            {
+                cJSON_free(a_members);
+                cJSON_free(b_members);
+                return false;
+            }
+            for (element = a->child, i = 0; element != NULL; element = element->next, i++)
+            {
+                a_members[i] = element;
+            }
+            for (element = b->child, i = 0; element != NULL; element = element->next, i++)
+            {
+                b_members[i] = element;
+            }
+            if (case_sensitive)
+            {
+                qsort(a_members, a_count, sizeof(cJSON*), compare_json_names_sensitive);
+                qsort(b_members, b_count, sizeof(cJSON*), compare_json_names_sensitive);
+            }
+            else
+            {
+                qsort(a_members, a_count, sizeof(cJSON*), compare_json_names_insensitive);
+                qsort(b_members, b_count, sizeof(cJSON*), compare_json_names_insensitive);
+            }
+            for (i = 0; i < a_count; i++)
+            {
+                cJSON_bool identical = false;
+                /* compare object keys */
+                if (compare_strings((unsigned char*)a_members[i]->string, (unsigned char*)b_members[i]->string, case_sensitive))
+                {
+                    /* missing member */
+                    identical = false;
+                }
+                else
+                {
+                    identical = compare_json(a_members[i], b_members[i], case_sensitive, depth + 1);
+                }
+                if (!identical)
+                {
+                    cJSON_free(a_members);
+                    cJSON_free(b_members);
+                    return false;
+                }
+            }
+            cJSON_free(a_members);
+            cJSON_free(b_members);
+            return true;
+        }
 
         default:
             break;
@@ -831,7 +933,7 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
     else if (opcode == TEST)
     {
         /* compare value: {...} with the given path */
-        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), get_object_item(patch, "value", case_sensitive), case_sensitive);
+        status = !compare_json(get_item_from_pointer(object, path->valuestring, case_sensitive), get_object_item(patch, "value", case_sensitive), case_sensitive, 0);
         goto cleanup;
     }
 
@@ -1453,7 +1555,7 @@ static cJSON *generate_merge_patch(cJSON * const from, cJSON * const to, const c
         else
         {
             /* object key exists in both objects */
-            if (!compare_json(from_child, to_child, case_sensitive))
+            if (!compare_json(from_child, to_child, case_sensitive, 0))
             {
                 /* not identical --> generate a patch */
                 cJSON_AddItemToObject(patch, to_child->string, cJSONUtils_GenerateMergePatch(from_child, to_child));
