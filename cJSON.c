@@ -991,18 +991,40 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
             case '\r':
             case '\t':
                 /* one character escape sequence */
+                if (escape_characters == (size_t)-1)
+                {
+                    /* counter would wrap and under-allocate below */
+                    return false;
+                }
                 escape_characters++;
                 break;
             default:
                 if (*input_pointer < 32)
                 {
                     /* UTF-16 escape sequence uXXXX */
+                    if (escape_characters > ((size_t)-1 - 5))
+                    {
+                        /* counter would wrap and under-allocate below */
+                        return false;
+                    }
                     escape_characters += 5;
                 }
                 break;
         }
     }
-    output_length = (size_t)(input_pointer - input) + escape_characters;
+    {
+        size_t input_length = (size_t)(input_pointer - input);
+        /* The allocation below adds the quotes; if any of these sums
+         * wrapped (32-bit size_t past ~4G, CVE-2026-16554), ensure()
+         * would hand out a small buffer while the write loop emits
+         * the true length. Fail instead. */
+        if ((escape_characters > ((size_t)-1 - sizeof("\"\""))) ||
+            (input_length > ((size_t)-1 - sizeof("\"\"") - escape_characters)))
+        {
+            return false;
+        }
+        output_length = input_length + escape_characters;
+    }
 
     output = ensure(output_buffer, output_length + sizeof("\"\""));
     if (output == NULL)

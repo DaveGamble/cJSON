@@ -65,6 +65,36 @@ static void print_string_should_print_utf8(void)
     assert_print_string("\"ü猫慕\"", "ü猫慕");
 }
 
+static void print_string_should_print_escape_heavy_strings_exactly(void)
+{
+    /* CVE-2026-16554 regression guard: escape counting must stay exact
+     * at scale so the allocation always matches the emitted length. */
+    char input[101];
+    char expected[701];
+    unsigned char printed[1024];
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    size_t i = 0;
+
+    memset(input, 1, 100);
+    input[100] = '\0';
+    expected[0] = '"';
+    for (i = 0; i < 100; i++)
+    {
+        memcpy(expected + 1 + 6 * i, "\\u0001", 6);
+    }
+    expected[601] = '"';
+    expected[602] = '\0';
+
+    buffer.buffer = printed;
+    buffer.length = sizeof(printed);
+    buffer.offset = 0;
+    buffer.noalloc = true;
+    buffer.hooks = global_hooks;
+
+    TEST_ASSERT_TRUE_MESSAGE(print_string_ptr((const unsigned char*)input, &buffer), "Failed to print string.");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, printed, "Escape-heavy output isn't exact.");
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -73,6 +103,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(print_string_should_print_empty_strings);
     RUN_TEST(print_string_should_print_ascii);
     RUN_TEST(print_string_should_print_utf8);
+    RUN_TEST(print_string_should_print_escape_heavy_strings_exactly);
 
     return UNITY_END();
 }
