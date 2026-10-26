@@ -804,6 +804,59 @@ static void overwrite_item(cJSON * const root, const cJSON replacement)
     memcpy(root, &replacement, sizeof(cJSON));
 }
 
+/* Longest root-to-leaf chain of a value subtree, counting the node
+ * itself as 1. Recursion is self-bounding: it never descends past
+ * CJSON_NESTING_LIMIT, so attacker-shaped values cannot exhaust the
+ * stack here. Returns a value > CJSON_NESTING_LIMIT for over-limit
+ * subtrees (fail closed). */
+static size_t patch_value_depth(const cJSON * const node, size_t depth)
+{
+    const cJSON *child = NULL;
+    size_t max = depth;
+
+    if (node == NULL)
+    {
+        return depth;
+    }
+    if (depth > CJSON_NESTING_LIMIT)
+    {
+        return depth;
+    }
+    for (child = node->child; child != NULL; child = child->next)
+    {
+        size_t child_depth = patch_value_depth(child, depth + 1);
+        if (child_depth > max)
+        {
+            max = child_depth;
+        }
+        if (max > CJSON_NESTING_LIMIT)
+        {
+            return max;
+        }
+    }
+    return max;
+}
+
+/* Depth of the node a JSON Pointer addresses, counting path segments.
+ * A raw '/' is always a separator ('/' in a key is escaped as ~1),
+ * so the segment count is the node's depth with the root at 0. */
+static size_t pointer_depth(const unsigned char *pointer)
+{
+    size_t depth = 0;
+    if (pointer == NULL)
+    {
+        return 0;
+    }
+    for (; *pointer; pointer++)
+    {
+        if (*pointer == '/')
+        {
+            depth++;
+        }
+    }
+    return depth;
+}
+
 static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_sensitive)
 {
     cJSON *path = NULL;
@@ -863,6 +916,14 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
             {
                 /* out of memory for add/replace. */
                 status = 8;
+                goto cleanup;
+            }
+
+            if (patch_value_depth(value, 1) > CJSON_NESTING_LIMIT)
+            {
+                /* replacing the root with an over-limit value would
+                 * build a document no recursive pass can handle. */
+                status = 12;
                 goto cleanup;
             }
 
@@ -978,7 +1039,19 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
         status = 9;
         goto cleanup;
     }
-    else if (cJSON_IsArray(parent))
+
+    /* Refuse grafts that would push the document past the nesting
+     * limit: add/copy amplification must not build documents whose
+     * depth exhausts the stack in recursive passes (CVE-2026-67215).
+     * The grafted node lands one level below its parent, so the
+     * deepest new node is at parent_depth + value_depth. */
+    if (pointer_depth(parent_pointer) + patch_value_depth(value, 1) >= CJSON_NESTING_LIMIT)
+    {
+        status = 12;
+        goto cleanup;
+    }
+
+    if (cJSON_IsArray(parent))
     {
         if (strcmp((char*)child_pointer, "-") == 0)
         {
