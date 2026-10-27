@@ -222,6 +222,30 @@ static void merge_patch_should_not_read_freed_memory_when_patch_is_subtree(void)
     cJSON_Delete(result);
 }
 
+static void merge_patch_object_patch_subtree_of_array_target(void)
+{
+    /* Companion regression test for PR #1109: object patch that is a
+     * subtree of an array target. merge_patch must duplicate the patch
+     * before deleting the target, otherwise it reads freed memory. */
+    cJSON *target = cJSON_Parse("[1, 2, {\"a\": 1}]");
+    cJSON *patch = NULL;
+    cJSON *result = NULL;
+    cJSON *a = NULL;
+
+    TEST_ASSERT_NOT_NULL(target);
+    patch = target->child->next->next;
+    TEST_ASSERT_NOT_NULL(patch);
+
+    result = cJSONUtils_MergePatch(target, patch);
+    TEST_ASSERT_NOT_NULL(result);
+    TEST_ASSERT_TRUE(cJSON_IsObject(result));
+    a = cJSON_GetObjectItem(result, "a");
+    TEST_ASSERT_NOT_NULL(a);
+    TEST_ASSERT_EQUAL_INT(1, a->valueint);
+
+    cJSON_Delete(result);
+}
+
 static void generate_merge_tests(void)
 {
     size_t i = 0;
@@ -253,6 +277,7 @@ int main(void)
     RUN_TEST(sort_tests);
     RUN_TEST(merge_tests);
     RUN_TEST(merge_patch_should_not_read_freed_memory_when_patch_is_subtree);
+    RUN_TEST(merge_patch_object_patch_subtree_of_array_target);
     RUN_TEST(generate_merge_tests);
 
     return UNITY_END();
