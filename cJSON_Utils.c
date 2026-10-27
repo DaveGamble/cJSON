@@ -463,7 +463,14 @@ static cJSON *detach_path(cJSON *object, const unsigned char *path, const cJSON_
     }
     else if (cJSON_IsObject(parent))
     {
-        detached_item = cJSON_DetachItemFromObject(parent, (char*)child_pointer);
+        if (case_sensitive)
+        {
+            detached_item = cJSON_DetachItemFromObjectCaseSensitive(parent, (char*)child_pointer);
+        }
+        else
+        {
+            detached_item = cJSON_DetachItemFromObject(parent, (char*)child_pointer);
+        }
     }
     else
     {

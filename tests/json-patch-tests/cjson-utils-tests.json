@@ -87,5 +87,23 @@
         "doc": {"foo": {"bar": 1}},
         "patch": [{"op": "add", "path": "/foo/bar/baz", "value": "5"}],
         "error": "attempting to add to subfield of non-object"
-    } 
+    },
+    {
+	"comment": "16",
+	"doc": {"Role": "user", "role": "admin"},
+	"patch": [{"op": "remove", "path": "/role"}],
+	"expected": {"Role": "user"}
+    },
+    {
+	"comment": "17",
+	"doc": {"Role": "user", "role": "admin"},
+	"patch": [{"op": "replace", "path": "/role", "value": "guest"}],
+	"expected": {"Role": "user", "role": "guest"}
+    },
+    {
+	"comment": "18",
+	"doc": {"A": 1},
+	"patch": [{"op": "remove", "path": "/a"}],
+	"error": "member names are case sensitive"
+    }
 ]
