@@ -82,10 +82,22 @@
 	"expected": {"foo": ["bar", ["abc", "def"]] }
     },
 
-    { 
-        "comment": "15",
-        "doc": {"foo": {"bar": 1}},
-        "patch": [{"op": "add", "path": "/foo/bar/baz", "value": "5"}],
-        "error": "attempting to add to subfield of non-object"
-    } 
+    {
+	"comment": "15",
+	"doc": {"foo": {"bar": 1}},
+	"patch": [{"op": "add", "path": "/foo/bar/baz", "value": "5"}],
+	"error": "attempting to add to subfield of non-object"
+    },
+    {
+	"comment": "16 (CVE-2026-29036): ~1 must decode to /, targeting key a/b",
+	"doc": {"a/b": 1, "a~b": 2},
+	"patch": [{"op": "replace", "path": "/a~1b", "value": 3}],
+	"expected": {"a/b": 3, "a~b": 2}
+    },
+    {
+	"comment": "17 (CVE-2026-29036): remove via ~1 must delete key a/b, not a~b",
+	"doc": {"a/b": 1, "a~b": 2},
+	"patch": [{"op": "remove", "path": "/a~1b"}],
+	"expected": {"a~b": 2}
+    }
 ]

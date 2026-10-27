@@ -364,17 +364,21 @@ static void decode_pointer_inplace(unsigned char *string)
         return;
     }
 
-    for (; *string; (void)decoded_string++, string++)
+    /* Compact in place: every byte is copied down (escapes collapse two
+     * bytes into one), so decoded_string never overtakes string and the
+     * final NUL always lands within the original buffer. Invalid escapes
+     * abort like before, leaving the already-decoded prefix in place. */
+    while (*string != '\0')
     {
         if (string[0] == '~')
         {
             if (string[1] == '0')
             {
-                decoded_string[0] = '~';
+                *decoded_string = '~';
             }
             else if (string[1] == '1')
             {
-                decoded_string[1] = '/';
+                *decoded_string = '/';
             }
             else
             {
@@ -382,11 +386,18 @@ static void decode_pointer_inplace(unsigned char *string)
                 return;
             }
 
+            decoded_string++;
+            string += 2;
+        }
+        else
+        {
+            *decoded_string = *string;
+            decoded_string++;
             string++;
         }
     }
 
-    decoded_string[0] = '\0';
+    *decoded_string = '\0';
 }
 
 /* non-broken cJSON_DetachItemFromArray */
