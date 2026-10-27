@@ -1035,9 +1035,17 @@ cleanup:
     return status;
 }
 
-CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches)
+/* Apply a patch array atomically: run every operation against a copy
+ * and only commit to the caller's document when all of them succeed.
+ * A failing patch must not leave earlier operations' destruction
+ * behind (CVE-2026-67217). Working from copies also keeps the loop
+ * safe when the patch array itself lives inside the patched document
+ * (applying a patch may delete it). */
+static int apply_patches(cJSON * const object, const cJSON * const patches, const cJSON_bool case_sensitive)
 {
     const cJSON *current_patch = NULL;
+    cJSON *patches_copy = NULL;
+    cJSON *work = NULL;
     int status = 0;
 
     if (!cJSON_IsArray(patches))
@@ -1046,51 +1054,50 @@ CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * co
         return 1;
     }
 
-    if (patches != NULL)
+    /* Duplicate first: either input may alias the other, and applying a
+     * patch can delete nodes out from under the iteration. */
+    patches_copy = cJSON_Duplicate(patches, 1);
+    work = cJSON_Duplicate(object, 1);
+    if ((patches_copy == NULL) || (work == NULL))
     {
-        current_patch = patches->child;
+        /* out of memory (or NULL document); nothing was modified. */
+        cJSON_Delete(patches_copy);
+        cJSON_Delete(work);
+        return 1;
     }
 
+    current_patch = patches_copy->child;
     while (current_patch != NULL)
     {
-        status = apply_patch(object, current_patch, false);
+        status = apply_patch(work, current_patch, case_sensitive);
         if (status != 0)
         {
+            cJSON_Delete(patches_copy);
+            cJSON_Delete(work);
             return status;
         }
         current_patch = current_patch->next;
     }
+
+    /* All operations succeeded: commit the copy over the original,
+     * keeping the caller's pointer stable. */
+    work->next = object->next;
+    work->prev = object->prev;
+    overwrite_item(object, *work);
+    cJSON_free(work);
+    cJSON_Delete(patches_copy);
 
     return 0;
 }
 
+CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches)
+{
+    return apply_patches(object, patches, false);
+}
+
 CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, const cJSON * const patches)
 {
-    const cJSON *current_patch = NULL;
-    int status = 0;
-
-    if (!cJSON_IsArray(patches))
-    {
-        /* malformed patches. */
-        return 1;
-    }
-
-    if (patches != NULL)
-    {
-        current_patch = patches->child;
-    }
-
-    while (current_patch != NULL)
-    {
-        status = apply_patch(object, current_patch, true);
-        if (status != 0)
-        {
-            return status;
-        }
-        current_patch = current_patch->next;
-    }
-
-    return 0;
+    return apply_patches(object, patches, true);
 }
 
 static void compose_patch(cJSON * const patches, const unsigned char * const operation, const unsigned char * const path, const unsigned char *suffix, const cJSON * const value)

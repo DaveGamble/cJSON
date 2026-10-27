@@ -44,26 +44,9 @@ CJSON_PUBLIC(void) cJSONUtils_AddPatchToArray(cJSON * const array, const char * 
 CJSON_PUBLIC(int) cJSONUtils_ApplyPatches(cJSON * const object, const cJSON * const patches);
 CJSON_PUBLIC(int) cJSONUtils_ApplyPatchesCaseSensitive(cJSON * const object, const cJSON * const patches);
 
-/*
-// Note that ApplyPatches is NOT atomic on failure. To implement an atomic ApplyPatches, use:
-//int cJSONUtils_AtomicApplyPatches(cJSON **object, cJSON *patches)
-//{
-//    cJSON *modme = cJSON_Duplicate(*object, 1);
-//    int error = cJSONUtils_ApplyPatches(modme, patches);
-//    if (!error)
-//    {
-//        cJSON_Delete(*object);
-//        *object = modme;
-//    }
-//    else
-//    {
-//        cJSON_Delete(modme);
-//    }
-//
-//    return error;
-//}
-// Code not added to library since this strategy is a LOT slower.
-*/
+/* cJSONUtils_ApplyPatches and cJSONUtils_ApplyPatchesCaseSensitive are
+ * atomic: either all of the patches are applied, or the object is left
+ * unchanged. */
 
 /* Implement RFC7386 (https://tools.ietf.org/html/rfc7396) JSON Merge Patch spec. */
 /* target will be modified by patch. return value is new ptr for target. */
