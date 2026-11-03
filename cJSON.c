@@ -415,7 +415,11 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
         return (double)NAN;
     }
 
-    if (number >= INT_MAX)
+    if (isnan(number))
+    {
+        object->valueint = 0;
+    }
+    else if (number >= INT_MAX)
     {
         object->valueint = INT_MAX;
     }
@@ -2511,7 +2515,11 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
         item->valuedouble = num;
 
         /* use saturation in case of overflow */
-        if (num >= INT_MAX)
+        if (isnan(num))
+        {
+            item->valueint = 0;
+        }
+        else if (num >= INT_MAX)
         {
             item->valueint = INT_MAX;
         }
