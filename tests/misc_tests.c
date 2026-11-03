@@ -256,6 +256,10 @@ static void cjson_set_number_value_should_set_numbers(void)
     cJSON_SetNumberValue(number, -1 + (double)INT_MIN);
     TEST_ASSERT_EQUAL(INT_MIN, number->valueint);
     TEST_ASSERT_EQUAL_DOUBLE(-1 + (double)INT_MIN, number->valuedouble);
+
+    cJSON_SetNumberValue(number, NAN);
+    TEST_ASSERT_EQUAL(0, number->valueint);
+    TEST_ASSERT_DOUBLE_IS_NAN(number->valuedouble);
 }
 
 static void cjson_detach_item_via_pointer_should_detach_items(void)
@@ -564,11 +568,16 @@ static void cjson_get_number_value_should_get_a_number(void)
 {
     cJSON *string = cJSON_CreateString("test");
     cJSON *number = cJSON_CreateNumber(1);
+    cJSON *nan_number = cJSON_CreateNumber(NAN);
 
     TEST_ASSERT_EQUAL_DOUBLE(cJSON_GetNumberValue(number), number->valuedouble);
     TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetNumberValue(string));
     TEST_ASSERT_DOUBLE_IS_NAN(cJSON_GetNumberValue(NULL));
+    TEST_ASSERT_NOT_NULL(nan_number);
+    TEST_ASSERT_EQUAL(0, nan_number->valueint);
+    TEST_ASSERT_DOUBLE_IS_NAN(nan_number->valuedouble);
 
+    cJSON_Delete(nan_number);
     cJSON_Delete(number);
     cJSON_Delete(string);
 }
