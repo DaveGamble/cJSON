@@ -12,7 +12,15 @@ $CXX $CXXFLAGS $SRC/cjson/fuzzing/cjson_read_fuzzer.c -I. \
     -o $OUT/cjson_read_fuzzer \
     $LIB_FUZZING_ENGINE $SRC/cjson/build/libcjson.a
 
+$CXX $CXXFLAGS $SRC/cjson/fuzzing/cjson_builder_fuzzer.c -I. \
+    -o $OUT/cjson_builder_fuzzer \
+    $LIB_FUZZING_ENGINE $SRC/cjson/build/libcjson.a
+
 find $SRC/cjson/fuzzing/inputs -name "*" | \
      xargs zip $OUT/cjson_read_fuzzer_seed_corpus.zip
 
+find $SRC/cjson/fuzzing/inputs_builder -name "*" | \
+     xargs zip $OUT/cjson_builder_fuzzer_seed_corpus.zip
+
 cp $SRC/cjson/fuzzing/json.dict $OUT/cjson_read_fuzzer.dict
+cp $SRC/cjson/fuzzing/json_builder.dict $OUT/cjson_builder_fuzzer.dict
