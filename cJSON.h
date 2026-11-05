@@ -143,6 +143,17 @@ typedef int cJSON_bool;
 #define CJSON_CIRCULAR_LIMIT 10000
 #endif
 
+/* Limits the size in bytes of the internal buffer that cJSON_Print,
+ * cJSON_PrintUnformatted and cJSON_PrintBuffered may grow while printing; if more
+ * is needed they return NULL. The printed output, including its terminating NUL,
+ * never exceeds this size.
+ * Escaping can make the output several times larger than the input
+ * (each control character becomes a 6-byte \uXXXX sequence).
+ * 0 means no limit. cJSON_PrintPreallocated is bounded by its caller's buffer. */
+#ifndef CJSON_PRINT_LIMIT
+#define CJSON_PRINT_LIMIT 0
+#endif
+
 /* returns the version of cJSON as a string */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 

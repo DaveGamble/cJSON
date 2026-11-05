@@ -510,6 +510,13 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
     }
 
     needed += p->offset + 1;
+#if CJSON_PRINT_LIMIT > 0
+    if (!p->noalloc && (needed > (size_t)CJSON_PRINT_LIMIT))
+    {
+        /* the output would exceed the configured print limit */
+        return NULL;
+    }
+#endif
     if (needed <= p->length)
     {
         return p->buffer + p->offset;
@@ -536,6 +543,13 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
     {
         newsize = needed * 2;
     }
+#if CJSON_PRINT_LIMIT > 0
+    if (newsize > (size_t)CJSON_PRINT_LIMIT)
+    {
+        /* needed <= CJSON_PRINT_LIMIT here, so the buffer is still large enough */
+        newsize = (size_t)CJSON_PRINT_LIMIT;
+    }
+#endif
 
     if (p->hooks.reallocate != NULL)
     {
