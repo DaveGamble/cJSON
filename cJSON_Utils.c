@@ -788,15 +788,16 @@ static void overwrite_item(cJSON * const root, const cJSON replacement)
         return;
     }
 
-    if (root->string != NULL)
+    /* only free what root owns, mirroring cJSON_Delete */
+    if (!(root->type & cJSON_StringIsConst) && (root->string != NULL))
     {
         cJSON_free(root->string);
     }
-    if (root->valuestring != NULL)
+    if (!(root->type & cJSON_IsReference) && (root->valuestring != NULL))
     {
         cJSON_free(root->valuestring);
     }
-    if (root->child != NULL)
+    if (!(root->type & cJSON_IsReference) && (root->child != NULL))
     {
         cJSON_Delete(root->child);
     }
@@ -875,8 +876,12 @@ static int apply_patch(cJSON *object, const cJSON *patch, const cJSON_bool case_
             /* the string "value" isn't needed */
             if (object->string != NULL)
             {
-                cJSON_free(object->string);
+                if (!(object->type & cJSON_StringIsConst))
+                {
+                    cJSON_free(object->string);
+                }
                 object->string = NULL;
+                object->type &= ~cJSON_StringIsConst;
             }
 
             status = 0;
