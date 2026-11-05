@@ -52,6 +52,7 @@ if(ENABLE_CJSON_TEST)
         print_array
         print_object
         print_value
+        print_limit
         misc_tests
         parse_with_opts
         compare_tests
