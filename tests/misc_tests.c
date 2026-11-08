@@ -523,6 +523,51 @@ static void ensure_should_fail_on_failed_realloc(void)
     TEST_ASSERT_NULL_MESSAGE(ensure(&buffer, 200), "Ensure didn't fail with failing realloc.");
 }
 
+static unsigned char sentinel = 'X';
+
+static void *CJSON_CDECL zeroing_malloc(size_t size)
+{
+    return calloc(1, (size > 0) ? size : 1);
+}
+
+static void CJSON_CDECL sentinel_free(void *pointer)
+{
+    if (pointer != &sentinel)
+    {
+        free(pointer);
+    }
+}
+
+static void ensure_should_not_copy_from_zero_length_buffer(void)
+{
+    printbuffer buffer = {NULL, 0, 0, 0, false, false, {zeroing_malloc, sentinel_free, NULL}};
+    buffer.buffer = &sentinel;
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(ensure(&buffer, 16), "Failed to grow a zero length buffer.");
+    TEST_ASSERT_EQUAL_UINT8(0, buffer.buffer[0]);
+
+    free(buffer.buffer);
+}
+
+static void print_buffered_should_print_with_zero_prebuffer_and_custom_hooks(void)
+{
+    cJSON_Hooks hooks = {zeroing_malloc, sentinel_free};
+    cJSON *item = NULL;
+    char *printed = NULL;
+
+    /* hooks that aren't the libc pair leave reallocate unset */
+    cJSON_InitHooks(&hooks);
+
+    item = cJSON_CreateNumber(42);
+    printed = cJSON_PrintBuffered(item, 0, false);
+    TEST_ASSERT_NOT_NULL_MESSAGE(printed, "Failed to print with a zero prebuffer.");
+    TEST_ASSERT_EQUAL_STRING("42", printed);
+
+    cJSON_free(printed);
+    cJSON_Delete(item);
+    cJSON_InitHooks(NULL);
+}
+
 static void skip_utf8_bom_should_skip_bom(void)
 {
     const unsigned char string[] = "\xEF\xBB\xBF{}";
@@ -820,6 +865,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_functions_should_not_crash_with_null_pointers);
     RUN_TEST(cjson_set_valuestring_should_return_null_if_strings_overlap);
     RUN_TEST(ensure_should_fail_on_failed_realloc);
+    RUN_TEST(ensure_should_not_copy_from_zero_length_buffer);
+    RUN_TEST(print_buffered_should_print_with_zero_prebuffer_and_custom_hooks);
     RUN_TEST(skip_utf8_bom_should_skip_bom);
     RUN_TEST(skip_utf8_bom_should_not_skip_bom_if_not_at_beginning);
     RUN_TEST(cjson_get_string_value_should_get_a_string);
