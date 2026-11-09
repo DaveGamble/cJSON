@@ -119,6 +119,21 @@ static void parse_string_should_parse_bug_94(void)
     reset(item);
 }
 
+static void parse_string_should_reject_invalid_unicode_escape(void)
+{
+    cJSON *item = NULL;
+
+    /* invalid hex digits in the first \uXXXX must be rejected */
+    item = cJSON_Parse("\"\\uGGGG\"");
+    TEST_ASSERT_NULL_MESSAGE(item, "Invalid \\uXXXX (first half) must be rejected.");
+    cJSON_Delete(item);
+
+    /* invalid hex digits in the second half of a surrogate pair must be rejected */
+    item = cJSON_Parse("\"\\uD834\\uXXXX\"");
+    TEST_ASSERT_NULL_MESSAGE(item, "Invalid \\uXXXX (second half of surrogate) must be rejected.");
+    cJSON_Delete(item);
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item and error pointer */
@@ -131,5 +146,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_string_should_not_parse_invalid_backslash);
     RUN_TEST(parse_string_should_parse_bug_94);
     RUN_TEST(parse_string_should_not_overflow_with_closing_backslash);
+    RUN_TEST(parse_string_should_reject_invalid_unicode_escape);
     return UNITY_END();
 }

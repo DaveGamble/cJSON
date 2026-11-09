@@ -33,35 +33,54 @@ static void parse_hex4_should_parse_all_combinations(void)
     unsigned int number = 0;
     unsigned char digits_lower[6];
     unsigned char digits_upper[6];
+    int ok = 0;
     /* test all combinations */
     for (number = 0; number <= 0xFFFF; number++)
     {
         TEST_ASSERT_EQUAL_INT_MESSAGE(4, sprintf((char*)digits_lower, "%.4x", number), "sprintf failed.");
         TEST_ASSERT_EQUAL_INT_MESSAGE(4, sprintf((char*)digits_upper, "%.4X", number), "sprintf failed.");
 
-        TEST_ASSERT_EQUAL_INT_MESSAGE(number, parse_hex4(digits_lower), "Failed to parse lowercase digits.");
-        TEST_ASSERT_EQUAL_INT_MESSAGE(number, parse_hex4(digits_upper), "Failed to parse uppercase digits.");
+        ok = 0;
+        TEST_ASSERT_EQUAL_INT_MESSAGE(number, parse_hex4(digits_lower, &ok), "Failed to parse lowercase digits.");
+        TEST_ASSERT_EQUAL_INT_MESSAGE(1, ok, "parse_hex4 reported failure on valid lowercase digits.");
+        ok = 0;
+        TEST_ASSERT_EQUAL_INT_MESSAGE(number, parse_hex4(digits_upper, &ok), "Failed to parse uppercase digits.");
+        TEST_ASSERT_EQUAL_INT_MESSAGE(1, ok, "parse_hex4 reported failure on valid uppercase digits.");
     }
 }
 
 static void parse_hex4_should_parse_mixed_case(void)
 {
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beef"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beeF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beEf"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beEF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEef"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEeF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEEf"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEEF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"Beef"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BeeF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BeEf"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BeEF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEef"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEeF"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEEf"));
-    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEEF"));
+    int ok = 0;
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beef", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beeF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beEf", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"beEF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEef", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEeF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEEf", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"bEEF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"Beef", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BeeF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BeEf", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BeEF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEef", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEeF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEEf", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+    TEST_ASSERT_EQUAL_INT(0xBEEF, parse_hex4((const unsigned char*)"BEEF", &ok)); TEST_ASSERT_EQUAL_INT(1, ok);
+}
+
+static void parse_hex4_should_reject_invalid_digits(void)
+{
+    int ok = 0;
+    TEST_ASSERT_EQUAL_INT(0, parse_hex4((const unsigned char*)"GGGG", &ok));
+    TEST_ASSERT_EQUAL_INT(0, ok);
+    ok = 0;
+    TEST_ASSERT_EQUAL_INT(0, parse_hex4((const unsigned char*)"0G12", &ok));
+    TEST_ASSERT_EQUAL_INT(0, ok);
+    ok = 0;
+    TEST_ASSERT_EQUAL_INT(0, parse_hex4((const unsigned char*)"----", &ok));
+    TEST_ASSERT_EQUAL_INT(0, ok);
 }
 
 int CJSON_CDECL main(void)
@@ -69,5 +88,6 @@ int CJSON_CDECL main(void)
     UNITY_BEGIN();
     RUN_TEST(parse_hex4_should_parse_all_combinations);
     RUN_TEST(parse_hex4_should_parse_mixed_case);
+    RUN_TEST(parse_hex4_should_reject_invalid_digits);
     return UNITY_END();
 }

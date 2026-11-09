@@ -662,11 +662,19 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     return true;
 }
 
-/* parse 4 digit hexadecimal number */
-static unsigned parse_hex4(const unsigned char * const input)
+/* parse 4 digit hexadecimal number
+ * On success, *ok (if not NULL) is set to 1 and the codepoint is returned.
+ * On invalid input, *ok is set to 0 and 0 is returned (so that a valid
+ * U+0000 can be distinguished from an invalid sequence). */
+static unsigned parse_hex4(const unsigned char * const input, int *ok)
 {
     unsigned int h = 0;
     size_t i = 0;
+
+    if (ok != NULL)
+    {
+        *ok = 1;
+    }
 
     for (i = 0; i < 4; i++)
     {
@@ -685,6 +693,10 @@ static unsigned parse_hex4(const unsigned char * const input)
         }
         else /* invalid */
         {
+            if (ok != NULL)
+            {
+                *ok = 0;
+            }
             return 0;
         }
 
@@ -709,6 +721,7 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     unsigned char utf8_position = 0;
     unsigned char sequence_length = 0;
     unsigned char first_byte_mark = 0;
+    int ok = 1;
 
     if ((input_end - first_sequence) < 6)
     {
@@ -717,7 +730,12 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     }
 
     /* get the first utf16 sequence */
-    first_code = parse_hex4(first_sequence + 2);
+    first_code = parse_hex4(first_sequence + 2, &ok);
+    if (!ok)
+    {
+        /* invalid hex digits in the first \uXXXX sequence */
+        goto fail;
+    }
 
     /* check that the code is valid */
     if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)))
@@ -745,7 +763,12 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
         }
 
         /* get the second utf16 sequence */
-        second_code = parse_hex4(second_sequence + 2);
+        second_code = parse_hex4(second_sequence + 2, &ok);
+        if (!ok)
+        {
+            /* invalid hex digits in the second \uXXXX sequence */
+            goto fail;
+        }
         /* check that the code is valid */
         if ((second_code < 0xDC00) || (second_code > 0xDFFF))
         {
