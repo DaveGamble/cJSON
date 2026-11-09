@@ -431,6 +431,35 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
     return object->valuedouble = number;
 }
 
+/* Returns true if the strings a and b share at least one byte (terminators included).
+ * Only pointer equality is used: relational comparison (<, >) of pointers into
+ * different objects is undefined behavior. */
+
+static cJSON_bool strings_overlap(const char *first_string, size_t first_string_length, const char *second_string, size_t second_string_length)
+{
+    size_t offset = 0;
+
+    /* does a start at one of the bytes of b? */
+    for (offset = 0; offset <= second_string_length; offset++)
+    {
+        if (first_string == second_string + offset)
+        {
+            return true;
+        }
+    }
+
+    /* does b start at one of the bytes of a? */
+    for (offset = 0; offset <= first_string_length; offset++)
+    {
+        if (second_string == first_string + offset)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /* Note: when passing a NULL valuestring, cJSON_SetValuestring treats this as an error and return NULL */
 CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 {
@@ -453,8 +482,8 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 
     if (v1_len <= v2_len)
     {
-        /* strcpy does not handle overlapping string: [X1, X2] [Y1, Y2] => X2 < Y1 or Y2 < X1 */
-        if (!( valuestring + v1_len < object->valuestring || object->valuestring + v2_len < valuestring ))
+        /* strcpy does not handle overlapping strings */
+        if (strings_overlap(valuestring, v1_len, object->valuestring, v2_len))
         {
             return NULL;
         }
