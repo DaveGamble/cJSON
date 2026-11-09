@@ -435,23 +435,23 @@ CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
  * Only pointer equality is used: relational comparison (<, >) of pointers into
  * different objects is undefined behavior. */
 
-static cJSON_bool strings_overlap(const char *a, size_t a_len, const char *b, size_t b_len)
+static cJSON_bool strings_overlap(const char *first_string, size_t first_string_length, const char *second_string, size_t second_string_length)
 {
-    size_t i = 0;
+    size_t offset = 0;
 
     /* does a start at one of the bytes of b? */
-    for (i = 0; i <= b_len; i++)
+    for (offset = 0; offset <= second_string_length; offset++)
     {
-        if (a == b + i)
+        if (first_string == second_string + offset)
         {
             return true;
         }
     }
 
     /* does b start at one of the bytes of a? */
-    for (i = 0; i <= a_len; i++)
+    for (offset = 0; offset <= first_string_length; offset++)
     {
-        if (b == a + i)
+        if (second_string == first_string + offset)
         {
             return true;
         }
