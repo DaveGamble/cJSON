@@ -375,7 +375,12 @@ loop_end:
         }
     }
 
-    number = strtod((const char*)number_c_string, (char**)&after_end);
+    /* Use a char* temporary for strtod's end pointer. Passing
+     * (char**)&after_end would violate strict aliasing rules (UB),
+     * because after_end is an unsigned char*. */
+    char *strtod_end = NULL;
+    number = strtod((const char*)number_c_string, &strtod_end);
+    after_end = (unsigned char*)strtod_end;
     if (number_c_string == after_end)
     {
         /* free the temporary buffer */
