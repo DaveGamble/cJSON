@@ -549,6 +549,8 @@ cJSON doesn't support strings that contain the zero character `'\0'` or `\u0000`
 
 cJSON only supports UTF-8 encoded input. In most cases it doesn't reject invalid UTF-8 as input though, it just propagates it through as is. As long as the input doesn't contain invalid UTF-8, the output will always be valid UTF-8.
 
+cJSON also does not validate or reject unescaped control characters (bytes with a value below `0x20`, such as tab or newline) inside strings. Per the JSON specification these must be escaped (e.g. `\u0009` or `\u000A`), but cJSON copies them through verbatim for leniency. If you require strict rejection of unescaped control characters, you must validate the input yourself, either before parsing or by walking the resulting tree after parsing.
+
 #### C Standard
 
 cJSON is written in ANSI C (or C89, C90). If your compiler or C library doesn't follow this standard, correct behavior is not guaranteed.
