@@ -150,7 +150,10 @@ CJSON_PUBLIC(const char*) cJSON_Version(void);
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
 
 /* Memory Management: the caller is always responsible to free the results from all variants of cJSON_Parse (with cJSON_Delete) and cJSON_Print (with stdlib free, cJSON_Hooks.free_fn, or cJSON_free as appropriate). The exception is cJSON_PrintPreallocated, where the caller has full responsibility of the buffer. */
-/* Supply a block of JSON, and this returns a cJSON object you can interrogate. */
+/* Supply a block of JSON, and this returns a cJSON object you can interrogate.
+ * Note: cJSON does not validate UTF-8 and does not reject unescaped control
+ * characters (bytes < 0x20) inside strings; such bytes are copied through
+ * verbatim. See the "Character Encoding" section in the README. */
 CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value);
 CJSON_PUBLIC(cJSON *) cJSON_ParseWithLength(const char *value, size_t buffer_length);
 /* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
