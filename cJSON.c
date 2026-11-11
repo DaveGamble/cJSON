@@ -304,6 +304,49 @@ typedef struct
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
 /* Parse the input text to generate a number, and populate the result into item. */
+/* Check whether a NUL-terminated string forms a valid JSON number, as defined
+ * by RFC 8259:
+ *   number = [minus] int [frac] [exp]
+ *   int    = "0" / (digit1-9 *digit)
+ *   frac   = "." 1*digit
+ *   exp    = ("e" / "E") ["+" / "-"] 1*digit
+ * This rejects lenient-but-non-conformant inputs such as "+1", "1.", "0123",
+ * "-" or "1e+". Returns 1 if valid, 0 otherwise. */
+static int is_valid_json_number(const char *num)
+{
+    const char *p = num;
+
+    if (*p == '-') p++;                         /* optional minus */
+    if ((*p < '0') || (*p > '9')) return 0;    /* must start with a digit */
+
+    if (*p == '0')
+    {
+        p++;
+        if ((*p >= '0') && (*p <= '9')) return 0;  /* no leading zeros */
+    }
+    else
+    {
+        while ((*p >= '0') && (*p <= '9')) p++;
+    }
+
+    if (*p == '.')
+    {
+        p++;
+        if ((*p < '0') || (*p > '9')) return 0;     /* need a digit after '.' */
+        while ((*p >= '0') && (*p <= '9')) p++;
+    }
+
+    if ((*p == 'e') || (*p == 'E'))
+    {
+        p++;
+        if ((*p == '+') || (*p == '-')) p++;
+        if ((*p < '0') || (*p > '9')) return 0;     /* need a digit in exponent */
+        while ((*p >= '0') && (*p <= '9')) p++;
+    }
+
+    return (*p == '\0') ? 1 : 0;                 /* no trailing characters */
+}
+
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
@@ -362,6 +405,15 @@ loop_end:
 
     memcpy(number_c_string, buffer_at_offset(input_buffer), number_string_length);
     number_c_string[number_string_length] = '\0';
+
+    /* Reject numbers that do not conform to the JSON grammar. Historically
+     * cJSON accepted inputs such as "+1", "1.", "0123" or "-" which are not
+     * valid JSON numbers. */
+    if (!is_valid_json_number((const char*)number_c_string))
+    {
+        input_buffer->hooks.deallocate(number_c_string);
+        return false;
+    }
 
     if (has_decimal_point)
     {

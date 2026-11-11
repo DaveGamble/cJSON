@@ -115,6 +115,29 @@ static void parse_number_should_parse_big_numbers(void)
     assert_parse_big_number("999999999999999999999999999999999999999999999991234567890.1234567");
 }
 
+static void assert_parse_number_fails(const char *string)
+{
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+    buffer.content = (const unsigned char*)string;
+    buffer.length = strlen(string) + sizeof("");
+    buffer.hooks = global_hooks;
+
+    TEST_ASSERT_FALSE_MESSAGE(parse_number(item, &buffer), "Non-conformant number must be rejected.");
+}
+
+static void parse_number_should_reject_invalid_numbers(void)
+{
+    assert_parse_number_fails("+1");      /* leading plus is not allowed */
+    assert_parse_number_fails("1.");      /* fraction with no digits */
+    assert_parse_number_fails("0123");    /* leading zeros are not allowed */
+    assert_parse_number_fails("-");       /* minus with no digits */
+    assert_parse_number_fails("1e");      /* exponent with no digits */
+    assert_parse_number_fails("1e+");     /* exponent sign with no digits */
+    assert_parse_number_fails(".5");      /* missing integer part */
+    assert_parse_number_fails("1.2.3");   /* multiple decimal points */
+    assert_parse_number_fails("");        /* empty */
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item */
@@ -126,5 +149,6 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_number_should_parse_positive_reals);
     RUN_TEST(parse_number_should_parse_negative_reals);
     RUN_TEST(parse_number_should_parse_big_numbers);
+    RUN_TEST(parse_number_should_reject_invalid_numbers);
     return UNITY_END();
 }
