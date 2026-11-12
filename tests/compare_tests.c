@@ -189,6 +189,59 @@ static void cjson_compare_should_compare_objects(void)
                 false))
 }
 
+static cJSON *build_nested_array(size_t depth)
+{
+    cJSON *root = cJSON_CreateArray();
+    cJSON *current = root;
+    size_t i = 0;
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(root, "Failed to create root array.");
+
+    for (i = 0; i < depth; i++)
+    {
+        cJSON *child = cJSON_CreateArray();
+        TEST_ASSERT_NOT_NULL_MESSAGE(child, "Failed to create nested array.");
+        cJSON_AddItemToArray(current, child);
+        current = child;
+    }
+
+    return root;
+}
+
+static void cjson_compare_should_compare_deeply_nested_arrays(void)
+{
+    cJSON *a = NULL;
+    cJSON *b = NULL;
+
+    /* CJSON_NESTING_LIMIT is the deepest nesting the parser accepts, so this is
+     * the deepest tree a caller can obtain from JSON text. It still has to
+     * compare equal, otherwise the guard would change behaviour for valid
+     * input. */
+    a = build_nested_array(CJSON_NESTING_LIMIT);
+    b = build_nested_array(CJSON_NESTING_LIMIT);
+
+    TEST_ASSERT_TRUE(cJSON_Compare(a, b, true));
+
+    cJSON_Delete(a);
+    cJSON_Delete(b);
+}
+
+static void cjson_compare_should_not_recurse_past_nesting_limit(void)
+{
+    cJSON *a = NULL;
+    cJSON *b = NULL;
+
+    /* deeper than anything the parser can produce: reported as unequal instead
+     * of recursing until the stack is exhausted */
+    a = build_nested_array(CJSON_NESTING_LIMIT + 100);
+    b = build_nested_array(CJSON_NESTING_LIMIT + 100);
+
+    TEST_ASSERT_FALSE(cJSON_Compare(a, b, true));
+
+    cJSON_Delete(a);
+    cJSON_Delete(b);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -203,6 +256,8 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_compare_should_compare_raw);
     RUN_TEST(cjson_compare_should_compare_arrays);
     RUN_TEST(cjson_compare_should_compare_objects);
+    RUN_TEST(cjson_compare_should_compare_deeply_nested_arrays);
+    RUN_TEST(cjson_compare_should_not_recurse_past_nesting_limit);
 
     return UNITY_END();
 }
