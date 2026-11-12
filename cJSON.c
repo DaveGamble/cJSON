@@ -3069,7 +3069,14 @@ CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item)
     return (item->type & 0xFF) == cJSON_Raw;
 }
 
+static cJSON_bool compare_rec(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive, size_t depth);
+
 CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive)
+{
+    return compare_rec(a, b, case_sensitive, 0);
+}
+
+static cJSON_bool compare_rec(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive, size_t depth)
 {
     if ((a == NULL) || (b == NULL) || ((a->type & 0xFF) != (b->type & 0xFF)))
     {
@@ -3132,9 +3139,14 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
             cJSON *a_element = a->child;
             cJSON *b_element = b->child;
 
+            if (depth > CJSON_NESTING_LIMIT)
+            {
+                return false;
+            }
+
             for (; (a_element != NULL) && (b_element != NULL);)
             {
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                if (!compare_rec(a_element, b_element, case_sensitive, depth + 1))
                 {
                     return false;
                 }
@@ -3155,6 +3167,12 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
         {
             cJSON *a_element = NULL;
             cJSON *b_element = NULL;
+
+            if (depth > CJSON_NESTING_LIMIT)
+            {
+                return false;
+            }
+
             cJSON_ArrayForEach(a_element, a)
             {
                 /* TODO This has O(n^2) runtime, which is horrible! */
@@ -3164,7 +3182,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
                     return false;
                 }
 
-                if (!cJSON_Compare(a_element, b_element, case_sensitive))
+                if (!compare_rec(a_element, b_element, case_sensitive, depth + 1))
                 {
                     return false;
                 }
@@ -3180,7 +3198,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * cons
                     return false;
                 }
 
-                if (!cJSON_Compare(b_element, a_element, case_sensitive))
+                if (!compare_rec(b_element, a_element, case_sensitive, depth + 1))
                 {
                     return false;
                 }
