@@ -97,6 +97,28 @@ static void parse_with_opts_should_parse_utf8_bom(void)
     cJSON_Delete(without_bom);
 }
 
+/* Documents the known parse -> print limitation for strings that contain an
+ * embedded NUL byte (issue D from the static review): cJSON stores strings as
+ * NUL-terminated C strings without an explicit length, so cJSON_Print truncates
+ * at the first NUL instead of round-tripping the value. */
+static void parse_with_opts_should_truncate_embedded_null_on_print(void)
+{
+    const char input[] = "\"a\\u0000b\""; /* JSON text: "a\u0000b" */
+    cJSON *item = cJSON_ParseWithLength(input, sizeof(input) - 1);
+    char *printed = NULL;
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(item, "Failed to parse string with embedded NUL.");
+    TEST_ASSERT_TRUE(cJSON_IsString(item));
+
+    printed = cJSON_PrintUnformatted(item);
+    TEST_ASSERT_NOT_NULL(printed);
+    /* strlen-based printing stops at the embedded NUL: only "a" survives */
+    TEST_ASSERT_EQUAL_STRING("\"a\"", printed);
+
+    free(printed);
+    cJSON_Delete(item);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -107,6 +129,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(parse_with_opts_should_require_null_if_requested);
     RUN_TEST(parse_with_opts_should_return_parse_end);
     RUN_TEST(parse_with_opts_should_parse_utf8_bom);
+    RUN_TEST(parse_with_opts_should_truncate_embedded_null_on_print);
 
     return UNITY_END();
 }

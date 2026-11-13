@@ -305,6 +305,8 @@ If you want more options, use `cJSON_ParseWithOpts(const char *value, const char
 
 If you want more options giving buffer length, use `cJSON_ParseWithLengthOpts(const char *value, size_t buffer_length, const char **return_parse_end, cJSON_bool require_null_terminated)`.
 
+**Note on embedded NUL bytes:** `cJSON_ParseWithLength` (and `cJSON_ParseWithLengthOpts`) can parse JSON whose strings contain embedded NUL bytes, for example a string created from the input `"a\u0000b"`. However, cJSON stores every string as a NUL-terminated C string (`valuestring`) **without** keeping an explicit length. As a result, the embedded NUL is dropped when the value is later serialized: `cJSON_Print` / `cJSON_PrintUnformatted` rely on `strlen`, so they truncate the string at the first NUL. In other words, parse → print is **not** guaranteed to round-trip for strings containing embedded NUL bytes. If you need to preserve such data, decode the `\u0000` yourself or store the binary content encoded (e.g. base64) in the JSON.
+
 ### Printing JSON
 
 Given a tree of `cJSON` items, you can print them as a string using `cJSON_Print`.
