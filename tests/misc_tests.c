@@ -799,6 +799,21 @@ static void cjson_parse_big_numbers_should_not_report_error(void)
     cJSON_Delete(valid_big_number_json_object2);
 }
 
+static void cjson_version_should_return_reused_static_buffer(void)
+{
+    /* cJSON_Version returns a pointer to an internal static buffer that is
+     * overwritten on every call. The pointer is only valid until the next call
+     * to cJSON_Version and must not be shared between threads. This captures
+     * the documented non-reentrant contract (see issue E in the static review). */
+    const char *first = cJSON_Version();
+    const char *second = cJSON_Version();
+
+    TEST_ASSERT_NOT_NULL(first);
+    TEST_ASSERT_NOT_NULL(second);
+    /* both calls return the same static buffer */
+    TEST_ASSERT_EQUAL_PTR(first, second);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
@@ -833,6 +848,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
     RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
+    RUN_TEST(cjson_version_should_return_reused_static_buffer);
 
     return UNITY_END();
 }

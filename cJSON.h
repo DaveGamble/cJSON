@@ -143,7 +143,11 @@ typedef int cJSON_bool;
 #define CJSON_CIRCULAR_LIMIT 10000
 #endif
 
-/* returns the version of cJSON as a string */
+/* returns the version of cJSON as a string.
+ * NOTE: the returned pointer references an internal static buffer that is
+ * overwritten on every call. The pointer is only valid until the next call to
+ * cJSON_Version, and the function is not thread safe, so do not share the
+ * returned pointer between threads. Copy the string if you need to keep it. */
 CJSON_PUBLIC(const char*) cJSON_Version(void);
 
 /* Supply malloc, realloc and free functions to cJSON */
