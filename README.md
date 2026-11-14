@@ -573,6 +573,7 @@ However it is thread safe under the following conditions:
 
 * `cJSON_GetErrorPtr` is never used (the `return_parse_end` parameter of `cJSON_ParseWithOpts` can be used instead)
 * `cJSON_InitHooks` is only ever called before using cJSON in any threads.
+* `cJSON_Version` is not called concurrently from multiple threads. Note that `cJSON_Version` returns a pointer to an internal buffer that is overwritten on every call, so the returned pointer is only valid until the next call to `cJSON_Version` and must not be shared between threads (copy the string if you need to keep it).
 * `setlocale` is never called before all calls to cJSON functions have returned.
 
 #### Case Sensitivity
