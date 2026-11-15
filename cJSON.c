@@ -748,6 +748,13 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
         {
             goto fail; /* allocation failure */
         }
+        if (skipped_bytes == 0)
+        {
+            size_t string_length = (size_t)(input_end - input_pointer);
+            memcpy(output, input_pointer, string_length);
+            output_pointer = output + string_length;
+            goto success;
+        }
     }
 
     output_pointer = output;
@@ -807,6 +814,7 @@ static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_bu
         }
     }
 
+success:
     /* zero terminate the output */
     *output_pointer = '\0';
 
