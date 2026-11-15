@@ -119,6 +119,42 @@ static void parse_string_should_parse_bug_94(void)
     reset(item);
 }
 
+static void parse_string_should_copy_bounded_unescaped_strings(void)
+{
+    unsigned char json[258];
+    size_t length = 0;
+    parse_buffer buffer = { 0, 0, 0, 0, { 0, 0, 0 } };
+
+    /* No input terminator: the closing quote is the last readable byte. */
+    for (length = 0; length <= 256; length++)
+    {
+        memset(json, 'x', sizeof(json));
+        json[0] = '\"';
+        json[length + 1] = '\"';
+        buffer.content = json;
+        buffer.length = length + 2;
+        buffer.offset = 0;
+        buffer.hooks = global_hooks;
+
+        TEST_ASSERT_TRUE(parse_string(item, &buffer));
+        assert_is_string(item);
+        TEST_ASSERT_EQUAL_INT(0, memcmp(item->valuestring, json + 1, length));
+        TEST_ASSERT_EQUAL_INT(0, item->valuestring[length]);
+        TEST_ASSERT_EQUAL_UINT((unsigned int)(length + 2), (unsigned int)buffer.offset);
+        reset(item);
+
+        /* The same bytes must fail when the closing quote is outside length. */
+        buffer.length = length + 1;
+        buffer.offset = 0;
+        TEST_ASSERT_FALSE(parse_string(item, &buffer));
+        assert_is_invalid(item);
+        reset(item);
+    }
+
+    assert_parse_string("\"\xE2\x82\xAC\xE7\x8C\xAB\"", "\xE2\x82\xAC\xE7\x8C\xAB");
+    reset(item);
+}
+
 int main(void)
 {
     /* initialize cJSON item and error pointer */
@@ -126,6 +162,7 @@ int main(void)
 
     UNITY_BEGIN();
     RUN_TEST(parse_string_should_parse_strings);
+    RUN_TEST(parse_string_should_copy_bounded_unescaped_strings);
     RUN_TEST(parse_string_should_parse_utf16_surrogate_pairs);
     RUN_TEST(parse_string_should_not_parse_non_strings);
     RUN_TEST(parse_string_should_not_parse_invalid_backslash);
