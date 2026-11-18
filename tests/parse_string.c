@@ -119,12 +119,24 @@ static void parse_string_should_parse_bug_94(void)
     reset(item);
 }
 
+
+static void parse_string_should_reject_invalid_surrogates(void)
+{
+    assert_not_parse_string("\"\\uD800\"");
+    reset(item);
+    assert_not_parse_string("\"\\uDC00\"");
+    reset(item);
+    assert_not_parse_string("\"\\uD800\\uD800\"");
+    reset(item);
+}
+
 int CJSON_CDECL main(void)
 {
     /* initialize cJSON item and error pointer */
     memset(item, 0, sizeof(cJSON));
 
     UNITY_BEGIN();
+    RUN_TEST(parse_string_should_reject_invalid_surrogates);
     RUN_TEST(parse_string_should_parse_strings);
     RUN_TEST(parse_string_should_parse_utf16_surrogate_pairs);
     RUN_TEST(parse_string_should_not_parse_non_strings);
