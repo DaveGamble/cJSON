@@ -422,9 +422,19 @@ static void cjson_add_array_should_fail_on_allocation_failure(void)
     cJSON_Delete(root);
 }
 
+static void cjson_create_string_array_should_reject_null_element(void)
+{
+    const char *strings[] = {"first", NULL, "third"};
+    cJSON *array = cJSON_CreateStringArray(strings, 3);
+
+    TEST_ASSERT_NULL(array);
+}
+
 int CJSON_CDECL main(void)
 {
     UNITY_BEGIN();
+
+    RUN_TEST(cjson_create_string_array_should_reject_null_element);
 
     RUN_TEST(cjson_add_null_should_add_null);
     RUN_TEST(cjson_add_null_should_fail_with_null_pointers);
