@@ -231,6 +231,21 @@ static void cjson_utils_should_pass_json_patch_test_cjson_utils_tests(void)
     TEST_ASSERT_FALSE_MESSAGE(failed, "Some tests failed.");
 }
 
+static void cjson_utils_should_decode_escaped_slashes_with_suffix(void)
+{
+    cJSON *target = cJSON_Parse("{\"a/b\":1,\"a~\":2}");
+    cJSON *patch = cJSON_Parse("[{\"op\":\"remove\",\"path\":\"/a~1b\"}]");
+
+    TEST_ASSERT_NOT_NULL(target);
+    TEST_ASSERT_NOT_NULL(patch);
+    TEST_ASSERT_EQUAL_INT(0, cJSONUtils_ApplyPatchesCaseSensitive(target, patch));
+    TEST_ASSERT_NULL(cJSON_GetObjectItemCaseSensitive(target, "a/b"));
+    TEST_ASSERT_NOT_NULL(cJSON_GetObjectItemCaseSensitive(target, "a~"));
+
+    cJSON_Delete(patch);
+    cJSON_Delete(target);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -238,6 +253,7 @@ int main(void)
     RUN_TEST(cjson_utils_should_pass_json_patch_test_tests);
     RUN_TEST(cjson_utils_should_pass_json_patch_test_spec_tests);
     RUN_TEST(cjson_utils_should_pass_json_patch_test_cjson_utils_tests);
+    RUN_TEST(cjson_utils_should_decode_escaped_slashes_with_suffix);
 
     return UNITY_END();
 }
